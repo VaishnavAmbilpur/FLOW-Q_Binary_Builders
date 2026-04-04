@@ -1,15 +1,28 @@
 const axios = require("axios");
 
-const MSG91_AUTH_KEY = process.env.MSG91_AUTH_KEY;
-const MSG91_TEMPLATE_ID_CONFIRM = process.env.MSG91_TEMPLATE_ID_CONFIRM;
-const MSG91_TEMPLATE_ID_ALERT = process.env.MSG91_TEMPLATE_ID_ALERT;
-const MSG91_TEMPLATE_ID_REMINDER = process.env.MSG91_TEMPLATE_ID_REMINDER;
-
+const FAST2SMS_API_KEY = process.env.FAST2SMS_API_KEY;
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
 /**
+ * Helper to ensure we only send to a 10-digit number (stripped of +91, 0, etc.)
+ */
+function sanitizeNumber(phone) {
+    if (!phone) return "";
+    // Remove all non-digits
+    let digits = phone.replace(/\D/g, "");
+    // If it starts with 91 and is 12 digits, strip the 91
+    if (digits.length === 12 && digits.startsWith("91")) {
+        digits = digits.slice(2);
+    }
+    // If it starts with 0 and is 11 digits, strip the 0
+    if (digits.length === 11 && digits.startsWith("0")) {
+        digits = digits.slice(1);
+    }
+    return digits;
+}
+
+/**
  * Helper to push messages to Telegram API
- * We assume `chatId` might be passed in the `phone` field.
  */
 async function sendTelegramMessage(chatId, text) {
     if (!TELEGRAM_BOT_TOKEN || !chatId) return false;
@@ -28,7 +41,7 @@ async function sendTelegramMessage(chatId, text) {
 }
 
 /**
- * Send Queue Confirmation via MSG91 (or simulate if no token)
+ * Send Queue Confirmation via Fast2SMS (Quick SMS route)
  * @param {string} phone 
  * @param {string} name 
  * @param {number} position 
@@ -36,49 +49,44 @@ async function sendTelegramMessage(chatId, text) {
  * @param {string} doctorName 
  */
 async function sendQueueConfirmation(phone, name, position, trackingUrl, doctorName) {
-    const message = `Hi ${name}, you are #${position} in Dr. ${doctorName}'s queue. Track live: ${trackingUrl}`;
-    const telegramMessage = `<b>Queue Confirmation</b>\n\nHi <b>${name}</b>, you are <b>#${position}</b> in Dr. ${doctorName}'s queue.\n\n🔗 Track your status live:\n${trackingUrl}`;
+    const cleanPhone = sanitizeNumber(phone);
+    const message = `Hi ${name}, you are #${position} in Dr. ${doctorName}'s list. Track live: ${trackingUrl}`;
+    const telegramMessage = `<b>Confirmation</b>\n\nHi <b>${name}</b>, you are <b>#${position}</b> in Dr. ${doctorName}'s list.\n\n🔗 Track live:\n${trackingUrl}`;
 
-    // Try sending via Telegram if configured
     if (TELEGRAM_BOT_TOKEN) {
         await sendTelegramMessage(phone, telegramMessage);
     }
 
-    if (!MSG91_AUTH_KEY) {
-        console.log(`[SIMULATED SMS/WA] To ${phone}: ${message}`);
+    if (!FAST2SMS_API_KEY) {
+        console.log(`[SIMULATED SMS] To ${phone} (${cleanPhone}): ${message}`);
         return true;
     }
 
     try {
-        // Example MSG91 payload 
         const payload = {
-            template_id: MSG91_TEMPLATE_ID_CONFIRM || "queue_confirm",
-            short_url: "0",
-            recipients: [{
-                mobiles: phone,
-                name: name,
-                position: position,
-                doctorName: doctorName,
-                url: trackingUrl
-            }]
+            route: 'q',
+            message: message,
+            language: 'english',
+            numbers: cleanPhone,
+            flash: 0
         };
 
-        const response = await axios.post("https://control.msg91.com/api/v5/whatsapp/whatsapp-outbound-message/bulk/", payload, {
+        const response = await axios.post("https://www.fast2sms.com/dev/bulkV2", payload, {
             headers: {
-                "authkey": MSG91_AUTH_KEY,
+                "authorization": FAST2SMS_API_KEY,
                 "Content-Type": "application/json"
             }
         });
-        console.log(`[MSG91 SUCCESS] WhatsApp sent to ${phone}`, response.data);
+        console.log(`[FAST2SMS SUCCESS] Confirmation sent to ${cleanPhone}`, response.data);
         return true;
     } catch (err) {
-        console.error(`[MSG91 ERROR] Failed to send WhatsApp to ${phone}`, err.response?.data || err.message);
+        console.error(`[FAST2SMS ERROR] Failed to send Confirmation to ${phone}`, err.response?.data || err.message);
         return false;
     }
 }
 
 /**
- * Send "Nearly Up" Alert
+ * Send "Nearly Up" Alert via Fast2SMS (Quick SMS)
  * @param {string} phone 
  * @param {string} name 
  * @param {string} doctorName 
@@ -86,88 +94,81 @@ async function sendQueueConfirmation(phone, name, position, trackingUrl, doctorN
  * @param {string} locationAddress 
  */
 async function sendNearlyUpAlert(phone, name, doctorName, locationName = "", locationAddress = "") {
-    const locText = locationName ? ` at ${locationName}${locationAddress ? ` (${locationAddress})` : ""}` : " at the clinic";
-    const message = `Hi ${name}, you are almost up to see Dr. ${doctorName}${locText}. Please proceed in the next 5-10 minutes.`;
+    const cleanPhone = sanitizeNumber(phone);
+    const locText = locationName ? ` at ${locationName}` : " at the portal";
+    const message = `Hi ${name}, you are nearly ready for your session with Dr. ${doctorName}${locText}. Please proceed in 5-10 mins.`;
 
-    const telegramMessage = `⚠️ <b>Almost Your Turn!</b>\n\nHi <b>${name}</b>, you are almost up to see Dr. ${doctorName}.\n\n📍 <b>Proceed To:</b> ${locationName || 'The Clinic'}\n${locationAddress ? `🗺️ <b>Address:</b> ${locationAddress}\n` : ''}\nPlease arrive in the next 5-10 minutes.`;
+    const telegramMessage = `⚠️ <b>Almost Ready!</b>\n\nHi <b>${name}</b>, you are next up to see Dr. <b>${doctorName}</b>.\n\n📍 <b>Location:</b> ${locationName || 'The Portal'}\nPlease arrive in the next 5-10 minutes.`;
 
     if (TELEGRAM_BOT_TOKEN) {
         await sendTelegramMessage(phone, telegramMessage);
     }
 
-    if (!MSG91_AUTH_KEY) {
-        console.log(`[SIMULATED SMS/WA] To ${phone}: ${message}`);
+    if (!FAST2SMS_API_KEY) {
+        console.log(`[SIMULATED SMS] To ${phone} (${cleanPhone}): ${message}`);
         return true;
     }
 
     try {
         const payload = {
-            template_id: MSG91_TEMPLATE_ID_ALERT || "queue_alert",
-            short_url: "0",
-            recipients: [{
-                mobiles: phone,
-                name: name,
-                doctorName: doctorName
-            }]
+            route: 'q',
+            message: message,
+            language: 'english',
+            numbers: cleanPhone,
+            flash: 0
         };
 
-        const response = await axios.post("https://control.msg91.com/api/v5/whatsapp/whatsapp-outbound-message/bulk/", payload, {
+        const response = await axios.post("https://www.fast2sms.com/dev/bulkV2", payload, {
             headers: {
-                "authkey": MSG91_AUTH_KEY,
+                "authorization": FAST2SMS_API_KEY,
                 "Content-Type": "application/json"
             }
         });
-        console.log(`[MSG91 SUCCESS] 'Nearly Up' sent to ${phone}`);
+        console.log(`[FAST2SMS SUCCESS] 'Ready' Alert sent to ${cleanPhone}`);
         return true;
     } catch (err) {
-        console.error(`[MSG91 ERROR] Failed to send 'Nearly Up' to ${phone}`, err.message);
+        console.error(`[FAST2SMS ERROR] Failed to send 'Ready' Alert to ${phone}`, err.message);
         return false;
     }
 }
 
 /**
  * Send Return Visit Reminder Notification
- * @param {string} phone 
- * @param {string} name 
- * @param {string} doctorName 
- * @param {Date} date 
  */
 async function sendReturnVisitReminder(phone, name, doctorName, date) {
+    const cleanPhone = sanitizeNumber(phone);
     const formattedDate = date.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
-    const message = `Hi ${name}, this is to remind you about your upcoming return visit with Dr. ${doctorName} scheduled for tomorrow (${formattedDate}). Please manage your visit accordingly.`;
-    const telegramMessage = `📅 <b>Visit Reminder</b>\n\nHi <b>${name}</b>, this is to remind you about your upcoming return visit with Dr. ${doctorName} scheduled for tomorrow (<b>${formattedDate}</b>).`;
+    const message = `Hi ${name}, reminder for your upcoming session with Dr. ${doctorName} scheduled for tomorrow (${formattedDate}). See you then!`;
+    const telegramMessage = `📅 <b>Session Reminder</b>\n\nHi <b>${name}</b>, this is to remind you about your session with Dr. <b>${doctorName}</b> tomorrow (<b>${formattedDate}</b>).`;
 
     if (TELEGRAM_BOT_TOKEN) {
         await sendTelegramMessage(phone, telegramMessage);
     }
 
-    if (!MSG91_AUTH_KEY) {
-        console.log(`[SIMULATED SMS/WA] To ${phone}: ${message}`);
+    if (!FAST2SMS_API_KEY) {
+        console.log(`[SIMULATED SMS] To ${phone} (${cleanPhone}): ${message}`);
         return true;
     }
 
     try {
         const payload = {
-            template_id: MSG91_TEMPLATE_ID_REMINDER || "return_reminder",
-            short_url: "0",
-            recipients: [{
-                mobiles: phone,
-                name: name,
-                doctorName: doctorName,
-                date: formattedDate
-            }]
+            route: 'q',
+            message: message,
+            language: 'english',
+            numbers: cleanPhone,
+            flash: 0
         };
 
-        const response = await axios.post("https://control.msg91.com/api/v5/whatsapp/whatsapp-outbound-message/bulk/", payload, {
+        const response = await axios.post("https://www.fast2sms.com/dev/bulkV2", payload, {
             headers: {
-                "authkey": MSG91_AUTH_KEY,
+                "authorization": FAST2SMS_API_KEY,
                 "Content-Type": "application/json"
             }
         });
-        console.log(`[MSG91 SUCCESS] Return Reminder sent to ${phone}`);
+        console.log(`[FAST2SMS SUCCESS] Reminder sent to ${cleanPhone}`);
         return true;
     } catch (err) {
-        console.error(`[MSG91 ERROR] Failed to send Return Reminder to ${phone}`, err.message);
+        console.error(`[FAST2SMS ERROR] Failed to send Reminder to ${phone}`, err.message);
         return false;
     }
 }
