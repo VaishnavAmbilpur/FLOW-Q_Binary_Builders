@@ -63,8 +63,6 @@ export default function PatientStatusView() {
                 const peopleBefore = res.data.myPosition - 1;
                 const avg = res.data.avgTime || 5;
                 calculatedMins = peopleBefore * avg;
-                // Add a small buffer for the very first person so it's not 0 instantly
-                if (calculatedMins === 0 && res.data.myPosition === 1) calculatedMins = avg;
             }
 
             // Persist countdown across refresh using localStorage
