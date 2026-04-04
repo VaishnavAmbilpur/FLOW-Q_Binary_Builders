@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import api from "@/services/api";
 import {
     AlertCircle, CheckCircle2, User, Phone, FileText, ArrowRight,
@@ -10,6 +10,7 @@ import {
 
 export default function KioskPage() {
     const params = useParams();
+    const router = useRouter();
     const hospitalId = params.hospitalId;
 
     const [doctors, setDoctors] = useState([]);
@@ -70,13 +71,23 @@ export default function KioskPage() {
             });
 
             if (res.data.success) {
-                setTokenResult(res.data.tokenNumber);
+                const { uniqueLinkId, tokenNumber } = res.data;
+                setTokenResult(tokenNumber);
                 loadDoctors(); // Refresh queues
-                // Auto-reset after 10 seconds
+
+                // Copy tracking link to clipboard
+                const trackingLink = `${window.location.origin}/status/${uniqueLinkId}`;
+                try {
+                    await navigator.clipboard.writeText(trackingLink);
+                    console.log("Tracking link copied to clipboard");
+                } catch (clipErr) {
+                    console.error("Failed to copy link:", clipErr);
+                }
+
+                // Redirect to live tracking link after 2 seconds
                 setTimeout(() => {
-                    setTokenResult(null);
-                    setSelectedDoc(null);
-                }, 10000);
+                    router.push(`/status/${uniqueLinkId}`);
+                }, 2000);
             }
         } catch (err: any) {
             setError(err.response?.data?.message || "Failed to check in. Please see reception.");
