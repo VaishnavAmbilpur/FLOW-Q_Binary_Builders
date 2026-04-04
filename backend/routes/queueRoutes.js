@@ -148,8 +148,11 @@ router.post("/add", auth, async (req, res) => {
       : `http://localhost:3000/status/${patient.uniqueLinkId}`;
     sendQueueConfirmation(number, name, patient.tokenNumber, trackingUrl, doctor.name);
 
+    // Dynamic Notifications: Trigger 'Ready' alerts if needed
+    notifyNextInLine(doctorId, doctor.hospitalId);
+
     res.json({
-      message: "Patient added successfully",
+      message: "Person Enrollled Successfully",
       patient,
       statusLink: `/api/queue/status/${patient.uniqueLinkId}`
     });
@@ -506,26 +509,8 @@ router.put("/complete/:id", auth, async (req, res) => {
     emitSocketEvent(patient.doctorId.toString(), "queueUpdated", undefined, req.user.hospitalId.toString());
     emitSocketEvent(patient.uniqueLinkId, "visitCompleted", { message: "Thank you for visiting" });
 
-    // Check if new position 2 exists and notify them
-    const nextWaiting = await Patient.find({ doctorId: patient.doctorId, status: "waiting" }).sort({ tokenNumber: 1 }).limit(2);
-    if (nextWaiting.length >= 2) {
-      const p2 = nextWaiting[1];
-      p2.decryptFieldsSync();
-      const doctor = await User.findById(patient.doctorId);
-
-      const hospital = await Hospital.findById(patient.hospitalId);
-      let locName = hospital ? hospital.name : "";
-      let locAddress = "";
-      if (hospital && hospital.branches) {
-        const branch = hospital.branches.find(b => b._id.toString() === patient.branchId.toString());
-        if (branch) {
-          locName = branch.name.toLowerCase() === "main" ? hospital.name : `${hospital.name} - ${branch.name}`;
-          locAddress = branch.address || "";
-        }
-      }
-
-      sendNearlyUpAlert(p2.number, p2.name, doctor.name, locName, locAddress);
-    }
+    // Trigger dynamic notifications for next in line
+    notifyNextInLine(patient.doctorId, patient.hospitalId);
 
     res.json(patient);
 
@@ -549,26 +534,8 @@ router.put("/cancel/:id", auth, async (req, res) => {
     emitSocketEvent(patient.doctorId.toString(), "queueUpdated", undefined, req.user.hospitalId.toString());
     emitSocketEvent(patient.uniqueLinkId, "visitCancelled", { message: "Your appointment has been cancelled." });
 
-    // Check if new position 2 exists and notify them
-    const nextWaiting = await Patient.find({ doctorId: patient.doctorId, status: "waiting" }).sort({ tokenNumber: 1 }).limit(2);
-    if (nextWaiting.length >= 2) {
-      const p2 = nextWaiting[1];
-      p2.decryptFieldsSync();
-      const doctor = await User.findById(patient.doctorId);
-
-      const hospital = await Hospital.findById(patient.hospitalId);
-      let locName = hospital ? hospital.name : "";
-      let locAddress = "";
-      if (hospital && hospital.branches) {
-        const branch = hospital.branches.find(b => b._id.toString() === patient.branchId.toString());
-        if (branch) {
-          locName = branch.name.toLowerCase() === "main" ? hospital.name : `${hospital.name} - ${branch.name}`;
-          locAddress = branch.address || "";
-        }
-      }
-
-      sendNearlyUpAlert(p2.number, p2.name, doctor.name, locName, locAddress);
-    }
+    // Trigger dynamic notifications for next in line
+    notifyNextInLine(patient.doctorId, patient.hospitalId);
 
     res.json(patient);
 
@@ -733,5 +700,50 @@ router.get("/summary/today", auth, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+/**
+ * Helper: Notify next patients in line based on threshold logic
+ */
+async function notifyNextInLine(doctorId, hospitalId) {
+  try {
+    const doctor = await User.findById(doctorId);
+    if (!doctor) return;
+
+    const avgTime = doctor.avgConsultationTime || 5;
+    // Notify more people for fast queues (<15 min avg)
+    const notifyCount = avgTime < 15 ? 3 : 1;
+
+    // Fetch top (notifyCount + 1) waiting people
+    const waitingList = await Patient.find({ doctorId, status: "waiting" })
+      .sort({ sortOrder: 1, tokenNumber: 1 })
+      .limit(notifyCount + 1);
+
+    if (waitingList.length < 2) return; // No one to notify (pos 1 is already ready)
+
+    const hospital = await Hospital.findById(hospitalId);
+    let locName = hospital ? hospital.name : "";
+    let locAddress = "";
+
+    // Loop from index 1 (new position 2) up to notifyCount
+    for (let i = 1; i < waitingList.length; i++) {
+      const p = waitingList[i];
+      p.decryptFieldsSync();
+
+      // Resolve branch specific location if possible
+      let pLocName = locName;
+      if (hospital && hospital.branches) {
+        const branch = hospital.branches.find(b => b._id.toString() === p.branchId.toString());
+        if (branch) {
+          pLocName = branch.name.toLowerCase() === "main" ? hospital.name : `${hospital.name} - ${branch.name}`;
+          locAddress = branch.address || "";
+        }
+      }
+
+      sendNearlyUpAlert(p.number, p.name, doctor.name, pLocName, locAddress);
+    }
+  } catch (err) {
+    logger.error("Notification Helper Error", err);
+  }
+}
 
 module.exports = router;
