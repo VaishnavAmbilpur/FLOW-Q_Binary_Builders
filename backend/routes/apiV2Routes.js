@@ -1096,7 +1096,9 @@ router.patch("/queue/:uniqueLinkId/action", async (req, res) => {
             if (entry.status !== "waiting") return res.status(400).json({ success: false, message: "Can only call patients who are waiting" });
             entry.status = "serving";
         } else if (action === "complete") {
-            if (entry.status !== "serving") return res.status(400).json({ success: false, message: "Can only complete patients being served" });
+            if (entry.status !== "serving" && entry.status !== "waiting") {
+                return res.status(400).json({ success: false, message: "Can only complete customers who are waiting or being served" });
+            }
             entry.status = "completed";
             entry.completedAt = new Date();
         } else if (action === "cancel") {

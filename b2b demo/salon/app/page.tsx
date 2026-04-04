@@ -7,7 +7,7 @@ import {
   RefreshCw, X, ChevronDown, Phone, Clock, Share2, HeartPulse, ShieldAlert
 } from 'lucide-react';
 
-const API_BASE = 'http://localhost:5000/api/v2';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://flow-q-binary-builders.onrender.com/api/v2';
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY || 'sq_test_NjljZmJiOGU3ODQ0NTgyYjZmOTQ5YmZh_73d51f3f88a95e5de0dcddf867eb0f4c0614bf44b96ffbb589ecf1e883c35453';
 
 export default function ReceptionistDashboard() {
@@ -46,7 +46,7 @@ export default function ReceptionistDashboard() {
         setReady(true);
       } catch (err: any) {
         console.error('Init failed:', err.message);
-        setError(`Connection failed: ${err.message}. Ensure backend is on 5000.`);
+        setError(`Connection failed: ${err.message}. Ensure the backend service is reachable.`);
       }
     };
     init();
@@ -79,9 +79,6 @@ export default function ReceptionistDashboard() {
       });
 
       const newEntries = res.data.data || [];
-
-      // Intelligent Sync Guard: To prevent flicker, we only clear the queue
-      // if we get 2 consecutive empty results.
       if (queue.length > 0 && newEntries.length === 0) {
         if (emptyCount < 1) {
           console.warn('[Sync Guard] Ignoring first empty response to prevent UI flicker.');
@@ -108,7 +105,7 @@ export default function ReceptionistDashboard() {
         clientPhone: form.phone.trim()
       }, { headers: { 'x-api-key': API_KEY } });
 
-      toast('Patient registered ✓');
+      toast('Customer registered ✓');
       setForm({ ...form, name: '', phone: '' });
       await loadQueue();
       setTab('queue');
@@ -121,12 +118,27 @@ export default function ReceptionistDashboard() {
 
   const handleAction = async (uid: string, action: 'call' | 'complete' | 'cancel') => {
     try {
-      await axios.patch(`${API_BASE}/queue/${uid}/action`, { action }, {
-        headers: { 'x-api-key': API_KEY }
-      });
-      toast(`Patient ${action}ed ✓`);
+      const headers = { 'x-api-key': API_KEY };
+
+      // If we are completing a customer who is still 'waiting', we must 'call' them first
+      // to satisfy the backend's state machine (Waiting -> Serving -> Completed).
+      if (action === 'complete') {
+        const entry = queue.find(q => q.uniqueLinkId === uid);
+        if (entry && entry.status === 'waiting') {
+          await axios.patch(`${API_BASE}/queue/${uid}/action`, { action: 'call' }, { headers });
+        }
+      }
+
+      await axios.patch(`${API_BASE}/queue/${uid}/action`, { action }, { headers });
+
+      if (action === 'complete' || action === 'cancel') {
+        setQueue(prev => prev.filter(q => q.uniqueLinkId !== uid));
+      }
+      const displayAction = action === 'complete' ? 'Visited' : action === 'call' ? 'Called' : 'Cancelled';
+      toast(`Customer ${displayAction} ✓`);
       await loadQueue();
     } catch (err) {
+      console.error('Action failed:', err);
       toast('Action failed');
     }
   };
@@ -148,6 +160,8 @@ export default function ReceptionistDashboard() {
   };
 
   if (!mounted) return null;
+
+  const activeQueue = queue.filter(e => e.status === 'waiting' || e.status === 'serving');
 
   const handleProvision = async () => {
     setLoading(true);
@@ -230,7 +244,7 @@ export default function ReceptionistDashboard() {
             className={`flex items-center gap-3 px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${tab === 'queue' ? 'bg-blue-600 text-white shadow-[0_10px_25px_rgba(37,99,235,0.3)]' : 'text-neutral-500 hover:text-white'
               }`}
           >
-            <Users className="w-3.5 h-3.5" /> Customer Queue {queue.length > 0 && <span className="ml-2 bg-white/20 px-2 py-0.5 rounded text-[9px] font-mono">{queue.length}</span>}
+            <Users className="w-3.5 h-3.5" /> Customer Queue {activeQueue.length > 0 && <span className="ml-2 bg-white/20 px-2 py-0.5 rounded text-[9px] font-mono">{activeQueue.length}</span>}
           </button>
         </div>
 
@@ -301,7 +315,7 @@ export default function ReceptionistDashboard() {
             <div className="flex items-center justify-between mb-10">
               <div>
                 <h3 className="text-2xl font-black text-white uppercase italic tracking-tight">Active Queue</h3>
-                <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-[0.2em] mt-1">{queue.length} Active in Service-Flow</p>
+                <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-[0.2em] mt-1">{activeQueue.length} Active in Service-Flow</p>
               </div>
               <button
                 onClick={loadQueue}
@@ -311,24 +325,27 @@ export default function ReceptionistDashboard() {
               </button>
             </div>
 
-            {queue.length === 0 ? (
+            {activeQueue.length === 0 ? (
               <div className="py-32 text-center rounded-[2.5rem] border border-dashed border-white/5 bg-white/[0.01]">
                 <Activity className="w-12 h-12 text-neutral-800 mx-auto mb-6 animate-pulse" />
                 <h4 className="text-base font-black text-neutral-700 uppercase tracking-widest italic opacity-50">Lounge Empty</h4>
               </div>
             ) : (
               <div className="space-y-4">
-                {queue.filter(e => e.status === 'waiting' || e.status === 'serving').map((entry) => (
+                {activeQueue.map((entry, index) => (
                   <div
                     key={entry.uniqueLinkId}
                     className="group flex items-center gap-6 p-6 rounded-[2rem] bg-white/[0.02] border border-white/5 hover:border-white/20 hover:bg-white/[0.04] transition-all duration-300"
                   >
                     <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-xl font-black text-white shadow-lg shadow-blue-600/20 flex-shrink-0">
-                      {entry.tokenNumber}
+                      {index + 1}
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-lg font-bold text-white truncate uppercase italic tracking-tight">{entry.clientName}</h4>
+                      <div className="flex items-center gap-3">
+                        <h4 className="text-lg font-bold text-white truncate uppercase italic tracking-tight">{entry.clientName}</h4>
+                        <span className="text-[10px] font-black text-blue-500/50">#{entry.tokenNumber}</span>
+                      </div>
                       <div className="flex items-center gap-4 mt-1.5">
                         <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-white/5 border border-white/5">
                           <Activity className={`w-3 h-3 ${entry.status === 'serving' ? 'text-emerald-500 animate-pulse' : 'text-blue-500'}`} />
@@ -344,7 +361,7 @@ export default function ReceptionistDashboard() {
                       <button onClick={() => copyPhone(entry.clientPhone)} className="p-3 rounded-xl hover:bg-blue-500/10 text-neutral-600 hover:text-blue-400 transition-all"><Phone size={14} /></button>
                       <button onClick={() => copyLink(entry.uniqueLinkId)} className="p-3 rounded-xl hover:bg-blue-500/10 text-neutral-600 hover:text-blue-400 transition-all"><Share2 size={14} /></button>
                       <div className="h-4 w-px bg-white/5 mx-1" />
-                      <button onClick={() => handleAction(entry.uniqueLinkId, entry.status === 'waiting' ? 'call' : 'complete')} className="p-3 rounded-xl hover:bg-emerald-500/10 text-neutral-600 hover:text-emerald-400 transition-all"><CheckCircle size={14} /></button>
+                      <button onClick={() => handleAction(entry.uniqueLinkId, 'complete')} className="p-3 rounded-xl hover:bg-emerald-500/10 text-neutral-600 hover:text-emerald-400 transition-all"><CheckCircle size={14} /></button>
                       <button onClick={() => handleAction(entry.uniqueLinkId, 'cancel')} className="p-3 rounded-xl hover:bg-red-500/10 text-neutral-600 hover:text-red-400 transition-all"><X size={14} /></button>
                     </div>
                   </div>
@@ -366,10 +383,10 @@ export default function ReceptionistDashboard() {
             <div className="space-y-1">
               <p>📍 ORG_ID: {orgData?.id || 'UNSET'}</p>
               <p>🔍 ORG_NAME: {orgData?.name || 'UNSET'}</p>
-              <p>📡 PORT_BIND: localhost:5000</p>
+              <p>📡 ENDPOINT: {API_BASE.replace('/api/v2', '')}</p>
             </div>
             <div className="space-y-1">
-              <p>👥 QUEUE_LOCAL_COUNT: {queue.length}</p>
+              <p>👥 QUEUE_LOCAL_COUNT: {activeQueue.length}</p>
               <p>⚠️ LAST_SYNC: {new Date().toLocaleTimeString()}</p>
               <p>🧪 SERVICES_LOADED: {services.length ? 'YES' : 'NO'}</p>
             </div>

@@ -7,7 +7,7 @@ import {
     CreditCard, User as UserIcon, Phone, BarChart2, AlertCircle, Check, Activity, ShieldAlert
 } from 'lucide-react';
 
-const API_BASE = 'http://localhost:5000/api/v2';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://flow-q-binary-builders.onrender.com/api/v2';
 const STATIC_API_KEY = process.env.NEXT_PUBLIC_API_KEY || 'sq_test_NjljZmJiOGU3ODQ0NTgyYjZmOTQ5YmZh_73d51f3f88a95e5de0dcddf867eb0f4c0614bf44b96ffbb589ecf1e883c35453';
 
 export default function StatusPage({ params }: { params: Promise<{ id: string }> }) {
@@ -82,8 +82,8 @@ export default function StatusPage({ params }: { params: Promise<{ id: string }>
                     <Activity className="w-8 h-8" />
                 </div>
                 <div>
-                    <h1 className="text-2xl font-black italic uppercase tracking-tight">Flow-Q Medical</h1>
-                    <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.4em] mt-1 italic">Intelligent Patient Tracking Link</p>
+                    <h1 className="text-2xl font-black italic uppercase tracking-tight">Velvet & Slate</h1>
+                    <p className="text-neutral-500 text-[9px] font-bold uppercase tracking-[0.4em] mt-1 italic">Intelligent Customer Tracking Link</p>
                 </div>
             </header>
 
@@ -97,8 +97,8 @@ export default function StatusPage({ params }: { params: Promise<{ id: string }>
                         <div className="w-24 h-24 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-500 mb-2 shadow-[0_0_50px_rgba(16,185,129,0.1)]">
                             <Check className="w-12 h-12" strokeWidth={3} />
                         </div>
-                        <h2 className="text-2xl font-black italic uppercase tracking-tight text-white">Consultation Concluded</h2>
-                        <p className="text-neutral-500 text-[10px] font-bold uppercase tracking-widest leading-relaxed">Thank you for visiting today. This tracking session has been marked as <span className="text-emerald-500">Visited</span>.</p>
+                        <h2 className="text-2xl font-black italic uppercase tracking-tight text-white">Service Concluded</h2>
+                        <p className="text-neutral-500 text-[10px] font-bold uppercase tracking-widest leading-relaxed">Thank you for visiting today. This session has been marked as <span className="text-emerald-500">Completed</span>.</p>
                         <button disabled className="mt-4 px-8 py-3 bg-white/5 border border-white/5 rounded-2xl text-[9px] font-black uppercase tracking-widest text-neutral-700">Link Inactive</button>
                     </div>
                 ) : isCancelled ? (
@@ -107,7 +107,7 @@ export default function StatusPage({ params }: { params: Promise<{ id: string }>
                             <AlertCircle className="w-12 h-12" />
                         </div>
                         <h2 className="text-2xl font-black italic uppercase tracking-tight text-white">Visit Cancelled</h2>
-                        <p className="text-neutral-500 text-[10px] font-bold uppercase tracking-widest leading-relaxed">This session has been <span className="text-red-500 font-black">terminated</span> by the medical staff.</p>
+                        <p className="text-neutral-500 text-[10px] font-bold uppercase tracking-widest leading-relaxed">This session has been <span className="text-red-500 font-black">terminated</span> by the management.</p>
                         <button disabled className="mt-4 px-8 py-3 bg-white/5 border border-white/5 rounded-2xl text-[9px] font-black uppercase tracking-widest text-neutral-700">Protocol Aborted</button>
                     </div>
                 ) : (
@@ -123,7 +123,7 @@ export default function StatusPage({ params }: { params: Promise<{ id: string }>
                                 {!isServing && <span className="absolute -top-1 -right-6 text-xl font-black text-neutral-700 font-mono italic">#</span>}
                             </div>
                             <p className="text-neutral-500 text-[11px] font-bold uppercase tracking-[0.3em] mt-8">
-                                {isServing ? 'Proceed to Consultation' : 'Your Position in Queue'}
+                                {isServing ? 'Proceed to Stylist' : 'Your Position in Queue'}
                             </p>
                         </div>
 
@@ -162,7 +162,7 @@ export default function StatusPage({ params }: { params: Promise<{ id: string }>
                             <UserIcon className="w-4 h-4 text-neutral-500" />
                         </div>
                         <div>
-                            <p className="text-[8px] uppercase font-black tracking-[0.3em] text-neutral-600 mb-0.5 italic">Patient Identity</p>
+                            <p className="text-[8px] uppercase font-black tracking-[0.3em] text-neutral-600 mb-0.5 italic">Customer Identity</p>
                             <p className="text-[13px] font-black italic text-white uppercase tracking-tight">{data.clientName}</p>
                         </div>
                     </div>
@@ -171,7 +171,7 @@ export default function StatusPage({ params }: { params: Promise<{ id: string }>
                 <div className="bg-white/[0.02] border border-dashed border-white/10 rounded-[2rem] p-8 text-center backdrop-blur-xl">
                     <p className="text-[10px] text-neutral-500 font-bold leading-loose uppercase tracking-[0.1em]">
                         Your token <span className="text-white font-black italic underline decoration-blue-500/50 underline-offset-4 tracking-[0.2em]">#{data.tokenNumber}</span> will be announced shortly. <br />
-                        Please stand ready in the medical lounge.
+                        Please stand ready in the lounge.
                     </p>
                 </div>
             </div>
