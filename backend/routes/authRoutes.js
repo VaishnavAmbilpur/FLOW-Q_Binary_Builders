@@ -710,7 +710,7 @@ async function loginAndRedirect(res, user) {
     RECEPTIONIST: "/reception",
     HOSPITAL_ADMIN: "/admin/dashboard"
   };
-  res.redirect(`${FRONTEND}${redirectMap[user.role] || "/"}`);
+  res.redirect(`${FRONTEND}${redirectMap[user.role] || "/"}?token=${accessToken}`);
 }
 
 // GET /auth/google — initiate
@@ -814,7 +814,11 @@ router.post("/google/complete", async (req, res) => {
     logger.info("New admin registered via Google", { userId: newUser._id, email });
 
     // Return JSON — the frontend (Axios caller) will navigate
-    return res.json({ message: "Signup successful", redirectTo: "/admin/dashboard" });
+    return res.json({
+      message: "Signup successful",
+      accessToken,
+      redirectTo: "/admin/dashboard"
+    });
   } catch (err) {
     logger.error("Google Complete Error", { error: err.message, stack: err.stack });
     res.status(500).json({ message: "Server error" });
