@@ -409,15 +409,6 @@ export default function DoctorDashboard() {
 
                                             {/* Precision Actions */}
                                             <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-                                                {idx > 0 && (
-                                                    <button
-                                                        onClick={() => prioritisePatient(p._id)}
-                                                        className="p-3.5 rounded-2xl border border-warning-500/30 bg-warning-500/10 text-warning-400 hover:bg-warning-500/20 transition-all active:scale-90"
-                                                        title="Matrix Priority Flow"
-                                                    >
-                                                        <ArrowUp className="w-5 h-5" />
-                                                    </button>
-                                                )}
                                                 {idx === 0 && (
                                                     <button
                                                         onClick={() => {
