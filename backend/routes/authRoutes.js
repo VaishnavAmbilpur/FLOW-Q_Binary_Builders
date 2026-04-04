@@ -16,40 +16,44 @@ const { sendPasswordResetEmail, sendPasswordChangeConfirmation } = require("../u
 const { auth } = require("../middleware/authMiddleware");
 
 // ─── Google OAuth Strategy ───────────────────────────────────────────────────
-passport.use(new GoogleStrategy({
-  clientID: process.env.GOOGLE_CLIENT_ID,
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: process.env.GOOGLE_CALLBACK_URL,
-  scope: ["profile", "email"]
-}, async (accessToken, refreshToken, profile, done) => {
-  try {
-    const email = profile.emails?.[0]?.value;
-    logger.debug(`[GoogleStrategy] Initiating strategy for email: ${email}`);
+if (process.env.GOOGLE_CLIENT_ID) {
+  passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: process.env.GOOGLE_CALLBACK_URL,
+    scope: ["profile", "email"]
+  }, async (accessToken, refreshToken, profile, done) => {
+    try {
+      const email = profile.emails?.[0]?.value;
+      logger.debug(`[GoogleStrategy] Initiating strategy for email: ${email}`);
 
-    if (!email) return done(null, false, { message: "No email from Google" });
+      if (!email) return done(null, false, { message: "No email from Google" });
 
-    // Try to find existing user by googleId or email
-    let user = await User.findOne({ $or: [{ googleId: profile.id }, { email }] });
+      // Try to find existing user by googleId or email
+      let user = await User.findOne({ $or: [{ googleId: profile.id }, { email }] });
 
-    if (user) {
-      logger.debug(`[GoogleStrategy] Existing user found: ${user._id}`);
-      // Link googleId if not already linked
-      if (!user.googleId) {
-        logger.info(`[GoogleStrategy] Linking Google ID to existing user: ${user.email}`);
-        user.googleId = profile.id;
-        await user.save();
+      if (user) {
+        logger.debug(`[GoogleStrategy] Existing user found: ${user._id}`);
+        // Link googleId if not already linked
+        if (!user.googleId) {
+          logger.info(`[GoogleStrategy] Linking Google ID to existing user: ${user.email}`);
+          user.googleId = profile.id;
+          await user.save();
+        }
+        return done(null, user);
       }
-      return done(null, user);
-    }
 
-    logger.debug("[GoogleStrategy] New user (no match found), calling back with profile info");
-    // New user — return profile info for signup flow
-    return done(null, false, { isNew: true, profile, email });
-  } catch (err) {
-    logger.error("[GoogleStrategy] Internal error in strategy callback", { error: err.message });
-    return done(err);
-  }
-}));
+      logger.debug("[GoogleStrategy] New user (no match found), calling back with profile info");
+      // New user — return profile info for signup flow
+      return done(null, false, { isNew: true, profile, email });
+    } catch (err) {
+      logger.error("[GoogleStrategy] Internal error in strategy callback", { error: err.message });
+      return done(err);
+    }
+  }));
+} else {
+  logger.warn("[AUTH] Google OAuth Strategy skipped (GOOGLE_CLIENT_ID missing)");
+}
 
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
@@ -714,11 +718,19 @@ async function loginAndRedirect(res, user) {
 }
 
 // GET /auth/google — initiate
-router.get("/google", passport.authenticate("google", { scope: ["profile", "email"], session: false }));
+router.get("/google", (req, res, next) => {
+  if (!process.env.GOOGLE_CLIENT_ID) {
+    return res.status(501).json({ message: "Google OAuth is not configured on this server." });
+  }
+  passport.authenticate("google", { scope: ["profile", "email"], session: false })(req, res, next);
+});
 
 // GET /auth/google/callback
 router.get("/google/callback",
   (req, res, next) => {
+    if (!process.env.GOOGLE_CLIENT_ID) {
+      return res.status(501).json({ message: "Google OAuth is not configured on this server." });
+    }
     passport.authenticate("google", { session: false }, async (err, user, info) => {
       if (err) {
         logger.error("Google OAuth error", { error: err.message });
