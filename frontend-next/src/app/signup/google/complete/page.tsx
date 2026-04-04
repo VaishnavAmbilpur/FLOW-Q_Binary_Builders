@@ -42,6 +42,7 @@ export default function GoogleCompleteSignup() {
         setMsg("");
         try {
             const res = await api.post("/auth/google/complete", { token, hospitalName: hospitalName.trim() });
+            localStorage.setItem("accessToken", res.data.accessToken);
             setMsg("Account created! Redirecting to dashboard...");
             // Use hard navigation so auth cookies are picked up properly
             setTimeout(() => {

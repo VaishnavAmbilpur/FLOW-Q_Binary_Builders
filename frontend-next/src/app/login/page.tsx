@@ -32,8 +32,11 @@ export default function StaffLogin() {
         try {
             const res = await api.post("/auth/login", form);
             const { id, role } = res.data.user;
+            const { accessToken } = res.data; // New: Get token from body
+
             localStorage.setItem("doctorId", id);
             localStorage.setItem("role", role);
+            localStorage.setItem("accessToken", accessToken); // Store for Header strategy
 
             setMsg("Login Successful 🎉 Redirecting...");
             setTimeout(() => {

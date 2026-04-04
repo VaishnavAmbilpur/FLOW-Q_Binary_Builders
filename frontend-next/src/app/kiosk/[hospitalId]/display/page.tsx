@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import Loader from "@/components/Loader";
 import { Users, Activity, Stethoscope } from "lucide-react";
 
-const NEXT_PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const NEXT_PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
 
 type DoctorDisplay = {
     doctorId: string;

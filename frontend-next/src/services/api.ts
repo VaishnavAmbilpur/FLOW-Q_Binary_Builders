@@ -5,6 +5,31 @@ const api = axios.create({
     withCredentials: true
 });
 
+// Request interceptor to add Authorization header
+api.interceptors.request.use(
+    (config) => {
+        if (typeof window !== 'undefined') {
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlToken = urlParams.get('token');
+            if (urlToken) {
+                localStorage.setItem('accessToken', urlToken);
+                // Clean up URL to prevent token reuse or bookmarking with token
+                const newUrl = window.location.pathname + window.location.search.replace(/[?&]token=[^&]+/, '').replace(/^&/, '?');
+                window.history.replaceState({}, document.title, newUrl);
+            }
+
+            const token = localStorage.getItem('accessToken');
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}`;
+            }
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
+
 // Flag to prevent multiple simultaneous refresh requests
 let isRefreshing = false;
 let failedQueue = [];
@@ -56,11 +81,16 @@ api.interceptors.response.use(
 
             try {
                 // Attempt to refresh the token
-                await axios.post(
+                const refreshRes = await axios.post(
                     `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api"}/auth/refresh`,
                     {},
                     { withCredentials: true }
                 );
+
+                const { accessToken } = refreshRes.data;
+                if (typeof window !== 'undefined' && accessToken) {
+                    localStorage.setItem('accessToken', accessToken);
+                }
 
                 // Token refreshed successfully, process queued requests
                 processQueue(null);
