@@ -52,6 +52,7 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 const app = express();
+app.set("trust proxy", 1);
 
 // Initialize Sentry (must be before any other middleware)
 sentry.initSentry(app);
@@ -75,7 +76,7 @@ app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    
+
     if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
       callback(null, true);
     } else {
