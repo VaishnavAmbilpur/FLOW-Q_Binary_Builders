@@ -56,7 +56,7 @@ export default function ModernLanding() {
                         <span className="font-black text-2xl tracking-tighter text-white uppercase italic">
                             FLOW-Q
                         </span>
-                        <span className="text-[7px] font-black tracking-[0.4em] text-neutral-400 uppercase -mt-1">Smart Waiting System</span>
+                        <span className="text-[7px] font-black tracking-[0.4em] text-neutral-100 uppercase -mt-1">Smart Waiting System</span>
                     </div>
                 </div>
 
@@ -68,7 +68,7 @@ export default function ModernLanding() {
                         <Link 
                             key={item.name} 
                             href={item.path}
-                            className="px-6 py-2.5 rounded-[1.2rem] text-[10px] font-black uppercase tracking-widest text-neutral-400 hover:text-white hover:bg-white/5 cursor-pointer transition-all"
+                            className="px-6 py-2.5 rounded-[1.2rem] text-[10px] font-black uppercase tracking-widest text-neutral-100 hover:text-white hover:bg-white/5 cursor-pointer transition-all"
                         >
                             {item.name}
                         </Link>
@@ -94,10 +94,10 @@ export default function ModernLanding() {
                     <div className="inline-flex flex-col sm:flex-row items-center gap-4 bg-brand-500/10 border border-brand-500/20 rounded-[1.5rem] sm:rounded-full px-6 py-3 sm:py-2.5 mb-10 backdrop-blur-md">
                         <div className="flex items-center gap-3">
                             <div className="w-2 h-2 rounded-full bg-brand-500 animate-ping" />
-                            <span className="text-[9px] font-black tracking-[0.3em] text-brand-400 uppercase">B2B SaaS API Offering Available</span>
+                            <span className="text-[9px] font-black tracking-[0.3em] text-brand-400 uppercase">Pro Waiting Software</span>
                         </div>
                         <div className="hidden sm:block w-px h-3 bg-brand-500/20 mx-1" />
-                        <span className="text-[9px] font-black text-brand-300/60 uppercase tracking-widest">Global Healthcare SDK v2.04</span>
+                        <span className="text-[9px] font-black text-brand-300 uppercase tracking-widest">Global Waitlist System v2.0</span>
                     </div>
 
                     <h1 className="text-4xl md:text-7xl font-black tracking-tighter mb-8 text-white leading-[0.9] uppercase italic">
@@ -105,7 +105,7 @@ export default function ModernLanding() {
                         <span className="bg-gradient-to-r from-brand-400 via-brand-600 to-emerald-400 bg-clip-text text-transparent px-2">Waiting.</span>
                     </h1>
 
-                    <p className="text-base md:text-lg text-neutral-400 font-medium mb-12 max-w-3xl mx-auto leading-relaxed">
+                    <p className="text-base md:text-lg text-neutral-100 font-medium mb-12 max-w-3xl mx-auto leading-relaxed">
                         FLOW-Q makes waiting simple and organized. <br className="hidden md:block" />
                         A smart system for live waitlists and easy guest tracking.
                     </p>
@@ -129,9 +129,9 @@ export default function ModernLanding() {
                             { label: "Latency", val: "<5ms", icon: <Cpu className="w-4 h-4" /> }
                         ].map((stat) => (
                             <div key={stat.label} className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 backdrop-blur-sm hover:bg-white/[0.04] transition-all group">
-                                <div className="text-neutral-500 mb-3 group-hover:text-brand-400 transition-colors">{stat.icon}</div>
-                                <div className="text-2xl font-black tracking-tighter mb-1 font-mono">{stat.val}</div>
-                                <div className="text-[8px] font-black text-neutral-500 uppercase tracking-widest">{stat.label}</div>
+                                <div className="text-neutral-200 mb-3 group-hover:text-brand-400 transition-colors">{stat.icon}</div>
+                                <div className="text-2xl font-black tracking-tighter mb-1 font-mono text-white">{stat.val}</div>
+                                <div className="text-[8px] font-black text-neutral-200 uppercase tracking-widest">{stat.label}</div>
                             </div>
                         ))}
                     </div>
@@ -155,14 +155,14 @@ export default function ModernLanding() {
                              <div className="w-full md:w-[320px] bg-black/40 border border-white/5 rounded-[2.5rem] p-8 shadow-2xl transform group-hover:-translate-x-2 transition-transform duration-700">
                                 <h3 className="text-lg font-black italic uppercase tracking-tight mb-8">Add to List</h3>
                                 <div className="space-y-6">
-                                    <div className="space-y-2">
-                                        <div className="text-[8px] font-black text-neutral-500 uppercase tracking-widest ml-4">Guest Name</div>
-                                        <div className="w-full h-14 bg-white/[0.02] border border-white/5 rounded-2xl px-6 flex items-center text-xs text-neutral-400 font-mono tracking-tighter italic">Type name here...</div>
+                                     <div className="space-y-2">
+                                        <div className="text-[8px] font-black text-neutral-200 uppercase tracking-widest ml-4">Guest Name</div>
+                                        <div className="w-full h-14 bg-white/[0.02] border border-white/5 rounded-2xl px-6 flex items-center text-xs text-neutral-100 font-mono tracking-tighter italic">Type name here...</div>
                                     </div>
                                     <div className="space-y-2">
-                                        <div className="text-[8px] font-black text-neutral-500 uppercase tracking-widest ml-4">Visit Reason</div>
-                                        <div className="w-full h-14 bg-white/[0.02] border border-white/5 rounded-2xl px-6 flex items-center justify-between text-xs text-neutral-400">
-                                            Choose Reason <ChevronDown className="w-4 h-4 opacity-30" />
+                                        <div className="text-[8px] font-black text-neutral-200 uppercase tracking-widest ml-4">Visit Reason</div>
+                                        <div className="w-full h-14 bg-white/[0.02] border border-white/5 rounded-2xl px-6 flex items-center justify-between text-xs text-neutral-100">
+                                            Choose Reason <ChevronDown className="w-4 h-4 opacity-70" />
                                         </div>
                                     </div>
                                     <button className="w-full py-5 bg-brand-600 hover:bg-brand-500 rounded-2xl text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-2xl shadow-brand-600/30 transition-all active:scale-95">
@@ -175,8 +175,8 @@ export default function ModernLanding() {
                             <div className="flex-1 hidden md:flex flex-col justify-between py-4">
                                 <div>
                                     <div className="flex items-center gap-3 mb-10">
-                                        <Database className="w-5 h-5 text-brand-400 opacity-50" />
-                                        <span className="text-[10px] font-black text-neutral-400 uppercase tracking-[0.4em]">Live Waitlist Status</span>
+                                        <Database className="w-5 h-5 text-brand-400 opacity-80" />
+                                        <span className="text-[10px] font-black text-neutral-100 uppercase tracking-[0.4em]">Live Waitlist Status</span>
                                     </div>
                                     <div className="grid grid-cols-2 gap-6">
                                         {[
@@ -186,7 +186,7 @@ export default function ModernLanding() {
                                         ].map((hub) => (
                                             <div key={hub.label} className="flex items-center gap-4 bg-white/5 border border-white/5 px-5 py-3 rounded-2xl">
                                                 <div className={`w-3 h-3 rounded-full ${hub.color} animate-pulse`} />
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">{hub.label}</span>
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-neutral-100">{hub.label}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -212,18 +212,18 @@ export default function ModernLanding() {
                                 <div className="flex gap-2"><Wifi className="w-3 h-3" /><Battery className="w-3 h-3" /></div>
                             </div>
 
-                             <h2 className="text-neutral-400 uppercase text-[10px] font-black tracking-[0.4em] mb-4 text-center">Live Tracking</h2>
+                             <h2 className="text-neutral-100 uppercase text-[10px] font-black tracking-[0.4em] mb-4 text-center">Live Tracking</h2>
 
                             <div className="bg-white/5 border border-white/5 rounded-[2.5rem] p-8 flex-1 flex flex-col items-center justify-center text-center relative overflow-hidden">
                                 <div className="absolute top-0 left-0 w-full h-full bg-brand-500/5 blur-[40px] pointer-events-none" />
 
-                                <p className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-2">Place in Line</p>
+                                <p className="text-[10px] font-black text-neutral-100 uppercase tracking-widest mb-2">Place in Line</p>
                                 <span className="text-7xl font-black tracking-tighter text-white mb-6 font-mono drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]">#03</span>
 
                                 <div className="w-full h-px bg-white/5 my-6" />
 
-                                <p className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-2">Wait Time</p>
-                                <span className="text-3xl font-black tracking-tight text-brand-400 font-mono italic">14<span className="text-[10px] ml-2 text-neutral-400">MINS</span></span>
+                                <p className="text-[10px] font-black text-neutral-100 uppercase tracking-widest mb-2">Wait Time</p>
+                                <span className="text-3xl font-black tracking-tight text-brand-400 font-mono italic">14<span className="text-[10px] ml-2 text-neutral-100">MINS</span></span>
                             </div>
 
                             <div className="mt-8 py-3 bg-brand-500/10 border border-brand-500/20 rounded-2xl flex items-center justify-center gap-3">
@@ -246,7 +246,7 @@ export default function ModernLanding() {
                                 {feature.icon}
                             </div>
                             <h3 className="text-2xl font-black italic tracking-tight uppercase mb-4 text-white">{feature.title}</h3>
-                            <p className="text-neutral-400 text-sm font-medium leading-relaxed">{feature.desc}</p>
+                            <p className="text-neutral-100 text-sm font-medium leading-relaxed">{feature.desc}</p>
                         </div>
                     ))}
                 </div>
@@ -259,7 +259,7 @@ export default function ModernLanding() {
                         <div className="grid lg:grid-cols-2 gap-12 items-center">
                             <div>
                                 <h2 className="text-2xl md:text-5xl font-black uppercase italic tracking-tighter mb-8 leading-tight">Smart Waiting <br /> <span className="text-brand-400">System</span></h2>
-                                <p className="text-neutral-400 text-base mb-10 leading-relaxed">
+                                <p className="text-neutral-100 text-base mb-10 leading-relaxed">
                                     Easily add a waitlist to any app or website. Our platform provides a simple hub for all your waiting guests. <br />
                                     Get alerts the moment a guest arrives or finishes.
                                 </p>
@@ -275,7 +275,7 @@ export default function ModernLanding() {
                                             </div>
                                             <div>
                                                 <h4 className="text-sm font-black uppercase tracking-widest text-white mb-1">{spec.title}</h4>
-                                                <p className="text-xs text-neutral-500 uppercase tracking-widest font-bold leading-relaxed">{spec.desc}</p>
+                                                <p className="text-xs text-neutral-200 uppercase tracking-widest font-bold leading-relaxed">{spec.desc}</p>
                                             </div>
                                         </div>
                                     ))}
@@ -310,7 +310,7 @@ export default function ModernLanding() {
                         <h2 className="text-3xl font-black uppercase italic tracking-tighter mb-4">Choose Your Plan</h2>
                         <div className="flex items-center justify-center gap-4">
                             <div className="h-px w-12 bg-neutral-800" />
-                            <span className="text-[10px] font-black text-neutral-500 uppercase tracking-[0.5em]">For Every Business</span>
+                            <span className="text-[10px] font-black text-neutral-200 uppercase tracking-[0.5em]">For Every Business</span>
                             <div className="h-px w-12 bg-neutral-800" />
                         </div>
                     </div>
@@ -323,8 +323,8 @@ export default function ModernLanding() {
                         ].map((tier) => (
                             <div key={tier.type} className="bg-white/[0.03] border border-white/5 p-10 rounded-[3rem] hover:bg-white/[0.05] transition-all group">
                                 <div className="w-14 h-14 bg-brand-500/10 rounded-2xl flex items-center justify-center text-brand-400 mb-8">{tier.icon}</div>
-                                <h3 className="text-2xl font-black uppercase italic tracking-tight mb-4">{tier.type}</h3>
-                                <p className="text-neutral-400 text-sm leading-relaxed mb-8">{tier.desc}</p>
+                                <h3 className="text-2xl font-black uppercase italic tracking-tight mb-4 text-white">{tier.type}</h3>
+                                <p className="text-neutral-100 text-sm leading-relaxed mb-8">{tier.desc}</p>
                                 <Link href="/signup" className="text-[10px] font-black uppercase tracking-[0.3em] flex items-center gap-2 text-brand-400 hover:text-white transition-colors">
                                     View Plan <ChevronRight className="w-3 h-3" />
                                 </Link>
@@ -339,7 +339,7 @@ export default function ModernLanding() {
                         <h2 className="text-3xl font-black uppercase italic tracking-tighter mb-4">Simple Dashboards</h2>
                         <div className="flex items-center justify-center gap-4">
                             <div className="h-px w-12 bg-neutral-800" />
-                            <span className="text-[10px] font-black text-neutral-500 uppercase tracking-[0.5em]">Tools for your staff</span>
+                            <span className="text-[10px] font-black text-neutral-200 uppercase tracking-[0.5em]">Tools for your staff</span>
                             <div className="h-px w-12 bg-neutral-800" />
                         </div>
                     </div>
@@ -404,7 +404,7 @@ export default function ModernLanding() {
                     <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-[3rem] p-10 md:p-14 text-center relative overflow-hidden">
                         <div className="absolute top-0 left-0 w-full h-full bg-grid-white/[0.02] pointer-events-none" />
                         <h2 className="text-3xl font-black uppercase italic tracking-tighter mb-4">Security</h2>
-                        <p className="text-[10px] font-black text-neutral-400 uppercase tracking-[0.6em] mb-12">HIPAA • GDPR • ISO 27001 Compliant</p>
+                        <p className="text-[10px] font-black text-neutral-100 uppercase tracking-[0.6em] mb-12">HIPAA • GDPR • ISO 27001 Compliant</p>
                         
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                             {[
@@ -433,7 +433,7 @@ export default function ModernLanding() {
                                     </div>
                                     <span className="font-black text-xl italic tracking-tighter uppercase">FLOW-Q</span>
                                 </div>
-                                <p className="text-neutral-400 text-xs leading-relaxed font-medium max-w-xs mb-8">
+                                <p className="text-neutral-100 text-xs leading-relaxed font-medium max-w-xs mb-8">
                                     High-performance waiting list management. Simple tools for your business, powerful tech under the hood.
                                 </p>
                                 <div className="flex items-center gap-6">
@@ -445,7 +445,7 @@ export default function ModernLanding() {
                             
                             <div>
                                 <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-white mb-8">System Control</h4>
-                                <div className="flex flex-col gap-5 text-[10px] font-black uppercase tracking-widest text-neutral-400">
+                                <div className="flex flex-col gap-5 text-[10px] font-black uppercase tracking-widest text-neutral-100">
                                     <Link href="/admin/dashboard" className="hover:text-brand-400 transition-colors">Admin Dashboard</Link>
                                     <Link href="/doctor" className="hover:text-brand-400 transition-colors">Staff Portal</Link>
                                     <Link href="/reception" className="hover:text-brand-400 transition-colors">Front Desk</Link>
@@ -454,7 +454,7 @@ export default function ModernLanding() {
                             </div>                             
                             <div>
                                 <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-white mb-8">Protocols</h4>
-                                <div className="flex flex-col gap-5 text-[10px] font-black uppercase tracking-widest text-neutral-400">
+                                <div className="flex flex-col gap-5 text-[10px] font-black uppercase tracking-widest text-neutral-100">
                                     <Link href="/docs" className="hover:text-brand-400 transition-colors">API Guide</Link>
                                     <Link href="/docs#playground" className="hover:text-brand-400 transition-colors">Examples</Link>
                                     <Link href="/docs" className="hover:text-brand-400 transition-colors">Webhooks</Link>
@@ -464,7 +464,7 @@ export default function ModernLanding() {
 
                             <div>
                                 <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-white mb-8">Authority</h4>
-                                <div className="flex flex-col gap-5 text-[10px] font-black uppercase tracking-widest text-neutral-400">
+                                <div className="flex flex-col gap-5 text-[10px] font-black uppercase tracking-widest text-neutral-100">
                                     <Link href="/privacy" className="hover:text-brand-400 transition-colors">Privacy</Link>
                                     <Link href="/terms" className="hover:text-brand-400 transition-colors">Terms of Service</Link>
                                     <Link href="/docs" className="hover:text-brand-400 transition-colors">Compliance</Link>
@@ -473,8 +473,8 @@ export default function ModernLanding() {
                             </div>
                         </div>
 
-                        <div className="flex flex-col md:flex-row items-center justify-between text-[8px] font-black text-neutral-800 uppercase tracking-[0.6em] border-t border-white/5 pt-10">
-                            <p>© {new Date().getFullYear()} FLOW-Q QUEUE MANAGEMENT. INTELLECTUAL SYSTEM RESERVED. B2B SAAS POWERED.</p>
+                        <div className="flex flex-col md:flex-row items-center justify-between text-[8px] font-black text-neutral-500 uppercase tracking-[0.6em] border-t border-white/5 pt-10">
+                            <p>© {new Date().getFullYear()} FLOW-Q QUEUE MANAGEMENT. ALL RIGHTS RESERVED. POWERED BY FLOW-Q.</p>
                             <p className="mt-4 md:mt-0">LATENCY: &lt;5MS • UPTIME: 99.9% • ENCRYPTION: AES-256</p>
                         </div>
                     </div>

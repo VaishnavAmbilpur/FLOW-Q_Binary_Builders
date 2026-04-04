@@ -114,6 +114,7 @@ export default function ReceptionDashboard() {
             }
         }
     }, [receptionist]);
+
     async function loadQueue() {
         try {
             let allQueues: any[] = [];
@@ -158,11 +159,11 @@ export default function ReceptionDashboard() {
             const link = res.data.patient?.uniqueLinkId || "";
             setLastAddedLink(link);
 
-            showMsg("Patient Enrolled Successfully", "success");
+            showMsg("Person Enrolled Successfully", "success");
             setForm({ name: "", phoneNumber: "", notes: "", doctorId: form.doctorId });
             loadQueue();
         } catch (err: any) {
-            showMsg(err.response?.data?.message || "Error enrolling patient", "error");
+            showMsg(err.response?.data?.message || "Error enrolling person", "error");
         } finally {
             setLoading(false);
         }
@@ -171,24 +172,24 @@ export default function ReceptionDashboard() {
     async function callPatient(id: string) {
         try {
             await api.post(`/queue/call/${id}`);
-            showMsg("Patient Called Successfully", "success");
+            showMsg("Person Called Successfully", "success");
         } catch (err) {
-            showMsg("Error calling patient", "error");
+            showMsg("Error calling person", "error");
         }
     }
 
     async function completeVisit(id: string) {
         try {
             await api.put(`/queue/complete/${id}`);
-            showMsg("Visit Committed Successfully", "success");
+            showMsg("Visit Completed Successfully", "success");
             loadQueue();
         } catch (err) {
-            showMsg("Error committed visit", "error");
+            showMsg("Error completing visit", "error");
         }
     }
 
     async function cancelVisit(id: string) {
-        if (!confirm("Are you sure you want to cancel this patient's visit? This action is irreversible.")) return;
+        if (!confirm("Are you sure you want to cancel this visit? This action is irreversible.")) return;
         try {
             await api.put(`/queue/cancel/${id}`);
             showMsg("Visit Cancelled Successfully", "success");
@@ -235,7 +236,7 @@ export default function ReceptionDashboard() {
     const copyStatusLink = (uid: string) => {
         const url = `${window.location.origin}/status/${uid}`;
         navigator.clipboard.writeText(url);
-        showMsg("Matrix Link Copied to Clipboard", "success");
+        showMsg("Tracking Link Copied to Clipboard", "success");
     };
 
     if (!receptionist) return <Loader />;
@@ -260,14 +261,14 @@ export default function ReceptionDashboard() {
                         </div>
                         <div>
                             <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white mb-0.5 uppercase italic">Reception Desk</h1>
-                            <p className="text-neutral-400 text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.25em]">Check-in Terminal <span className="mx-2 text-white/10">|</span> Ver 2.04</p>
+                            <p className="text-neutral-100 text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.25em]">Check-in Terminal <span className="mx-2 text-white/20">|</span> Ver 2.0</p>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-3">
                         <div className="px-3 py-1.5 bg-white/[0.03] border border-white/10 rounded-lg shadow-sm flex items-center gap-2">
                             <div className="w-1.5 h-1.5 rounded-full bg-success-500 animate-ping" />
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-300">Live Sync Active</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-white">Live Sync Active</span>
                         </div>
                         <button
                             onClick={() => router.push("/login")}
@@ -284,12 +285,12 @@ export default function ReceptionDashboard() {
                         { label: "Today's Total", value: queue.length + completedCount, icon: <Users className="w-4 h-4" />, color: "text-brand-400 bg-brand-500/5 border-brand-500/20" },
                         { label: "Waiting Now", value: queue.length, icon: <Activity className="w-4 h-4" />, color: "text-info-400 bg-info-500/5 border-info-500/10" },
                         { label: "Completed", value: completedCount, icon: <FileText className="w-4 h-4" />, color: "text-success-400 bg-success-500/5 border-success-500/10" },
-                        { label: "Active Doctors", value: receptionist.assignedDoctors?.length || 0, icon: <Stethoscope className="w-4 h-4" />, color: "text-warning-400 bg-warning-500/5 border-warning-500/10" },
+                        { label: "Active Staff", value: receptionist.assignedDoctors?.length || 0, icon: <Stethoscope className="w-4 h-4" />, color: "text-warning-400 bg-warning-500/5 border-warning-500/10" },
                     ].map(({ label, value, icon, color }) => (
                         <div key={label} className={`group relative rounded-xl sm:rounded-2xl border shadow-sm p-4 md:p-5 transition-all hover:bg-white/[0.05] flex flex-col items-center text-center backdrop-blur-xl ${color}`}>
                             <div className="absolute top-3 right-3 sm:top-5 sm:right-5 opacity-40 group-hover:opacity-100 transition-opacity hidden sm:block">{icon}</div>
-                            <span className="text-2xl sm:text-3xl font-black tracking-tighter mb-0.5 font-mono sm:leading-none">{value.toString().padStart(2, '0')}</span>
-                            <p className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider opacity-80 text-neutral-300">{label}</p>
+                            <span className="text-2xl sm:text-3xl font-black tracking-tighter mb-0.5 font-mono sm:leading-none text-white">{value.toString().padStart(2, '0')}</span>
+                            <p className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider opacity-90 text-white">{label}</p>
                         </div>
                     ))}
                 </div>
@@ -299,9 +300,9 @@ export default function ReceptionDashboard() {
 
                     {/* Clinician Status Matrix */}
                     <div className="mb-8 px-4 flex flex-wrap items-center justify-center gap-4 animate-fade-in group/matrix">
-                        <div className="w-full flex items-center justify-center gap-2 mb-2 opacity-70 group-hover/matrix:opacity-100 transition-opacity">
+                        <div className="w-full flex items-center justify-center gap-2 mb-2 opacity-90 group-hover/matrix:opacity-100 transition-opacity">
                             <Stethoscope className="w-3.5 h-3.5 text-brand-400" />
-                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-neutral-300">Live Doctor Status</span>
+                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white">Live Staff Status</span>
                         </div>
                         {receptionist.assignedDoctors?.map((doc: any) => (
                             <div
@@ -334,7 +335,7 @@ export default function ReceptionDashboard() {
                                 onClick={() => setTab(t.id)}
                                 className={`flex items-center gap-3 px-6 sm:px-8 py-3 sm:py-4 rounded-[2rem] text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all ${tab === t.id
                                     ? "bg-brand-600 text-white shadow-xl shadow-brand-600/20"
-                                    : "text-slate-400 hover:text-white hover:bg-white/10"}`}
+                                    : "text-white/60 hover:text-white hover:bg-white/10"}`}
                             >
                                 {t.icon} {t.label}
                             </button>
@@ -363,15 +364,15 @@ export default function ReceptionDashboard() {
                             <div className="max-w-5xl mx-auto animate-fade-up py-2 lg:py-3">
                                 <div className="text-center mb-4">
                                     <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white mb-2">New Arrival</h2>
-                                    <p className="text-neutral-400 text-[11px] font-bold uppercase tracking-[0.3em]">Visitor Entry System</p>
+                                    <p className="text-neutral-100 text-[11px] font-bold uppercase tracking-[0.3em]">Visitor Entry System</p>
                                 </div>
 
                                 <form onSubmit={handleAddPatient} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider ml-5 italic">Full Name</label>
+                                        <label className="text-[10px] font-bold text-neutral-200 uppercase tracking-wider ml-5 italic">Full Name</label>
                                         <input
                                             placeholder="e.g. Arthur Ledger"
-                                            className="w-full bg-white/[0.03] border border-white/5 p-3.5 rounded-xl text-[13px] text-white placeholder-neutral-600 outline-none transition-all focus:border-brand-500/50 focus:bg-white/[0.05]"
+                                            className="w-full bg-white/[0.03] border border-white/5 p-3.5 rounded-xl text-[13px] text-white placeholder-neutral-500 outline-none transition-all focus:border-brand-500/50 focus:bg-white/[0.05]"
                                             value={form.name}
                                             onChange={(e) => setForm({ ...form, name: e.target.value })}
                                             required
@@ -379,10 +380,10 @@ export default function ReceptionDashboard() {
                                     </div>
 
                                     <div className="space-y-1.5">
-                                        <label className="text-[9px] font-black text-neutral-500 uppercase tracking-[0.3em] ml-5 italic">Mobile Phone</label>
+                                        <label className="text-[9px] font-black text-neutral-200 uppercase tracking-[0.3em] ml-5 italic">Mobile Phone</label>
                                         <input
                                             placeholder="91 00000 00000"
-                                            className="w-full bg-white/[0.03] border border-white/5 p-3.5 rounded-xl text-xs text-white placeholder-neutral-700 outline-none transition-all focus:border-brand-500/50 focus:bg-white/[0.05]"
+                                            className="w-full bg-white/[0.03] border border-white/5 p-3.5 rounded-xl text-xs text-white placeholder-neutral-500 outline-none transition-all focus:border-brand-500/50 focus:bg-white/[0.05]"
                                             value={form.phoneNumber}
                                             onChange={(e) => setForm({ ...form, phoneNumber: e.target.value })}
                                             required
@@ -390,17 +391,17 @@ export default function ReceptionDashboard() {
                                     </div>
 
                                     <div className="space-y-1.5">
-                                        <label className="text-[9px] font-black text-neutral-500 uppercase tracking-[0.3em] ml-5 italic">Visit Reason</label>
+                                        <label className="text-[9px] font-black text-neutral-200 uppercase tracking-[0.3em] ml-5 italic">Visit Reason</label>
                                         <input
                                             placeholder="e.g. Routine Consult"
-                                            className="w-full bg-white/[0.03] border border-white/5 p-3.5 rounded-xl text-xs text-white placeholder-neutral-700 outline-none transition-all focus:border-brand-500/50 focus:bg-white/[0.05]"
+                                            className="w-full bg-white/[0.03] border border-white/5 p-3.5 rounded-xl text-xs text-white placeholder-neutral-500 outline-none transition-all focus:border-brand-500/50 focus:bg-white/[0.05]"
                                             value={form.notes}
                                             onChange={(e) => setForm({ ...form, notes: e.target.value })}
                                         />
                                     </div>
 
-                                    <div className="space-y-1.5">
-                                        <label className="text-[9px] font-black text-neutral-500 uppercase tracking-[0.3em] ml-5 italic">Select Doctor</label>
+                                     <div className="space-y-1.5">
+                                        <label className="text-[9px] font-black text-neutral-200 uppercase tracking-[0.3em] ml-5 italic">Select Staff Member</label>
                                         <div className="relative">
                                             <select
                                                 className="w-full bg-white/[0.03] border border-white/5 p-3.5 rounded-xl text-xs text-white outline-none appearance-none transition-all cursor-pointer focus:border-brand-500/50 focus:bg-white/[0.05]"
@@ -408,14 +409,14 @@ export default function ReceptionDashboard() {
                                                 onChange={(e) => setForm({ ...form, doctorId: e.target.value })}
                                                 required
                                             >
-                                                <option value="" disabled className="bg-neutral-900 border-none">Pick Specialist...</option>
+                                                <option value="" disabled className="bg-neutral-900 border-none text-white">Pick Staff...</option>
                                                 {receptionist.assignedDoctors?.map((d: any) => (
-                                                    <option key={d._id} value={d._id} className="bg-neutral-900">
+                                                    <option key={d._id} value={d._id} className="bg-neutral-900 text-white">
                                                         {d.name} ({d.specialization}) {d.availability === "Not Available" ? "— PAUSED ⏸️" : "— ACTIVE ✅"}
                                                     </option>
                                                 ))}
                                             </select>
-                                            < ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-700 pointer-events-none rotate-90" />
+                                            < ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white pointer-events-none rotate-90" />
                                         </div>
                                     </div>
 
@@ -436,15 +437,15 @@ export default function ReceptionDashboard() {
                             <div className="max-w-5xl mx-auto animate-fade-up py-2 lg:py-3">
                                 <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/10">
                                     <h3 className="text-xl font-black text-white px-2 uppercase tracking-tight italic">Waiting List</h3>
-                                    <button onClick={loadQueue} className="p-3 bg-white/5 border border-white/10 rounded-xl text-neutral-500 hover:text-white transition-colors shadow-sm">
+                                    <button onClick={loadQueue} className="p-3 bg-white/5 border border-white/10 rounded-xl text-white hover:text-brand-400 transition-colors shadow-sm">
                                         <RefreshCw className="w-4 h-4" />
                                     </button>
                                 </div>
 
                                 {queue.length === 0 ? (
                                     <div className="py-32 flex flex-col items-center text-center">
-                                        <Activity className="w-12 h-12 text-neutral-700 mb-6 animate-pulse" />
-                                        <h4 className="text-xl font-black text-neutral-500">Waitlist is Empty</h4>
+                                        <Activity className="w-12 h-12 text-white mb-6 animate-pulse" />
+                                        <h4 className="text-xl font-black text-white">Waitlist is Empty</h4>
                                     </div>
                                 ) : (
                                     <div className="space-y-4">
@@ -491,7 +492,7 @@ function SortableItem({ patient, onCall, onComplete, onCancel, onCopyLink, onCop
             className={`group flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 p-4 sm:p-5 rounded-2xl border transition-all duration-300 ${isDragging ? "bg-brand-500/10 border-brand-500/30 shadow-2xl" : "bg-white/[0.03] border-white/5 hover:border-white/20 hover:bg-white/[0.06] backdrop-blur-xl"}`}
         >
             <div className="flex items-center gap-4 sm:gap-6 w-full sm:w-auto">
-                <div {...listeners} {...attributes} className="cursor-grab active:cursor-grabbing p-2 hover:bg-white/10 rounded-lg text-neutral-500 hover:text-white transition-all">
+                <div {...listeners} {...attributes} className="cursor-grab active:cursor-grabbing p-2 hover:bg-white/10 rounded-lg text-white transition-all">
                     <GripVertical className="w-4 h-4 pointer-events-none" />
                 </div>
 
@@ -502,13 +503,13 @@ function SortableItem({ patient, onCall, onComplete, onCancel, onCopyLink, onCop
                 <div className="flex-1 min-w-0">
                     <h4 className="text-base sm:text-lg font-black text-white truncate mb-1 group-hover:text-brand-400 transition-colors uppercase tracking-tight italic">{patient.name}</h4>
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5">
-                        <span className="w-fit text-[10px] font-bold uppercase tracking-wider text-neutral-300 bg-white/5 px-2 py-1 rounded-md border border-white/5 flex items-center gap-1.5">
+                        <span className="w-fit text-[10px] font-bold uppercase tracking-wider text-white bg-white/5 px-2 py-1 rounded-md border border-white/5 flex items-center gap-1.5">
                             <Activity className="w-3 h-3 text-info-400" /> {patient.status}
                         </span>
-                        <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-neutral-300 group-hover:text-brand-400 transition-colors">
+                        <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-white group-hover:text-brand-400 transition-colors">
                             <div className="hidden sm:block w-1 h-1 rounded-full bg-brand-500/30" />
                             <Stethoscope className="w-3 h-3 text-brand-500" />
-                            <span className="truncate max-w-[120px] sm:max-w-none italic">Assigned to Dr. {patient.doctorId?.name || "Node"}</span>
+                            <span className="truncate max-w-[120px] sm:max-w-none italic">Assigned to Staff: {patient.doctorId?.name || "Node"}</span>
                         </span>
                     </div>
                 </div>
@@ -517,28 +518,28 @@ function SortableItem({ patient, onCall, onComplete, onCancel, onCopyLink, onCop
             <div className="flex items-center gap-2 sm:ml-auto">
                 <button
                     onClick={onCopyLink}
-                    className="p-2.5 sm:p-3 rounded-lg bg-white/5 text-neutral-500 border border-white/5 hover:bg-info-500/20 hover:text-info-400 hover:border-info-500/30 transition-all active:scale-90"
+                    className="p-2.5 sm:p-3 rounded-lg bg-white/5 text-white border border-white/5 hover:bg-info-500/20 hover:text-info-400 hover:border-info-500/30 transition-all active:scale-90"
                     title="Copy Tracking Link"
                 >
                     <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
                 <button
                     onClick={onCopyPhone}
-                    className="p-2.5 sm:p-3 rounded-lg bg-white/5 text-neutral-500 border border-white/5 hover:bg-brand-500/20 hover:text-brand-400 hover:border-brand-500/30 transition-all active:scale-90"
+                    className="p-2.5 sm:p-3 rounded-lg bg-white/5 text-white border border-white/5 hover:bg-brand-500/20 hover:text-brand-400 hover:border-brand-500/30 transition-all active:scale-90"
                     title="Copy Phone Number"
                 >
                     <Smartphone className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
                 <button
                     onClick={onComplete}
-                    className="p-2.5 sm:p-3 rounded-lg bg-white/5 text-neutral-500 border border-white/5 hover:bg-success-500/20 hover:text-success-400 hover:border-success-500/30 transition-all active:scale-90"
-                    title="Commit Visit"
+                    className="p-2.5 sm:p-3 rounded-lg bg-white/5 text-white border border-white/5 hover:bg-success-500/20 hover:text-success-400 hover:border-success-500/30 transition-all active:scale-90"
+                    title="Complete Visit"
                 >
                     <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
                 <button
                     onClick={onCancel}
-                    className="p-2.5 sm:p-3 rounded-lg bg-white/5 text-neutral-500 border border-white/5 hover:bg-danger-500/20 hover:text-danger-400 hover:border-danger-500/30 transition-all active:scale-90"
+                    className="p-2.5 sm:p-3 rounded-lg bg-white/5 text-white border border-white/5 hover:bg-danger-500/20 hover:text-danger-400 hover:border-danger-500/30 transition-all active:scale-90"
                     title="Cancel Visit"
                 >
                     <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />

@@ -46,7 +46,7 @@ export default function MobileLanding() {
                     </div>
                     <span className="font-black text-xl tracking-tighter text-white uppercase italic">FLOW-Q</span>
                 </div>
-                <Link href="/login" className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest text-neutral-300">
+                <Link href="/login" className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest text-neutral-100">
                     <Power className="w-3.5 h-3.5" /> Login
                 </Link>
             </header>
@@ -64,7 +64,7 @@ export default function MobileLanding() {
                     <span className="bg-gradient-to-r from-brand-400 to-emerald-400 bg-clip-text text-transparent italic">Waiting.</span>
                 </h1>
 
-                <p className="mobile-animate-up text-sm text-neutral-400 font-medium mb-12 leading-relaxed px-4 opacity-0">
+                <p className="mobile-animate-up text-sm text-neutral-100 font-medium mb-12 leading-relaxed px-4 opacity-0">
                     FLOW-Q makes waiting simple and organized. Smart tech for live waitlists.
                 </p>
 
@@ -87,15 +87,15 @@ export default function MobileLanding() {
                         { label: "Availability", val: "99.9%", icon: <Globe className="w-3.5 h-3.5" /> }
                     ].map((s) => (
                         <div key={s.label} className="bg-white/5 border border-white/5 rounded-2xl p-5 flex flex-col items-center justify-center backdrop-blur-sm transition-all active:bg-white/10">
-                            <div className="text-neutral-400 mb-2">{s.icon}</div>
+                            <div className="text-neutral-100 mb-2">{s.icon}</div>
                             <div className="text-xl font-black tracking-tight mb-0.5 font-mono text-white">{s.val}</div>
-                            <div className="text-[7px] font-black text-neutral-500 uppercase tracking-widest">{s.label}</div>
+                            <div className="text-[7px] font-black text-neutral-200 uppercase tracking-widest">{s.label}</div>
                         </div>
                     ))}
                 </div>
 
                 {/* Vertical Scroll Hint */}
-                <div className="mt-20 flex flex-col items-center gap-4 text-neutral-700">
+                <div className="mt-20 flex flex-col items-center gap-4 text-neutral-400">
                     <div className="w-[1px] h-12 bg-gradient-to-b from-brand-500/50 to-transparent" />
                     <span className="text-[7px] font-black uppercase tracking-[0.5em] rotate-180 [writing-mode:vertical-lr]">Scroll to Explore</span>
                 </div>
@@ -112,7 +112,7 @@ export default function MobileLanding() {
                                 </div>
                                 <span className="font-black text-xl italic tracking-tighter uppercase text-white">FLOW-Q</span>
                             </div>
-                            <p className="text-neutral-400 text-[10px] leading-relaxed font-medium max-w-xs italic mb-8">
+                            <p className="text-neutral-100 text-[10px] leading-relaxed font-medium max-w-xs italic mb-8">
                                 High-performance waiting list management. Simple tools for your business.
                             </p>
                         </div>
@@ -120,7 +120,7 @@ export default function MobileLanding() {
                         <div className="grid grid-cols-2 gap-10">
                             <div className="space-y-6">
                                 <h4 className="text-[9px] font-black uppercase tracking-[0.4em] text-white">System</h4>
-                                <div className="flex flex-col gap-4 text-[9px] font-black uppercase tracking-widest text-neutral-400">
+                                <div className="flex flex-col gap-4 text-[9px] font-black uppercase tracking-widest text-neutral-100">
                                     <Link href="/login">Doctors</Link>
                                     <Link href="/login">Front Desk</Link>
                                     <Link href="/login">Kiosk</Link>
@@ -128,8 +128,8 @@ export default function MobileLanding() {
                             </div>
 
                             <div className="space-y-6">
-                                <h4 className="text-[9px] font-black uppercase tracking-[0.4em] text-white">Protocol</h4>
-                                <div className="flex flex-col gap-4 text-[9px] font-black uppercase tracking-widest text-neutral-400">
+                                <h4 className="text-[9px] font-black uppercase tracking-[0.4em] text-white">Developer</h4>
+                                <div className="flex flex-col gap-4 text-[9px] font-black uppercase tracking-widest text-neutral-100">
                                     <Link href="/docs">API Key</Link>
                                     <Link href="/docs#playground">Guide</Link>
                                     <Link href="/">Privacy</Link>
@@ -138,9 +138,9 @@ export default function MobileLanding() {
                         </div>
                     </div>
 
-                    <div className="flex flex-col gap-6 text-[7px] font-black text-neutral-800 uppercase tracking-[0.5em] border-t border-white/5 pt-10 text-center">
+                    <div className="flex flex-col gap-6 text-[7px] font-black text-neutral-400 uppercase tracking-[0.5em] border-t border-white/5 pt-10 text-center">
                         <p>© {new Date().getFullYear()} FLOW-Q MANAGEMENT.</p>
-                        <p className="opacity-40">LATENCY: &lt;2MS • UPTIME: 99.9%</p>
+                        <p className="opacity-40">SPEED: &lt;2MS • UPTIME: 99.9%</p>
                     </div>
                 </div>
             </footer>

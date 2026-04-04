@@ -114,7 +114,7 @@ export default function KioskPage() {
                         <MonitorSmartphone className="w-10 h-10 text-brand-400" />
                     </div>
                     <h1 className="text-4xl sm:text-6xl font-black tracking-tighter text-white mb-4">Express Check-In</h1>
-                    <p className="text-neutral-400 text-[11px] font-bold uppercase tracking-[0.4em]">Fast Self Check-In <span className="mx-2 text-neutral-800">/</span> {hospitalId ? "Clinic Access" : "Hospital"}</p>
+                    <p className="text-neutral-100 text-[11px] font-bold uppercase tracking-[0.4em]">Simple Self Check-In <span className="mx-2 text-neutral-800">/</span> {hospitalId ? "Clinic Access" : "Hospital"}</p>
                 </div>
 
                 {tokenResult ? (
@@ -127,15 +127,15 @@ export default function KioskPage() {
                         </div>
 
                         <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white mb-4">Check-In Complete</h2>
-                        <p className="text-neutral-400 text-base sm:text-lg font-medium mb-12">Please head to the waiting area.</p>
+                        <p className="text-neutral-100 text-base sm:text-lg font-medium mb-12">Please head to the waiting area.</p>
 
                         <div className="bg-black/40 border border-white/5 rounded-[3rem] p-12 mb-10 shadow-inner relative group transition-all hover:bg-black/60">
-                            <p className="text-[12px] font-bold uppercase tracking-[0.4em] text-neutral-400 mb-4 group-hover:text-neutral-300 transition-colors">Your Number</p>
+                            <p className="text-[12px] font-bold uppercase tracking-[0.4em] text-neutral-200 mb-4 group-hover:text-neutral-100 transition-colors">Your Number</p>
                             <p className="text-[6rem] sm:text-[9.5rem] font-black leading-none text-white tracking-widest font-mono group-hover:text-brand-400 group-hover:scale-105 transition-all duration-500">{tokenResult}</p>
                         </div>
 
-                        <div className="flex items-center justify-center gap-4 text-neutral-400 font-bold text-[11px] uppercase tracking-widest bg-white/5 py-4 rounded-2xl border border-white/5">
-                            <Stethoscope className="w-4 h-4 text-brand-400" /> Doctor: <span className="text-white">{selectedDoc?.name}</span>
+                        <div className="flex items-center justify-center gap-4 text-white font-bold text-[11px] uppercase tracking-widest bg-white/5 py-4 rounded-2xl border border-white/5">
+                            <Stethoscope className="w-4 h-4 text-brand-400" /> Doctor: <span className="text-brand-300">{selectedDoc?.name}</span>
                         </div>
 
                         <p className="mt-12 text-[9px] font-black uppercase tracking-[0.5em] text-neutral-600 animate-pulse">Screen will reset in 10s</p>
@@ -147,7 +147,7 @@ export default function KioskPage() {
 
                         <button
                             onClick={() => setSelectedDoc(null)}
-                            className="mb-10 text-[10px] font-black uppercase tracking-[0.3em] text-neutral-400 hover:text-white transition-all flex items-center gap-3"
+                            className="mb-10 text-[10px] font-black uppercase tracking-[0.3em] text-white hover:text-brand-300 transition-all flex items-center gap-3"
                         >
                             <X className="w-4 h-4" /> Back to Doctors
                         </button>
@@ -158,7 +158,7 @@ export default function KioskPage() {
                             </div>
                             <div>
                                 <h2 className="text-3xl font-black text-white mb-2">{selectedDoc.name}</h2>
-                                <p className="text-neutral-400 font-bold uppercase tracking-wider text-[11px] mb-3">{selectedDoc.specialization}</p>
+                                <p className="text-neutral-100 font-bold uppercase tracking-wider text-[11px] mb-3">{selectedDoc.specialization}</p>
                                 <div className="flex items-center gap-3 text-success-400 font-bold text-[11px] uppercase tracking-widest bg-success-500/10 px-4 py-2 rounded-xl border border-success-500/20 w-fit">
                                     <Clock className="w-4 h-4" /> {selectedDoc.estimatedWaitMins} min estimated wait
                                 </div>
@@ -173,21 +173,21 @@ export default function KioskPage() {
 
                         <form onSubmit={handleSubmit} className="space-y-10">
                             <div className="space-y-3">
-                                <label className="text-[12px] font-bold text-neutral-400 uppercase tracking-wider ml-6">Full Name</label>
+                                <label className="text-[12px] font-bold text-neutral-100 uppercase tracking-wider ml-6">Full Name</label>
                                 <div className="relative group">
-                                    <User className="absolute left-8 top-1/2 -translate-y-1/2 w-6 h-6 text-neutral-700 transition-colors group-focus-within:text-brand-400" />
+                                    <User className="absolute left-8 top-1/2 -translate-y-1/2 w-6 h-6 text-neutral-400 transition-colors group-focus-within:text-brand-400" />
                                     <input required type="text" name="name" value={formData.name} onChange={handleChange}
-                                        className="w-full pl-22 pr-8 py-6 sm:py-8 rounded-[2.5rem] bg-white/[0.03] border border-white/5 text-xl sm:text-2xl text-white outline-none focus:border-brand-500/50 focus:bg-white/[0.05] transition-all placeholder:text-neutral-700"
+                                        className="w-full pl-22 pr-8 py-6 sm:py-8 rounded-[2.5rem] bg-white/[0.03] border border-white/5 text-xl sm:text-2xl text-white outline-none focus:border-brand-500/50 focus:bg-white/[0.05] transition-all placeholder:text-neutral-400"
                                         placeholder="Type name here..." />
                                 </div>
                             </div>
 
                             <div className="space-y-3">
-                                <label className="text-[12px] font-bold text-neutral-400 uppercase tracking-wider ml-6">Mobile Phone</label>
+                                <label className="text-[12px] font-bold text-neutral-100 uppercase tracking-wider ml-6">Mobile Phone</label>
                                 <div className="relative group">
-                                    <Phone className="absolute left-8 top-1/2 -translate-y-1/2 w-6 h-6 text-neutral-700 transition-colors group-focus-within:text-brand-400" />
+                                    <Phone className="absolute left-8 top-1/2 -translate-y-1/2 w-6 h-6 text-neutral-400 transition-colors group-focus-within:text-brand-400" />
                                     <input type="tel" name="phone" value={formData.phone} onChange={handleChange}
-                                        className="w-full pl-22 pr-8 py-6 sm:py-8 rounded-[2.5rem] bg-white/[0.03] border border-white/5 text-xl sm:text-2xl text-white outline-none focus:border-brand-500/50 focus:bg-white/[0.05] transition-all placeholder:text-neutral-700"
+                                        className="w-full pl-22 pr-8 py-6 sm:py-8 rounded-[2.5rem] bg-white/[0.03] border border-white/5 text-xl sm:text-2xl text-white outline-none focus:border-brand-500/50 focus:bg-white/[0.05] transition-all placeholder:text-neutral-400"
                                         placeholder="Phone Number..." />
                                 </div>
                             </div>
@@ -205,14 +205,14 @@ export default function KioskPage() {
                 ) : (
                     /* DOCTOR SELECTION SCREEN */
                     <div className="w-full flex flex-col items-center">
-                        <div className="flex items-center gap-3 mb-12 text-neutral-400 animate-fade-up">
+                        <div className="flex items-center gap-3 mb-12 text-white animate-fade-up">
                             <UserPlus className="w-6 h-6 text-brand-400" />
                             <span className="text-[10px] font-black uppercase tracking-[0.5em]">Select a Doctor</span>
                         </div>
 
                         {doctors.length === 0 ? (
                             <div className="p-20 text-center bg-white/5 border border-white/5 rounded-[4rem] backdrop-blur-3xl">
-                                <p className="text-xl text-neutral-500 font-bold uppercase tracking-widest">No active doctors found</p>
+                                <p className="text-xl text-neutral-100 font-bold uppercase tracking-widest">No active doctors found</p>
                             </div>
                         ) : (
                             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10 w-full animate-fade-up delay-100">
@@ -230,11 +230,11 @@ export default function KioskPage() {
 
                                         <div className="w-full flex items-center justify-between border-t border-white/5 pt-8">
                                             <div className="text-left">
-                                                <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Queue Size</p>
+                                                <p className="text-[10px] font-bold text-neutral-100 uppercase tracking-wider mb-1">Queue Size</p>
                                                 <p className="font-mono text-xl font-black text-white">{doc.currentQueueLength} People</p>
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Wait Time</p>
+                                                <p className="text-[10px] font-bold text-neutral-100 uppercase tracking-wider mb-1">Wait Time</p>
                                                 <p className="font-mono text-xl font-black text-success-400">{doc.estimatedWaitMins} Min</p>
                                             </div>
                                         </div>

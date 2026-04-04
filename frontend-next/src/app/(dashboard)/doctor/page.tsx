@@ -180,7 +180,7 @@ export default function DoctorDashboard() {
                                     {doctor.availability}
                                 </span>
                             </div>
-                            <p className="text-neutral-500 text-[10px] sm:text-sm font-black uppercase tracking-[0.2em]">Dr. {doctor.name} <span className="mx-2 text-neutral-800">/</span> {doctor.specialization}</p>
+                            <p className="text-neutral-100 text-[10px] sm:text-sm font-black uppercase tracking-[0.2em]">Dr. {doctor.name} <span className="mx-2 text-neutral-800">/</span> {doctor.specialization}</p>
                         </div>
                     </div>
 
@@ -233,8 +233,8 @@ export default function DoctorDashboard() {
                     ].map(({ label, value, icon, color }) => (
                         <div key={label} className={`group relative bg-white/[0.03] border rounded-xl sm:rounded-2xl p-4 sm:p-6 transition-all hover:bg-white/[0.05] flex flex-col items-center text-center backdrop-blur-xl ${color}`}>
                             <div className="absolute top-3 right-3 sm:top-5 sm:right-5 opacity-40 group-hover:opacity-100 transition-opacity">{icon}</div>
-                            <span className="text-2xl sm:text-4xl font-black tracking-tighter mb-1 font-mono">{value}</span>
-                            <p className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider text-neutral-400">{label}</p>
+                            <span className="text-2xl sm:text-4xl font-black tracking-tighter mb-1 font-mono text-white">{value}</span>
+                            <p className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider text-neutral-100">{label}</p>
                         </div>
                     ))}
                 </div>
@@ -250,7 +250,7 @@ export default function DoctorDashboard() {
 
                             <div className="flex items-center gap-3 mb-8">
                                 <Activity className="w-5 h-5 text-brand-400" />
-                                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-neutral-400">Queue Command</h3>
+                                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-white">Queue Control</h3>
                             </div>
 
                             <div className="space-y-4">
@@ -266,7 +266,7 @@ export default function DoctorDashboard() {
                                     onClick={() => changeAvailability("Not Available")}
                                     className={`w-full py-5 rounded-2xl font-black text-xs uppercase tracking-widest border transition-all flex items-center justify-center gap-3 ${doctor.availability === "Not Available"
                                         ? "border-danger-500/50 bg-danger-500/10 text-danger-400 shadow-[0_0_30px_rgba(239,68,68,0.1)]"
-                                        : "border-white/5 bg-white/5 text-neutral-600 hover:border-white/20"}`}
+                                        : "border-white/5 bg-white/5 text-neutral-400 hover:border-white/20"}`}
                                 >
                                     <Power className="w-4 h-4" /> Paused
                                 </button>
@@ -274,13 +274,13 @@ export default function DoctorDashboard() {
 
                             {doctor.availability === "Not Available" && (
                                 <div className="mt-8 pt-8 border-t border-white/5 animate-fade-down">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-neutral-600 mb-4 block ml-1">PA Announcement</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-neutral-300 mb-4 block ml-1">Live Update Message</label>
                                     <div className="flex flex-col gap-3">
                                         <input
                                             value={pauseMessage}
                                             onChange={(e) => setPauseMessage(e.target.value)}
                                             placeholder="Estimated return time..."
-                                            className="w-full px-5 py-4 rounded-xl bg-white/5 border border-white/5 text-white placeholder-neutral-700 focus:border-brand-500/50 outline-none transition-all text-sm font-bold"
+                                            className="w-full px-5 py-4 rounded-xl bg-white/5 border border-white/5 text-white placeholder-neutral-500 focus:border-brand-500/50 outline-none transition-all text-sm font-bold"
                                         />
                                         <button
                                             onClick={() => changeAvailability("Not Available")}
@@ -297,12 +297,12 @@ export default function DoctorDashboard() {
                         <div className="bg-white/5 border border-white/10 rounded-[3rem] p-8 backdrop-blur-3xl shadow-2xl relative overflow-hidden">
                             <div className="flex items-center gap-3 mb-8">
                                 <Clock className="w-5 h-5 text-info-400" />
-                                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-neutral-400">Consultation Timing</h3>
+                                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-white">Consultation Timing</h3>
                             </div>
                             <div className="bg-black/20 rounded-3xl p-6 border border-white/5 flex flex-col items-center text-center">
                                 <div className="flex items-baseline gap-2 mb-6">
                                     <span className="text-5xl font-black font-mono text-brand-400">{doctor.avgConsultationTime || "05"}</span>
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-neutral-600">min avg</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-neutral-300">min avg</span>
                                 </div>
                                 <div className="flex flex-col sm:flex-row gap-3 w-full">
                                     <input
@@ -330,8 +330,8 @@ export default function DoctorDashboard() {
                                         <Mail className="w-4 h-4 text-brand-400" />
                                     </div>
                                     <div className="flex-1 truncate">
-                                        <p className="text-[9px] font-black uppercase tracking-widest text-neutral-500 mb-0.5 italic">Admin Email</p>
-                                        <p className="text-xs font-bold text-neutral-300 truncate">{doctor.email}</p>
+                                        <p className="text-[9px] font-black uppercase tracking-widest text-neutral-200 mb-0.5 italic">Admin Email</p>
+                                        <p className="text-xs font-bold text-neutral-100 truncate">{doctor.email}</p>
                                     </div>
                                 </div>
                                 <div className="p-4 bg-white/5 border border-white/5 rounded-[2rem] flex items-center gap-4">
@@ -339,8 +339,8 @@ export default function DoctorDashboard() {
                                         <Shield className="w-4 h-4 text-info-400" />
                                     </div>
                                     <div className="flex-1">
-                                        <p className="text-[9px] font-black uppercase tracking-widest text-neutral-500 mb-0.5 italic">Permissions</p>
-                                        <p className="text-xs font-bold text-neutral-300">Advanced Practitioner</p>
+                                        <p className="text-[9px] font-black uppercase tracking-widest text-neutral-200 mb-0.5 italic">Permissions</p>
+                                        <p className="text-xs font-bold text-neutral-100">Professional Access</p>
                                     </div>
                                 </div>
                             </div>
@@ -357,7 +357,7 @@ export default function DoctorDashboard() {
                                     </div>
                                     <div>
                                         <h3 className="text-xl font-black tracking-tight text-white uppercase italic">Live Patient Queue</h3>
-                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-500">{queue.length} Active in Queue</p>
+                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-100">{queue.length} Active in Queue</p>
                                     </div>
                                 </div>
                             </div>
@@ -367,8 +367,8 @@ export default function DoctorDashboard() {
                                     <div className="w-32 h-32 bg-white/5 rounded-[3rem] border border-white/5 flex items-center justify-center mb-6 animate-pulse">
                                         <Calendar className="w-12 h-12 text-neutral-800" />
                                     </div>
-                                    <h4 className="text-xl font-black text-neutral-600">Pipeline Clear</h4>
-                                    <p className="text-neutral-500 text-sm mt-1 max-w-[240px] font-medium">Ready for new arrivals. Check synchronization if needed.</p>
+                                    <h4 className="text-xl font-black text-white">Queue is Empty</h4>
+                                    <p className="text-neutral-100 text-sm mt-1 max-w-[240px] font-medium">Ready for new arrivals. Check synchronization if needed.</p>
                                 </div>
                             ) : (
                                 <div className="space-y-4 h-[600px] overflow-y-auto pr-2 custom-scrollbar">
@@ -382,7 +382,7 @@ export default function DoctorDashboard() {
                                             {/* Order Number */}
                                             <div className={`w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-[1.5rem] flex items-center justify-center font-mono font-black text-xl md:text-2xl flex-shrink-0 relative overflow-hidden transition-transform duration-500 group-hover:scale-105 ${idx === 0
                                                 ? "bg-brand-600 text-white shadow-2xl shadow-brand-600/40"
-                                                : "bg-white/5 text-neutral-400 border border-white/5"}`}>
+                                                : "bg-white/5 text-neutral-100 border border-white/5"}`}>
                                                 {p.tokenNumber}
                                             </div>
 
@@ -390,8 +390,8 @@ export default function DoctorDashboard() {
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex flex-col mb-1">
                                                     <p className="text-base sm:text-lg font-black text-white truncate group-hover:text-brand-400 transition-colors uppercase tracking-tight">{p.name}</p>
-                                                    <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 italic">Assigned to Dr. {doctor.name}</p>
-                                                    {idx === 0 && <span className="w-fit mt-1 px-1.5 py-0.5 bg-brand-500 text-white text-[9px] font-black uppercase tracking-[0.2em] rounded-md animate-bounce">Active</span>}
+                                                    <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-200 italic">Assigned to Dr. {doctor.name}</p>
+                                                    {idx === 0 && <span className="w-fit mt-1 px-1.5 py-0.5 bg-brand-500 text-white text-[9px] font-black uppercase tracking-[0.2em] rounded-md animate-bounce">In Service</span>}
                                                 </div>
                                                 <div className="flex flex-wrap items-center gap-2 sm:gap-4">
                                                     <div className="flex items-center gap-2 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-neutral-400 bg-black/20 px-3 py-1 rounded-full outline outline-1 outline-white/5">
@@ -451,11 +451,11 @@ export default function DoctorDashboard() {
                             </div>
 
                             <h2 className="text-3xl font-black text-white mb-2 tracking-tight uppercase italic">Complete Visit</h2>
-                            <p className="text-neutral-400 font-black uppercase tracking-widest text-[10px] mb-10">Patient: <span className="text-brand-400 italic">{completingPatient.name}</span></p>
+                            <p className="text-neutral-100 font-black uppercase tracking-widest text-[10px] mb-10">Client: <span className="text-brand-400 italic">{completingPatient.name}</span></p>
 
                             <div className="w-full space-y-6 text-left">
-                                <div className="space-y-3">
-                                    <label className="text-[10px] font-black uppercase tracking-[0.3em] text-neutral-500 ml-5 block italic">Scheduled Return</label>
+                                 <div className="space-y-3">
+                                    <label className="text-[10px] font-black uppercase tracking-[0.3em] text-neutral-100 ml-5 block italic">Scheduled Return</label>
                                     <input
                                         type="date"
                                         min={new Date().toISOString().split('T')[0]}
@@ -463,8 +463,8 @@ export default function DoctorDashboard() {
                                         onChange={(e) => setNextVisitDate(e.target.value)}
                                         className="w-full px-6 py-4 rounded-[1.5rem] bg-white/5 border border-white/10 text-white font-bold focus:border-brand-500/50 outline-none transition-all"
                                     />
-                                    <p className="text-[10px] font-black italic text-neutral-500 px-5 text-center">
-                                        System will auto-dispatch WhatsApp alerts 24h prior.
+                                    <p className="text-[10px] font-black italic text-neutral-200 px-5 text-center">
+                                        Follow-up alerts will be sent automatically.
                                     </p>
                                 </div>
                             </div>
@@ -480,7 +480,7 @@ export default function DoctorDashboard() {
                                     onClick={handleCompletePatient}
                                     className="px-8 py-4 rounded-2xl bg-success-600 hover:bg-success-500 text-white font-black text-[10px] uppercase tracking-widest shadow-2xl shadow-success-600/20 transition-all flex items-center justify-center gap-3"
                                 >
-                                    <CheckCircle className="w-4 h-4" /> Commit Matrix
+                                    <CheckCircle className="w-4 h-4" /> Complete Session
                                 </button>
                             </div>
                         </div>
