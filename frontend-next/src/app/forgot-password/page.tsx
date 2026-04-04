@@ -38,7 +38,7 @@ export default function ForgotPassword() {
 
     return (
         <div className="min-h-screen w-full flex items-center justify-center bg-neutral-950 font-sans relative overflow-hidden transition-colors duration-300 selection:bg-brand-500/30 p-6">
-            
+
             {/* Ambient Background - Architect Ledger Mesh */}
             <div className="fixed inset-0 pointer-events-none z-0">
                 <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-brand-600/10 blur-[120px] rounded-full animate-pulse" />
@@ -56,7 +56,7 @@ export default function ForgotPassword() {
 
                 <div className="bg-white/[0.03] border border-white/5 backdrop-blur-3xl rounded-[2rem] p-5 sm:p-6 shadow-2xl relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-[40%] h-[40%] bg-brand-600/5 blur-[60px] rounded-full pointer-events-none" />
-                    
+
                     <div className="text-center mb-8">
                         <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight mb-2 uppercase italic underline decoration-brand-500/30 underline-offset-4">
                             Forgot <span className="text-brand-500">Access.</span>
@@ -124,7 +124,7 @@ export default function ForgotPassword() {
 
                             <div className="text-center pt-2">
                                 <p className="text-[9px] font-black text-neutral-800 uppercase tracking-widest leading-relaxed">
-                                    Encryption Status: <span className="text-success-500">Secure</span><br/>
+                                    Encryption Status: <span className="text-success-500">Secure</span><br />
                                     Node Integrity: <span className="text-brand-500">Verified</span>
                                 </p>
                             </div>
@@ -133,7 +133,5 @@ export default function ForgotPassword() {
                 </div>
             </div>
         </div>
-    );
-}
     );
 }
