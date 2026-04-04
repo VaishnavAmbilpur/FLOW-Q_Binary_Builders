@@ -86,9 +86,10 @@ app.use(cors({
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   // Explicitly allowing common headers to prevent Axios Network Errors on preflight
   allowedHeaders: ["Content-Type", "Authorization", "x-api-key", "Idempotency-Key", "Accept", "X-Requested-With", "Cache-Control", "sentry-trace", "baggage", "origin"],
+  exposedHeaders: ["Authorization"],
   credentials: true,
   preflightContinue: false,
-  optionsSuccessStatus: 204
+  optionsSuccessStatus: 200
 }));
 
 // Global Rate Limiting
