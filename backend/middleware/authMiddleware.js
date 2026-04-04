@@ -4,9 +4,16 @@ const User = require("../models/User");
 // Middleware to check if user is logged in
 const auth = async (req, res, next) => {
   try {
-    const token = req.cookies.token;
+    let token = req.cookies.token;
+
+    // Check Authorization header as fallback (Bearer token)
+    if (!token && req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
+      token = req.headers.authorization.split(" ")[1];
+      console.log(`[AuthMiddleware] Using token from Authorization header`);
+    }
+
     if (!token) {
-      console.log(`[AuthMiddleware] No token found in cookies. Available cookies: ${Object.keys(req.cookies || {}).join(', ')}`);
+      console.log(`[AuthMiddleware] No token found in cookies or header. Available cookies: ${Object.keys(req.cookies || {}).join(', ')}`);
       return res.status(401).json({ message: "Not authenticated" });
     }
     const decoded = jwt.verify(

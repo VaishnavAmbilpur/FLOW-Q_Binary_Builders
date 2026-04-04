@@ -279,6 +279,7 @@ router.post("/login", loginBruteForceLimiter, async (req, res) => {
 
     res.json({
       message: "Login successful",
+      accessToken, // Return token for use in frontend Authorization header
       user: {
         id: user._id,
         hospitalId: user.hospitalId,
@@ -483,7 +484,8 @@ router.post("/refresh", async (req, res) => {
     logger.info("Access token refreshed successfully", { userId: user._id });
 
     res.json({
-      message: "Token refreshed successfully"
+      message: "Token refreshed successfully",
+      accessToken // New: Return token for client storage
     });
   } catch (err) {
     logger.error("Refresh Token Error", { error: err.message, stack: err.stack });
