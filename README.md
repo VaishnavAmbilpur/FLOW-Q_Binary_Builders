@@ -40,6 +40,7 @@ We bridge the gap between service providers and customers through:
 | **Database** | **MongoDB** | Multi-tenant schema design with strict data isolation and indexing. |
 | **Security** | **JWT / Cookies** | Secure authentication using Refresh Token Rotation and HTTP-only cookies. |
 | **Monitoring** | **Sentry** | Full-stack error tracking and performance bottleneck identification. |
+| **SMS Service** | **Fast2SMS** | Reliable SMS gateway for sending alerts, notifications with high delivery rates and easy API integration. |
 
 ---
 
