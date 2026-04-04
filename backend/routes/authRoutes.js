@@ -681,7 +681,7 @@ router.post("/reset-password/:token", authLimiter, async (req, res) => {
 // ─── Google OAuth Routes ──────────────────────────────────────────────────────
 
 const GOOGLE_TEMP_TOKEN_SECRET = process.env.JWT_SECRET + "_google_temp";
-const FRONTEND = process.env.FRONTEND_URL || "http://localhost:3000";
+const FRONTEND = process.env.FRONTEND_URL || "https://flow-q-binary-builders.vercel.app";
 
 // Helper: set JWT cookies + redirect to correct dashboard
 async function loginAndRedirect(res, user) {

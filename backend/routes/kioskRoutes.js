@@ -49,13 +49,20 @@ router.post("/:hospitalId/enqueue", async (req, res) => {
         const endOfDay = new Date();
         endOfDay.setHours(23, 59, 59, 999);
 
-        // Calculate token number
-        const count = await Patient.countDocuments({
+        // Calculate token number (All patients for this doctor today)
+        const totalCountToday = await Patient.countDocuments({
+            doctorId,
+            createdAt: { $gte: startOfDay, $lte: endOfDay }
+        });
+
+        // Calculate sortOrder (Waiting patients only)
+        const currentWaitingCount = await Patient.countDocuments({
             doctorId,
             status: "waiting"
         });
 
-        const tokenNumber = count + 1;
+        const tokenNumber = totalCountToday + 1;
+        const sortOrder = currentWaitingCount + 1;
         const uniqueLinkId = uuidv4();
         const doctor = await User.findById(doctorId);
 
@@ -89,6 +96,7 @@ router.post("/:hospitalId/enqueue", async (req, res) => {
             number: phone || "",
             description: description || "Self check-in via Kiosk",
             tokenNumber,
+            sortOrder,
             uniqueLinkId,
             status: "waiting",
             createdAt: new Date()

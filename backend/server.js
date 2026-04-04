@@ -18,6 +18,7 @@ const mongoSanitize = require('express-mongo-sanitize');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const logger = require('./utils/logger');
+const axios = require('axios');
 const { requestLogger, errorLogger } = require('./middleware/requestLogger');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 const queueRoutes = require('./routes/queueRoutes');
@@ -69,6 +70,7 @@ const allowedOrigins = [
   'http://localhost:3001',
   'http://localhost:3002',
   'http://localhost:5173',
+  'https://flow-q-binary-builders.vercel.app',
   process.env.FRONTEND_URL
 ].filter(Boolean);
 
@@ -202,4 +204,12 @@ server.listen(PORT, () => {
   });
 });
 
-// Trigger nodemon restart
+// Keep-alive mechanism for Render free tier (pings every 14 mins)
+const RENDER_URL = "https://flow-q-binary-builders.onrender.com";
+if (process.env.NODE_ENV === 'production') {
+  setInterval(() => {
+    axios.get(`${RENDER_URL}/health`)
+      .then(() => logger.info('[KEEP-ALIVE] Auto-ping successful'))
+      .catch((err) => logger.error('[KEEP-ALIVE] Auto-ping failed', { error: err.message }));
+  }, 14 * 60 * 1000);
+}

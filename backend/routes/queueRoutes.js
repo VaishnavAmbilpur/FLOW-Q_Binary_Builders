@@ -112,7 +112,17 @@ router.post("/add", auth, async (req, res) => {
       return res.status(500).json({ message: "Doctor is not associated with a hospital" });
     }
 
-    const count = await Patient.countDocuments({
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const totalCountToday = await Patient.countDocuments({
+      doctorId,
+      createdAt: { $gte: startOfDay, $lte: endOfDay }
+    });
+
+    const waitingCount = await Patient.countDocuments({
       doctorId,
       status: "waiting"
     });
@@ -125,8 +135,8 @@ router.post("/add", auth, async (req, res) => {
       description,
       notes: notes || "",
       number,
-      tokenNumber: count + 1,
-      sortOrder: count + 1,
+      tokenNumber: totalCountToday + 1,
+      sortOrder: waitingCount + 1,
       uniqueLinkId: uuidv4()
     });
 
