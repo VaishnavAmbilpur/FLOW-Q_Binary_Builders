@@ -13,9 +13,9 @@ export default function HospitalAdminNavbar() {
     const router = useRouter();
 
     const navLinks = [
-        { name: "Executive Hub", path: "/admin/dashboard", icon: LayoutDashboard },
-        { name: "Clinic Analytics", path: "/admin/analytics", icon: BarChart3 },
-        { name: "Registry History", path: "/admin/history", icon: History }
+        { name: "Admin Dashboard", path: "/admin/dashboard", icon: LayoutDashboard },
+        { name: "Analytics", path: "/admin/analytics", icon: BarChart3 },
+        { name: "Waitlist History", path: "/admin/history", icon: History }
     ];
 
     const handleLogout = () => {
@@ -37,7 +37,7 @@ export default function HospitalAdminNavbar() {
                     </div>
                     <div className="hidden sm:block">
                         <h2 className="text-xl font-black tracking-tighter text-white uppercase italic">Q-ADMIN</h2>
-                        <p className="text-[8px] font-black text-neutral-600 uppercase tracking-[0.4em]">Queue System Authority</p>
+                        <p className="text-[8px] font-black text-neutral-400 uppercase tracking-[0.4em]">Admin Control</p>
                     </div>
                 </div>
 
@@ -54,10 +54,10 @@ export default function HospitalAdminNavbar() {
                                     relative flex items-center gap-3 px-6 py-3 rounded-[1.5rem] transition-all duration-500 group/link
                                     ${isActive 
                                         ? "bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.15)]" 
-                                        : "text-neutral-500 hover:text-white hover:bg-white/5"}
+                                        : "text-neutral-400 hover:text-white hover:bg-white/5"}
                                 `}
                             >
-                                <Icon className={`w-4 h-4 ${isActive ? "text-black" : "text-neutral-600 group-hover/link:text-brand-400"} transition-colors`} />
+                                <Icon className={`w-4 h-4 ${isActive ? "text-black" : "text-neutral-400 group-hover/link:text-brand-400"} transition-colors`} />
                                 <span className="text-[10px] font-black uppercase tracking-widest hidden lg:block">{link.name}</span>
                                 
                                 {isActive && (
@@ -75,7 +75,7 @@ export default function HospitalAdminNavbar() {
                         className="flex items-center gap-3 px-6 py-4 bg-danger-500/10 hover:bg-danger-500 text-danger-400 hover:text-white border border-danger-500/20 rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest transition-all shadow-lg active:scale-95"
                     >
                         <Power className="w-4 h-4" />
-                        <span className="hidden sm:block">Terminate</span>
+                        <span className="hidden sm:block">Logout Session</span>
                     </button>
                 </div>
 

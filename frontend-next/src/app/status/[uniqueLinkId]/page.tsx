@@ -178,8 +178,8 @@ export default function PatientStatusView() {
                 <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-danger-600/10 blur-[150px] rounded-full pointer-events-none" />
                 <div className="bg-white/5 backdrop-blur-3xl p-10 rounded-[2.5rem] border border-danger-500/20 shadow-2xl text-center max-w-md w-full animate-fade-up z-10">
                     <XCircle className="w-20 h-20 text-danger-500 mx-auto mb-6 drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]" />
-                    <h2 className="text-3xl font-black text-white tracking-tight">Visit Cancelled</h2>
-                    <p className="mt-4 text-neutral-400 font-medium">Your appointment has been cancelled. Please contact the reception desk if this is a mistake.</p>
+                    <h2 className="text-3xl font-black text-white tracking-tight">Cancelled</h2>
+                    <p className="mt-4 text-neutral-300 font-medium">Your appointment was cancelled. Please ask at the front desk if you need help.</p>
                 </div>
             </div>
         );
@@ -190,8 +190,8 @@ export default function PatientStatusView() {
                 <div className="absolute w-[50%] h-[50%] bg-success-600/10 blur-[150px] rounded-full pointer-events-none" />
                 <div className="bg-white/5 backdrop-blur-3xl p-8 sm:p-10 rounded-[3rem] border border-success-500/20 shadow-2xl text-center max-w-md w-full animate-fade-up z-10 flex flex-col items-center">
                     <CheckCircle className="w-16 h-16 sm:w-20 sm:h-20 text-success-500 mx-auto mb-6 drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]" />
-                    <h2 className="text-3xl font-black text-white tracking-tight">Visit Completed</h2>
-                    <p className="mt-3 text-sm sm:text-base text-neutral-400 font-medium max-w-[280px] mx-auto">Thank you for visiting! Have a wonderful day and speedy recovery.</p>
+                    <h2 className="text-3xl font-black text-white tracking-tight">Finished</h2>
+                    <p className="mt-3 text-sm sm:text-base text-neutral-300 font-medium max-w-[280px] mx-auto">Thanks for visiting! Have a great day.</p>
                 </div>
             </div>
         );
@@ -216,8 +216,8 @@ export default function PatientStatusView() {
                     <div className="w-16 h-16 bg-gradient-to-br from-brand-400 to-brand-600 rounded-2xl flex items-center justify-center shadow-lg shadow-brand-500/20 mx-auto mb-6 transform hover:rotate-3 transition-transform">
                         <Activity className="w-8 h-8 text-white" />
                     </div>
-                    <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white mb-2">Live Queue Tracker</h1>
-                    <p className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.3em] mt-4">{data.hospitalName}</p>
+                    <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white mb-2">Live Waitlist</h1>
+                    <p className="text-neutral-400 text-[10px] font-black uppercase tracking-[0.3em] mt-4">{data.hospitalName}</p>
 
                     <button
                         onClick={() => {
@@ -250,31 +250,31 @@ export default function PatientStatusView() {
                             <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center border-2 transition-all ${data.myPosition > 0 ? 'bg-brand-500 border-brand-400 shadow-[0_0_15px_rgba(59,130,246,0.3)]' : 'bg-neutral-900 border-neutral-800'}`}>
                                 <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                             </div>
-                            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-neutral-500">In</span>
+                            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-neutral-400">Check-in</span>
                         </div>
 
                         <div className="flex flex-col items-center gap-2 sm:gap-3 z-10 group">
                             <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center border-2 transition-all ${data.myPosition > 3 ? 'bg-brand-500 border-brand-400 shadow-[0_0_15px_rgba(59,130,246,0.3)] animate-pulse' : data.myPosition > 0 ? 'bg-brand-500 border-brand-400' : 'bg-neutral-900 border-neutral-800'}`}>
                                 <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                             </div>
-                            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-neutral-500">Wait</span>
+                            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-neutral-400">Waiting</span>
                         </div>
 
                         <div className="flex flex-col items-center gap-2 sm:gap-3 z-10 group">
                             <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center border-2 transition-all ${data.myPosition <= 3 && data.myPosition > 0 ? 'bg-brand-500 border-brand-400 shadow-[0_0_15px_rgba(59,130,246,0.3)] animate-bounce' : 'bg-neutral-900 border-neutral-800'}`}>
                                 <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                             </div>
-                            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-neutral-500">Ready</span>
+                            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-neutral-400">Go In</span>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3 sm:gap-4">
                         <div className="bg-white/[0.02] border border-white/5 rounded-[1.5rem] sm:rounded-[2rem] p-4 sm:p-6 text-center group hover:bg-white/5 transition-all shadow-inner">
-                            <p className="text-neutral-500 text-[11px] font-bold uppercase tracking-wider">TOKEN</p>
+                            <p className="text-neutral-400 text-[11px] font-bold uppercase tracking-wider">NUMBER</p>
                             <p className="text-3xl sm:text-4xl font-black text-white mt-1 sm:mt-2 group-hover:scale-110 transition-transform">#{data.myTokenNumber}</p>
                         </div>
                         <div className="bg-brand-500/10 border border-brand-500/20 rounded-[1.5rem] sm:rounded-[2rem] p-4 sm:p-6 text-center group hover:bg-brand-500/20 transition-all shadow-inner">
-                            <p className="text-brand-400 text-[11px] font-bold uppercase tracking-wider">POSITION</p>
+                            <p className="text-brand-400 text-[11px] font-bold uppercase tracking-wider">PLACE IN LINE</p>
                             <p className="text-3xl sm:text-4xl font-black text-white mt-1 sm:mt-2 group-hover:scale-110 transition-transform">{data.myPosition}</p>
                         </div>
                     </div>
@@ -289,14 +289,14 @@ export default function PatientStatusView() {
                                     )}
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">DOCTOR STATUS</p>
+                                    <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">DOCTOR STATUS</p>
                                     <p className={`text-[13px] font-black tracking-wide ${doctorStatus === 'Available' ? 'text-brand-400' : 'text-danger-500 shadow-[0_0_10px_rgba(239, 68, 68, 0.3)]'}`}>
                                         {doctorStatus === 'Available' ? 'DOCTOR IS ONLINE' : 'DOCTOR IS OFFLINE'}
                                     </p>
                                 </div>
                             </div>
                             <div className="text-right">
-                                <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">WAIT TIME</p>
+                                <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">WAIT TIME</p>
                                 <p className="text-xl sm:text-2xl font-black text-white">{doctorStatus === 'Available' ? formatTime(remainingMinutes) : '---'}</p>
                             </div>
                         </div>
@@ -306,7 +306,7 @@ export default function PatientStatusView() {
                                 <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
                                     <AlertTriangle className="w-6 h-6 text-white" />
                                 </div>
-                                <p className="text-[11px] font-bold text-white uppercase tracking-wider leading-relaxed">Please stand ready outside the consultation room!</p>
+                                <p className="text-[11px] font-bold text-white uppercase tracking-wider leading-relaxed">It's almost your turn! Please wait near the office.</p>
                             </div>
                         )}
                     </div>
@@ -315,13 +315,13 @@ export default function PatientStatusView() {
                 {/* Queue Overview List */}
                 <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-8 shadow-xl">
                     <div className="flex items-center justify-between mb-8">
-                        <h3 className="text-xs font-black uppercase tracking-[0.3em] text-neutral-400 flex items-center gap-4">
+                        <h3 className="text-xs font-black uppercase tracking-[0.3em] text-neutral-300 flex items-center gap-4">
                             <div className="w-2 h-2 rounded-full bg-brand-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
-                            Live Queue
+                            Live Waitlist
                         </h3>
                         <div className="flex items-center gap-2">
                             <span className="w-1.5 h-1.5 rounded-full bg-success-500 animate-ping" />
-                            <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-600">{data.queue.length} Active</span>
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">{data.queue.length} Total</span>
                         </div>
                     </div>
 
@@ -336,26 +336,26 @@ export default function PatientStatusView() {
                                 `}
                             >
                                 <div className="flex items-center gap-5">
-                                    <span className={`text-base font-black ${p.isMe ? 'text-white' : 'text-neutral-500'}`}>#{p.tokenNumber}</span>
+                                    <span className={`text-base font-black ${p.isMe ? 'text-white' : 'text-neutral-400'}`}>#{p.tokenNumber}</span>
                                     <div className={`w-1.5 h-1.5 rounded-full ${p.isMe ? 'bg-white shadow-[0_0_8px_white]' : 'bg-neutral-800'}`} />
-                                    <span className={`text-[11px] font-bold uppercase tracking-wider ${p.isMe ? 'text-white' : 'text-neutral-400'}`}>
-                                        {p.isMe ? 'THIS IS YOU' : 'PATIENT'}
+                                    <span className={`text-[11px] font-bold uppercase tracking-wider ${p.isMe ? 'text-white' : 'text-neutral-300'}`}>
+                                        {p.isMe ? 'THIS IS YOU' : 'MEMBER'}
                                     </span>
                                 </div>
                                 <div className={`px-4 py-1.5 rounded-xl text-[10px] font-bold border uppercase tracking-wider transition-all
                                     ${p.isMe
                                         ? 'bg-white/10 border-white/20 text-white'
-                                        : 'bg-black/40 border-neutral-800 text-neutral-600 group-hover:border-neutral-700'}
+                                        : 'bg-black/40 border-neutral-800 text-neutral-400 group-hover:border-neutral-700'}
                                 `}>
-                                    POSITION {p.position}
+                                    PLACE {p.position}
                                 </div>
                             </div>
                         ))}
                     </div>
                 </div>
 
-                <p className="text-center text-[9px] font-black text-neutral-700 uppercase tracking-[0.4em] pt-8">
-                    Hospital Management System
+                <p className="text-center text-[9px] font-black text-neutral-600 uppercase tracking-[0.4em] pt-8">
+                    Flow-Q Digital Assist
                 </p>
             </div>
         </div>

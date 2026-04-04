@@ -189,7 +189,7 @@ export default function AdminDashboard() {
                         </div>
                         <div>
                             <h1 className="text-xl sm:text-3xl font-black tracking-tight text-white mb-1 italic uppercase decoration-brand-500/30 underline-offset-4">Admin Dashboard</h1>
-                            <p className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.4em]">{admin.hospitalName} <span className="mx-2 text-neutral-800">/</span> System Management</p>
+                            <p className="text-neutral-400 text-[10px] font-black uppercase tracking-[0.4em]">{admin.hospitalName} <span className="mx-2 text-neutral-600">/</span> Control Center</p>
                         </div>
                     </div>
                 </div>
@@ -205,7 +205,7 @@ export default function AdminDashboard() {
                         <div key={label} className={`group relative bg-white/[0.03] border rounded-xl sm:rounded-2xl p-4 sm:p-6 transition-all hover:bg-white/[0.05] flex flex-col items-center text-center backdrop-blur-xl ${color}`}>
                             <div className="absolute top-4 right-4 sm:top-5 sm:right-5 opacity-40 group-hover:opacity-100 transition-opacity translate-y-[-2px]">{icon}</div>
                             <span className="text-2xl sm:text-4xl font-black tracking-tighter mb-1 font-mono">{value.toString().padStart(2, '0')}</span>
-                            <p className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider text-neutral-500">{label}</p>
+                            <p className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider text-neutral-400">{label}</p>
                         </div>
                     ))}
                 </div>
@@ -228,46 +228,46 @@ export default function AdminDashboard() {
                             </div>
 
                             <form onSubmit={handleAddDoctor} className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider ml-5 italic">Clinician Name</label>
+                                        <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider ml-5 italic">Doctor Name</label>
                                         <input
                                             placeholder="e.g. Dr. Arthur Ledger"
-                                            className="w-full bg-white/[0.03] border border-white/5 p-3.5 sm:p-4 rounded-2xl text-white placeholder-neutral-700 outline-none transition-all focus:border-brand-500/50 focus:bg-white/[0.05] text-[13px]"
+                                            className="w-full bg-white/[0.03] border border-white/5 p-3.5 sm:p-4 rounded-2xl text-white placeholder-neutral-500 outline-none transition-all focus:border-brand-500/50 focus:bg-white/[0.05] text-[13px]"
                                             value={doctorForm.name}
                                             onChange={(e) => setDoctorForm({ ...doctorForm, name: e.target.value })}
                                             required
                                         />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider ml-5 italic">Specialization</label>
+                                        <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider ml-5 italic">Specialization</label>
                                         <input
                                             placeholder="e.g. Cardiology"
-                                            className="w-full bg-white/[0.03] border border-white/5 p-3.5 sm:p-4 rounded-2xl text-white placeholder-neutral-700 outline-none transition-all focus:border-brand-500/50 focus:bg-white/[0.05] text-[13px]"
+                                            className="w-full bg-white/[0.03] border border-white/5 p-3.5 sm:p-4 rounded-2xl text-white placeholder-neutral-500 outline-none transition-all focus:border-brand-500/50 focus:bg-white/[0.05] text-[13px]"
                                             value={doctorForm.specialization}
                                             onChange={(e) => setDoctorForm({ ...doctorForm, specialization: e.target.value })}
                                             required
                                         />
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider ml-5 italic">Email Address</label>
+                                        <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider ml-5 italic">Email Address</label>
                                         <input
                                             type="email"
                                             placeholder="doctor@hospital.com"
-                                            className="w-full bg-white/[0.03] border border-white/5 p-3.5 sm:p-4 rounded-2xl text-white placeholder-neutral-700 outline-none transition-all focus:border-brand-500/50 focus:bg-white/[0.05] text-[13px]"
+                                            className="w-full bg-white/[0.03] border border-white/5 p-3.5 sm:p-4 rounded-2xl text-white placeholder-neutral-500 outline-none transition-all focus:border-brand-500/50 focus:bg-white/[0.05] text-[13px]"
                                             value={doctorForm.email}
                                             onChange={(e) => setDoctorForm({ ...doctorForm, email: e.target.value })}
                                             required
                                         />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider ml-5 italic">Initial Cipher</label>
+                                        <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider ml-5 italic">Password</label>
                                         <input
                                             type="password"
                                             placeholder="********"
-                                            className="w-full bg-white/[0.03] border border-white/5 p-3.5 sm:p-4 rounded-2xl text-white placeholder-neutral-700 outline-none transition-all focus:border-brand-500/50 focus:bg-white/[0.05] text-[13px] font-mono"
+                                            className="w-full bg-white/[0.03] border border-white/5 p-3.5 sm:p-4 rounded-2xl text-white placeholder-neutral-500 outline-none transition-all focus:border-brand-500/50 focus:bg-white/[0.05] text-[13px] font-mono"
                                             value={doctorForm.password}
                                             onChange={(e) => setDoctorForm({ ...doctorForm, password: e.target.value })}
                                             required
@@ -293,50 +293,50 @@ export default function AdminDashboard() {
                             </div>
 
                             <form onSubmit={handleAddReceptionist} className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider ml-5 italic">User Name</label>
+                                        <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider ml-5 italic">Staff Name</label>
                                         <input
                                             placeholder="e.g. John Matrix"
-                                            className="w-full bg-white/[0.03] border border-white/5 p-3.5 sm:p-4 rounded-2xl text-white placeholder-neutral-700 outline-none transition-all focus:border-success-500/50 focus:bg-white/[0.05] text-[13px]"
+                                            className="w-full bg-white/[0.03] border border-white/5 p-3.5 sm:p-4 rounded-2xl text-white placeholder-neutral-500 outline-none transition-all focus:border-success-500/50 focus:bg-white/[0.05] text-[13px]"
                                             value={receptionistForm.name}
                                             onChange={(e) => setReceptionistForm({ ...receptionistForm, name: e.target.value })}
                                             required
                                         />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider ml-5 italic">Auth Email</label>
+                                        <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider ml-5 italic">Work Email</label>
                                         <input
                                             type="email"
-                                            placeholder="staff@matrix.com"
-                                            className="w-full bg-white/[0.03] border border-white/5 p-3.5 sm:p-4 rounded-2xl text-white placeholder-neutral-700 outline-none transition-all focus:border-success-500/50 focus:bg-white/[0.05] text-[13px]"
+                                            placeholder="staff@hospital.com"
+                                            className="w-full bg-white/[0.03] border border-white/5 p-3.5 sm:p-4 rounded-2xl text-white placeholder-neutral-500 outline-none transition-all focus:border-success-500/50 focus:bg-white/[0.05] text-[13px]"
                                             value={receptionistForm.email}
                                             onChange={(e) => setReceptionistForm({ ...receptionistForm, email: e.target.value })}
                                             required
                                         />
                                     </div>
                                 </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-[9px] font-black text-neutral-600 uppercase tracking-[0.3em] ml-5">Initial Cipher</label>
+                                 <div className="space-y-1.5">
+                                    <label className="text-[9px] font-black text-neutral-400 uppercase tracking-[0.3em] ml-5">Password</label>
                                     <input
                                         type="password"
                                         placeholder="********"
-                                        className="w-full bg-white/[0.03] border border-white/5 p-3.5 sm:p-4 rounded-2xl text-white placeholder-neutral-700 outline-none transition-all focus:border-success-500/50 focus:bg-white/[0.05] text-xs font-mono"
+                                        className="w-full bg-white/[0.03] border border-white/5 p-3.5 sm:p-4 rounded-2xl text-white placeholder-neutral-500 outline-none transition-all focus:border-success-500/50 focus:bg-white/[0.05] text-xs font-mono"
                                         value={receptionistForm.password}
                                         onChange={(e) => setReceptionistForm({ ...receptionistForm, password: e.target.value })}
                                         required
                                     />
                                 </div>
 
-                                <div className="space-y-3">
-                                    <label className="text-[9px] font-black text-neutral-600 uppercase tracking-[0.3em] ml-5">Primary Assignment</label>
+                                 <div className="space-y-3">
+                                    <label className="text-[9px] font-black text-neutral-400 uppercase tracking-[0.3em] ml-5">Assign Doctor</label>
                                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                         {doctors.map((d) => (
                                             <button
                                                 key={d._id}
                                                 type="button"
                                                 onClick={() => handleDoctorSelection(d._id)}
-                                                className={`p-3 rounded-xl border text-[8px] font-black uppercase tracking-widest transition-all ${receptionistForm.assignedDoctors.includes(d._id as any) ? "bg-white text-black border-white shadow-xl scale-105" : "bg-white/5 border-white/5 text-neutral-600 hover:border-white/20"}`}
+                                                className={`p-3 rounded-xl border text-[8px] font-black uppercase tracking-widest transition-all ${receptionistForm.assignedDoctors.includes(d._id as any) ? "bg-white text-black border-white shadow-xl scale-105" : "bg-white/5 border-white/5 text-neutral-400 hover:border-white/20"}`}
                                             >
                                                 {d.name.split(' ').pop()}
                                             </button>
@@ -371,9 +371,9 @@ export default function AdminDashboard() {
                                                     <div className="w-10 h-10 bg-brand-500/10 border border-brand-500/20 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-brand-500 group-hover:text-white transition-all">
                                                         <Stethoscope className="w-4 h-4" />
                                                     </div>
-                                                    <div className="min-w-0">
+                                                     <div className="min-w-0">
                                                         <h4 className="text-sm font-black truncate text-white">{doc.name}</h4>
-                                                        <p className="text-[8px] font-black text-neutral-600 uppercase tracking-widest">{doc.specialization}</p>
+                                                        <p className="text-[8px] font-black text-neutral-400 uppercase tracking-widest">{doc.specialization}</p>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -382,14 +382,14 @@ export default function AdminDashboard() {
                                                     <button onClick={() => handleDeleteStaff(doc._id, doc.name)} className="p-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-danger-500 hover:text-white transition-all text-danger-500 hover:border-danger-500" title="Delete Doctor"><Trash2 className="w-3.5 h-3.5" /></button>
                                                 </div>
                                             </div>
-                                            {revealedIds.includes(doc._id) && (
+                                             {revealedIds.includes(doc._id) && (
                                                 <div className="mt-4 pt-4 border-t border-white/5 grid grid-cols-2 gap-3 animate-fade-down">
                                                     <div className="p-2.5 bg-black/20 rounded-xl border border-white/5">
-                                                        <p className="text-[7px] font-black text-neutral-600 uppercase tracking-widest mb-1">Email Node</p>
+                                                        <p className="text-[7px] font-black text-neutral-400 uppercase tracking-widest mb-1">Email Node</p>
                                                         <p className="text-[10px] font-bold text-neutral-300 truncate">{doc.email}</p>
                                                     </div>
                                                     <div className="p-2.5 bg-black/20 rounded-xl border border-white/5">
-                                                        <p className="text-[7px] font-black text-neutral-600 uppercase tracking-widest mb-1">Initial Cipher</p>
+                                                        <p className="text-[7px] font-black text-neutral-400 uppercase tracking-widest mb-1">Password</p>
                                                         <p className="text-[10px] font-mono font-bold text-white uppercase">{doc.creationPassword || "Encrypted"}</p>
                                                     </div>
                                                 </div>
@@ -402,7 +402,7 @@ export default function AdminDashboard() {
 
                         {/* SECTION: RECEPTIONIST LIST */}
                         <div className="space-y-4 animate-fade-up delay-300">
-                            <h3 className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 px-6 italic">Active Registry Staff Nodes</h3>
+                            <h3 className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 px-6 italic">Front Desk Staff</h3>
                             <div className="space-y-3">
                                 {receptionists.length === 0 ? (
                                     <div className="p-8 text-center bg-white/5 border border-white/5 rounded-3xl text-neutral-700 font-bold uppercase tracking-widest text-[9px]">No active staff nodes</div>
@@ -414,10 +414,10 @@ export default function AdminDashboard() {
                                                     <div className="w-10 h-10 bg-success-500/10 border border-success-500/20 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-success-500 group-hover:text-white transition-all">
                                                         <Users className="w-4 h-4" />
                                                     </div>
-                                                    <div className="min-w-0">
+                                                     <div className="min-w-0">
                                                         <h4 className="text-sm font-black truncate text-white">{rec.name}</h4>
                                                         <div className="flex items-center gap-2 mt-1">
-                                                            <span className="text-[8px] font-black text-neutral-600 uppercase tracking-widest">Protocol Hub</span>
+                                                            <span className="text-[8px] font-black text-neutral-400 uppercase tracking-widest">Office Hub</span>
                                                             {rec.assignedDoctors?.length > 0 && (
                                                                 <span className="text-[7px] font-black bg-success-500/20 text-success-400 px-1.5 py-0.5 rounded-full border border-success-500/30">ASSIGNED</span>
                                                             )}
@@ -430,14 +430,14 @@ export default function AdminDashboard() {
                                                     <button onClick={() => handleDeleteStaff(rec._id, rec.name)} className="p-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-danger-500 hover:text-white transition-all text-danger-500 hover:border-danger-500" title="Terminate Node"><Trash2 className="w-3.5 h-3.5" /></button>
                                                 </div>
                                             </div>
-                                            {revealedIds.includes(rec._id) && (
+                                             {revealedIds.includes(rec._id) && (
                                                 <div className="mt-4 pt-4 border-t border-white/5 grid grid-cols-2 gap-3 animate-fade-down">
                                                     <div className="p-2.5 bg-black/20 rounded-xl border border-white/5">
-                                                        <p className="text-[7px] font-black text-neutral-600 uppercase tracking-widest mb-1">Email Node</p>
+                                                        <p className="text-[7px] font-black text-neutral-400 uppercase tracking-widest mb-1">Email</p>
                                                         <p className="text-[10px] font-bold text-neutral-300 truncate">{rec.email}</p>
                                                     </div>
                                                     <div className="p-2.5 bg-black/20 rounded-xl border border-white/5">
-                                                        <p className="text-[7px] font-black text-neutral-600 uppercase tracking-widest mb-1">Initial Cipher</p>
+                                                        <p className="text-[7px] font-black text-neutral-400 uppercase tracking-widest mb-1">Password</p>
                                                         <p className="text-[10px] font-mono font-bold text-white uppercase">{rec.creationPassword || "Encrypted"}</p>
                                                     </div>
                                                 </div>
@@ -456,9 +456,9 @@ export default function AdminDashboard() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-black/80 backdrop-blur-xl animate-fadeIn">
                     <div className="bg-[#0a0a0a] w-full max-w-2xl rounded-[3.5rem] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col max-h-[90vh]">
                         <div className="px-10 py-10 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
-                            <div>
-                                <h2 className="text-2xl font-black text-white uppercase tracking-tight">Active Hours</h2>
-                                <p className="text-[10px] font-black text-neutral-600 uppercase tracking-[0.4em] mt-1">Dr. {editingScheduleDoc.name}</p>
+                             <div>
+                                <h2 className="text-2xl font-black text-white uppercase tracking-tight">Work Schedule</h2>
+                                <p className="text-[10px] font-black text-neutral-400 uppercase tracking-[0.4em] mt-1">Dr. {editingScheduleDoc.name}</p>
                             </div>
                             <button onClick={() => setEditingScheduleDoc(null)} className="p-4 bg-white/5 rounded-2xl hover:bg-white/10 transition-all text-neutral-500 hover:text-white">
                                 <X className="w-6 h-6" />
@@ -469,8 +469,8 @@ export default function AdminDashboard() {
                             {scheduleForm.map((dayObj, i) => (
                                 <div key={dayObj.day} className="grid grid-cols-3 gap-6 items-center bg-white/[0.03] p-5 rounded-[1.5rem] border border-white/5 hover:border-brand-500/30 transition-all">
                                     <div className="font-black text-[10px] uppercase tracking-widest text-neutral-400 pl-2">{dayObj.day}</div>
-                                    <div className="space-y-1">
-                                        <p className="text-[8px] font-black text-neutral-600 uppercase tracking-widest">START</p>
+                                     <div className="space-y-1">
+                                        <p className="text-[8px] font-black text-neutral-400 uppercase tracking-widest">START</p>
                                         <input
                                             type="time"
                                             value={dayObj.startTime}
@@ -479,7 +479,7 @@ export default function AdminDashboard() {
                                         />
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-[8px] font-black text-neutral-600 uppercase tracking-widest">END</p>
+                                        <p className="text-[8px] font-black text-neutral-400 uppercase tracking-widest">END</p>
                                         <input
                                             type="time"
                                             value={dayObj.endTime}
@@ -503,9 +503,9 @@ export default function AdminDashboard() {
             {editingAssignmentRec && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-black/80 backdrop-blur-xl animate-fadeIn">
                     <div className="bg-[#0a0a0a] w-full max-w-md rounded-[3.5rem] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col max-h-[80vh]">
-                        <div className="px-10 py-10 border-b border-white/5 bg-white/[0.02]">
+                         <div className="px-10 py-10 border-b border-white/5 bg-white/[0.02]">
                             <h2 className="text-2xl font-black text-white uppercase tracking-tight">Assign Doctor</h2>
-                            <p className="text-[10px] font-black text-neutral-600 uppercase tracking-[0.4em] mt-1">Reassigning {editingAssignmentRec.name}</p>
+                            <p className="text-[10px] font-black text-neutral-400 uppercase tracking-[0.4em] mt-1">Reassigning {editingAssignmentRec.name}</p>
                         </div>
 
                         <div className="p-10 overflow-y-auto custom-scrollbar flex-1 space-y-3">

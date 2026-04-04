@@ -136,7 +136,7 @@ export default function Navbar() {
               <span className={`font-black text-2xl tracking-tighter bg-gradient-to-r ${roleStyle.gradient} bg-clip-text text-transparent uppercase italic`}>
                 FLOW-Q
               </span>
-              <span className="text-[7px] font-black tracking-[0.4em] text-neutral-500 uppercase -mt-1 opacity-60">Intelligent Queue System</span>
+              <span className="text-[7px] font-black tracking-[0.4em] text-neutral-400 uppercase -mt-1 opacity-60">Smart Waiting System</span>
             </div>
           </Link>
 
@@ -153,10 +153,10 @@ export default function Navbar() {
                     relative flex items-center gap-3 px-6 py-2.5 rounded-[1.2rem] transition-all duration-500 group/link
                     ${isActive
                       ? "bg-white dark:bg-white text-black dark:text-black shadow-2xl"
-                      : "text-neutral-500 hover:text-black dark:hover:text-white"}
+                      : "text-neutral-400 hover:text-black dark:hover:text-white"}
                   `}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? "text-black" : "text-neutral-500 group-hover/link:text-brand-400"} transition-colors`} />
+                  <Icon className={`w-4 h-4 ${isActive ? "text-black" : "text-neutral-400 group-hover/link:text-brand-400"} transition-colors`} />
                   <span className="text-[10px] font-black uppercase tracking-widest">{item.name}</span>
                 </Link>
               );
@@ -173,7 +173,7 @@ export default function Navbar() {
               >
                 <div className="flex flex-col text-right">
                   <div className="text-sm font-black text-neutral-900 dark:text-white uppercase tracking-tighter italic">{user.name}</div>
-                  <div className="text-[8px] font-black text-neutral-400 uppercase tracking-widest">{user.role?.replace("_", " ")}</div>
+                  <div className="text-[8px] font-black text-neutral-300 uppercase tracking-widest">{user.role?.replace("_", " ")}</div>
                 </div>
                 <div className={`w-11 h-11 rounded-[1rem] ${roleStyle.badge} flex items-center justify-center shadow-2xl transform group-hover:-rotate-3 transition-transform`}>
                   <RoleIcon className="w-5 h-5 shadow-sm" />
@@ -185,7 +185,7 @@ export default function Navbar() {
                 <div className="absolute right-0 mt-4 w-64 bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-white/10 rounded-[2rem] shadow-2xl overflow-hidden animate-fade-down z-[110]">
                   <div className="p-6 border-b border-neutral-100 dark:border-white/5 bg-neutral-50 dark:bg-white/[0.02]">
                     <div className="text-xs font-black text-neutral-900 dark:text-white uppercase tracking-tight mb-1">{user.name}</div>
-                    <div className="text-[10px] text-neutral-500 truncate mb-3">{user.email}</div>
+                    <div className="text-[10px] text-neutral-400 truncate mb-3">{user.email}</div>
                     <div className={`inline-block px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-[0.2em] border ${roleStyle.badge}`}>
                       {user.role?.replace("_", " ")}
                     </div>
@@ -196,7 +196,7 @@ export default function Navbar() {
                       className="w-full flex items-center gap-3 px-6 py-4 rounded-[1.5rem] text-xs font-black text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all uppercase tracking-widest"
                     >
                       <LogOut className="w-4 h-4" />
-                      Relinquish Control
+                      Logout Session
                     </button>
                   </div>
                 </div>
@@ -230,7 +230,7 @@ export default function Navbar() {
                         flex items-center gap-4 px-6 py-4 rounded-2xl font-black transition-all uppercase tracking-widest text-[10px]
                         ${isActive
                       ? `bg-neutral-100 dark:bg-white/10 text-neutral-900 dark:text-white border border-neutral-200 dark:border-white/10`
-                      : "text-neutral-500 hover:bg-neutral-50 dark:hover:bg-white/[0.02]"
+                      : "text-neutral-400 hover:bg-neutral-50 dark:hover:bg-white/[0.02]"
                     }
                         `}
                 >
@@ -244,7 +244,7 @@ export default function Navbar() {
               className="w-full flex items-center gap-4 px-6 py-5 rounded-2xl text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all font-black text-[10px] uppercase tracking-[0.2em]"
             >
               <LogOut className="w-4 h-4" />
-              <span>Relinquish Control</span>
+              <span>Logout Session</span>
             </button>
           </div>
         )}

@@ -259,15 +259,15 @@ export default function ReceptionDashboard() {
                             <MonitorSmartphone className="w-5 h-5 text-brand-400" />
                         </div>
                         <div>
-                            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white mb-0.5 uppercase italic">Registry Desk</h1>
-                            <p className="text-neutral-500 text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.25em]">Patient Check-in Terminal <span className="mx-2 text-white/10">|</span> Ver 2.04</p>
+                            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white mb-0.5 uppercase italic">Reception Desk</h1>
+                            <p className="text-neutral-400 text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.25em]">Check-in Terminal <span className="mx-2 text-white/10">|</span> Ver 2.04</p>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-3">
                         <div className="px-3 py-1.5 bg-white/[0.03] border border-white/10 rounded-lg shadow-sm flex items-center gap-2">
                             <div className="w-1.5 h-1.5 rounded-full bg-success-500 animate-ping" />
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">Live Sync Active</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-300">Live Sync Active</span>
                         </div>
                         <button
                             onClick={() => router.push("/login")}
@@ -289,7 +289,7 @@ export default function ReceptionDashboard() {
                         <div key={label} className={`group relative rounded-xl sm:rounded-2xl border shadow-sm p-4 md:p-5 transition-all hover:bg-white/[0.05] flex flex-col items-center text-center backdrop-blur-xl ${color}`}>
                             <div className="absolute top-3 right-3 sm:top-5 sm:right-5 opacity-40 group-hover:opacity-100 transition-opacity hidden sm:block">{icon}</div>
                             <span className="text-2xl sm:text-3xl font-black tracking-tighter mb-0.5 font-mono sm:leading-none">{value.toString().padStart(2, '0')}</span>
-                            <p className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider opacity-80 text-neutral-400">{label}</p>
+                            <p className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider opacity-80 text-neutral-300">{label}</p>
                         </div>
                     ))}
                 </div>
@@ -299,9 +299,9 @@ export default function ReceptionDashboard() {
 
                     {/* Clinician Status Matrix */}
                     <div className="mb-8 px-4 flex flex-wrap items-center justify-center gap-4 animate-fade-in group/matrix">
-                        <div className="w-full flex items-center justify-center gap-2 mb-2 opacity-50 group-hover/matrix:opacity-100 transition-opacity">
+                        <div className="w-full flex items-center justify-center gap-2 mb-2 opacity-70 group-hover/matrix:opacity-100 transition-opacity">
                             <Stethoscope className="w-3.5 h-3.5 text-brand-400" />
-                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-neutral-400">Live Clinician Status Matrix</span>
+                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-neutral-300">Live Doctor Status</span>
                         </div>
                         {receptionist.assignedDoctors?.map((doc: any) => (
                             <div
@@ -326,15 +326,15 @@ export default function ReceptionDashboard() {
                     {/* Navigation Tabs */}
                     <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mb-1 p-1.5 bg-white/[0.03] rounded-2xl border border-white/5 w-fit mx-auto">
                         {[
-                            { id: "add", label: "Enroll", icon: <UserPlus className="w-4 h-4" /> },
-                            { id: "queue", label: "Queue", icon: <ShieldAlert className="w-4 h-4" /> },
+                            { id: "add", label: "Add Person", icon: <UserPlus className="w-4 h-4" /> },
+                            { id: "queue", label: "Waiting List", icon: <ShieldAlert className="w-4 h-4" /> },
                         ].map((t) => (
                             <button
                                 key={t.id}
                                 onClick={() => setTab(t.id)}
                                 className={`flex items-center gap-3 px-6 sm:px-8 py-3 sm:py-4 rounded-[2rem] text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all ${tab === t.id
                                     ? "bg-brand-600 text-white shadow-xl shadow-brand-600/20"
-                                    : "text-slate-500 hover:text-slate-900 hover:bg-white"}`}
+                                    : "text-slate-400 hover:text-white hover:bg-white/10"}`}
                             >
                                 {t.icon} {t.label}
                             </button>
@@ -362,16 +362,16 @@ export default function ReceptionDashboard() {
                         {tab === "add" && (
                             <div className="max-w-5xl mx-auto animate-fade-up py-2 lg:py-3">
                                 <div className="text-center mb-4">
-                                    <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white mb-2">New Enrollment</h2>
-                                    <p className="text-neutral-500 text-[11px] font-bold uppercase tracking-[0.3em]">Patient Registration System</p>
+                                    <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white mb-2">New Arrival</h2>
+                                    <p className="text-neutral-400 text-[11px] font-bold uppercase tracking-[0.3em]">Visitor Entry System</p>
                                 </div>
 
                                 <form onSubmit={handleAddPatient} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider ml-5 italic">Legal Name</label>
+                                        <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider ml-5 italic">Full Name</label>
                                         <input
                                             placeholder="e.g. Arthur Ledger"
-                                            className="w-full bg-white/[0.03] border border-white/5 p-3.5 rounded-xl text-[13px] text-white placeholder-neutral-700 outline-none transition-all focus:border-brand-500/50 focus:bg-white/[0.05]"
+                                            className="w-full bg-white/[0.03] border border-white/5 p-3.5 rounded-xl text-[13px] text-white placeholder-neutral-600 outline-none transition-all focus:border-brand-500/50 focus:bg-white/[0.05]"
                                             value={form.name}
                                             onChange={(e) => setForm({ ...form, name: e.target.value })}
                                             required
@@ -379,7 +379,7 @@ export default function ReceptionDashboard() {
                                     </div>
 
                                     <div className="space-y-1.5">
-                                        <label className="text-[9px] font-black text-neutral-600 uppercase tracking-[0.3em] ml-5 italic">Contact Mobile</label>
+                                        <label className="text-[9px] font-black text-neutral-500 uppercase tracking-[0.3em] ml-5 italic">Mobile Phone</label>
                                         <input
                                             placeholder="91 00000 00000"
                                             className="w-full bg-white/[0.03] border border-white/5 p-3.5 rounded-xl text-xs text-white placeholder-neutral-700 outline-none transition-all focus:border-brand-500/50 focus:bg-white/[0.05]"
@@ -390,7 +390,7 @@ export default function ReceptionDashboard() {
                                     </div>
 
                                     <div className="space-y-1.5">
-                                        <label className="text-[9px] font-black text-neutral-600 uppercase tracking-[0.3em] ml-5 italic">Medical Concern</label>
+                                        <label className="text-[9px] font-black text-neutral-500 uppercase tracking-[0.3em] ml-5 italic">Visit Reason</label>
                                         <input
                                             placeholder="e.g. Routine Consult"
                                             className="w-full bg-white/[0.03] border border-white/5 p-3.5 rounded-xl text-xs text-white placeholder-neutral-700 outline-none transition-all focus:border-brand-500/50 focus:bg-white/[0.05]"
@@ -400,7 +400,7 @@ export default function ReceptionDashboard() {
                                     </div>
 
                                     <div className="space-y-1.5">
-                                        <label className="text-[9px] font-black text-neutral-600 uppercase tracking-[0.3em] ml-5 italic">Clinician Hub</label>
+                                        <label className="text-[9px] font-black text-neutral-500 uppercase tracking-[0.3em] ml-5 italic">Select Doctor</label>
                                         <div className="relative">
                                             <select
                                                 className="w-full bg-white/[0.03] border border-white/5 p-3.5 rounded-xl text-xs text-white outline-none appearance-none transition-all cursor-pointer focus:border-brand-500/50 focus:bg-white/[0.05]"
@@ -425,7 +425,7 @@ export default function ReceptionDashboard() {
                                             disabled={loading}
                                             className="w-full py-4.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-[13px] uppercase tracking-wider shadow-2xl shadow-brand-600/30 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3"
                                         >
-                                            {loading ? <Activity className="w-4 h-4 animate-spin" /> : "Register Patient"}
+                                            {loading ? <Activity className="w-4 h-4 animate-spin" /> : "Add to List"}
                                         </button>
                                     </div>
                                 </form>
@@ -435,7 +435,7 @@ export default function ReceptionDashboard() {
                         {tab === "queue" && (
                             <div className="max-w-5xl mx-auto animate-fade-up py-2 lg:py-3">
                                 <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/10">
-                                    <h3 className="text-xl font-black text-white px-2 uppercase tracking-tight italic">Patient Queue</h3>
+                                    <h3 className="text-xl font-black text-white px-2 uppercase tracking-tight italic">Waiting List</h3>
                                     <button onClick={loadQueue} className="p-3 bg-white/5 border border-white/10 rounded-xl text-neutral-500 hover:text-white transition-colors shadow-sm">
                                         <RefreshCw className="w-4 h-4" />
                                     </button>
@@ -443,8 +443,8 @@ export default function ReceptionDashboard() {
 
                                 {queue.length === 0 ? (
                                     <div className="py-32 flex flex-col items-center text-center">
-                                        <Activity className="w-12 h-12 text-neutral-800 mb-6 animate-pulse" />
-                                        <h4 className="text-xl font-black text-neutral-600">Queue is Empty</h4>
+                                        <Activity className="w-12 h-12 text-neutral-700 mb-6 animate-pulse" />
+                                        <h4 className="text-xl font-black text-neutral-500">Waitlist is Empty</h4>
                                     </div>
                                 ) : (
                                     <div className="space-y-4">
@@ -502,7 +502,7 @@ function SortableItem({ patient, onCall, onComplete, onCancel, onCopyLink, onCop
                 <div className="flex-1 min-w-0">
                     <h4 className="text-base sm:text-lg font-black text-white truncate mb-1 group-hover:text-brand-400 transition-colors uppercase tracking-tight italic">{patient.name}</h4>
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5">
-                        <span className="w-fit text-[10px] font-bold uppercase tracking-wider text-neutral-400 bg-white/5 px-2 py-1 rounded-md border border-white/5 flex items-center gap-1.5">
+                        <span className="w-fit text-[10px] font-bold uppercase tracking-wider text-neutral-300 bg-white/5 px-2 py-1 rounded-md border border-white/5 flex items-center gap-1.5">
                             <Activity className="w-3 h-3 text-info-400" /> {patient.status}
                         </span>
                         <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-neutral-300 group-hover:text-brand-400 transition-colors">

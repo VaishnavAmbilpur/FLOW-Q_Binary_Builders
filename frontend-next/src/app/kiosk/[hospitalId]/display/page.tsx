@@ -79,7 +79,7 @@ export default function KioskDisplayMode() {
                     </div>
                     <div>
                         <h1 className="text-4xl lg:text-5xl font-black tracking-tight text-gray-900 dark:text-white mb-1">
-                            Live Patient Queue
+                            Live Waiting List
                         </h1>
                         <p className="text-xl text-brand-600 dark:text-brand-300 font-bold">
                             Please check your screen for your token number
@@ -90,7 +90,7 @@ export default function KioskDisplayMode() {
                     <div className="text-5xl font-black font-mono text-gray-900 dark:text-white mb-1">
                         {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </div>
-                    <div className="text-lg font-bold text-gray-500 dark:text-neutral-400">
+                    <div className="text-lg font-bold text-gray-600 dark:text-neutral-300">
                         {lastUpdated.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' })}
                     </div>
                 </div>
@@ -100,8 +100,8 @@ export default function KioskDisplayMode() {
             <main className="flex-1 relative z-10">
                 {doctors.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full text-center">
-                        <Stethoscope className="w-24 h-24 text-neutral-700 mb-6" />
-                        <h2 className="text-4xl font-bold text-neutral-500">No active queues right now</h2>
+                        <Stethoscope className="w-24 h-24 text-neutral-600 mb-6" />
+                        <h2 className="text-4xl font-bold text-neutral-400">No active lists right now</h2>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 h-full auto-rows-max">
@@ -114,14 +114,14 @@ export default function KioskDisplayMode() {
                                     <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-2 truncate">
                                         Dr. {doc.doctorName}
                                     </h2>
-                                    <p className="text-xl text-gray-600 dark:text-neutral-400 font-semibold">{doc.specialization}</p>
+                                    <p className="text-xl text-gray-700 dark:text-neutral-300 font-semibold">{doc.specialization}</p>
                                 </div>
 
                                 <div className="flex-1 flex flex-col justify-center items-center py-6 bg-gray-50 dark:bg-black/40 rounded-3xl mb-8 border border-gray-200 dark:border-white/5 relative overflow-hidden">
                                     {/* Subtle pulse behind the main number */}
                                     <div className="absolute inset-0 bg-brand-500/5 animate-pulse rounded-3xl"></div>
-                                    <p className="text-lg font-bold text-gray-500 dark:text-neutral-400 uppercase tracking-[0.2em] mb-4 relative z-10">
-                                        Now Serving
+                                    <p className="text-lg font-bold text-gray-600 dark:text-neutral-300 uppercase tracking-[0.2em] mb-4 relative z-10">
+                                        Now Calling
                                     </p>
                                     <p className={`text-[7rem] leading-none font-black tracking-tight relative z-10 drop-shadow-sm dark:drop-shadow-[0_0_20px_rgba(255,255,255,0.3)] ${doc.servingToken === '---' ? 'text-gray-400 dark:text-neutral-600' : 'text-gray-900 dark:text-white'}`}>
                                         {doc.servingToken}
@@ -130,7 +130,7 @@ export default function KioskDisplayMode() {
 
                                 <div className="bg-brand-500/10 border border-brand-500/20 rounded-2xl p-6">
                                     <p className="text-sm font-bold text-brand-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                        <Users className="w-4 h-4" /> Next In Line
+                                        <Users className="w-4 h-4" /> Coming Up
                                     </p>
                                     <div className="flex gap-4">
                                         {[0, 1, 2].map((index) => {
@@ -138,7 +138,7 @@ export default function KioskDisplayMode() {
                                             return (
                                                 <div
                                                     key={index}
-                                                    className={`flex-1 aspect-square rounded-xl flex items-center justify-center text-3xl font-black ${hasToken ? 'bg-brand-50 dark:bg-brand-500/20 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-500/30' : 'bg-white dark:bg-white/5 text-gray-400 dark:text-neutral-600 border border-gray-200 dark:border-white/5'}`}
+                                                    className={`flex-1 aspect-square rounded-xl flex items-center justify-center text-3xl font-black ${hasToken ? 'bg-brand-50 dark:bg-brand-500/20 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-500/30' : 'bg-white dark:bg-white/5 text-gray-500 dark:text-neutral-400 border border-gray-200 dark:border-white/5'}`}
                                                 >
                                                     {hasToken ? doc.nextTokens[index] : '-'}
                                                 </div>

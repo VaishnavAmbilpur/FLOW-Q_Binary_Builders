@@ -46,8 +46,8 @@ export default function MobileLanding() {
                     </div>
                     <span className="font-black text-xl tracking-tighter text-white uppercase italic">FLOW-Q</span>
                 </div>
-                <Link href="/login" className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest text-neutral-400">
-                    <Power className="w-3.5 h-3.5" /> Portal
+                <Link href="/login" className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest text-neutral-300">
+                    <Power className="w-3.5 h-3.5" /> Login
                 </Link>
             </header>
 
@@ -56,25 +56,25 @@ export default function MobileLanding() {
                 {/* Hero Badge */}
                 <div className="mobile-animate-up inline-flex items-center gap-3 bg-brand-500/10 border border-brand-500/20 rounded-full px-5 py-2 mb-8 backdrop-blur-md opacity-0">
                     <div className="w-1.5 h-1.5 rounded-full bg-brand-500 animate-ping" />
-                    <span className="text-[8px] font-black tracking-[0.2em] text-brand-400 uppercase leading-none">Matrix v2.04 Active</span>
+                    <span className="text-[8px] font-black tracking-[0.2em] text-brand-400 uppercase leading-none">Live Status Active</span>
                 </div>
 
                 <h1 className="mobile-animate-up text-5xl font-black tracking-tighter mb-6 text-white leading-[0.85] uppercase italic opacity-0">
                     Precision <br />
-                    <span className="bg-gradient-to-r from-brand-400 to-emerald-400 bg-clip-text text-transparent italic">Patient Flow.</span>
+                    <span className="bg-gradient-to-r from-brand-400 to-emerald-400 bg-clip-text text-transparent italic">Waiting.</span>
                 </h1>
 
-                <p className="mobile-animate-up text-sm text-neutral-500 font-medium mb-12 leading-relaxed px-4 opacity-0">
-                    FLOW-Q orchestrates the clinical environment with high-fidelity logic. Intelligent queue management for modern healthcare.
+                <p className="mobile-animate-up text-sm text-neutral-400 font-medium mb-12 leading-relaxed px-4 opacity-0">
+                    FLOW-Q makes waiting simple and organized. Smart tech for live waitlists.
                 </p>
 
                 {/* Primary Actions */}
                 <div className="mobile-animate-up w-full space-y-4 mb-16 opacity-0">
                     <Link href="/signup" className="w-full h-16 bg-brand-600 hover:bg-brand-500 text-white rounded-2xl flex items-center justify-center text-[10px] font-black uppercase tracking-[0.2em] shadow-2xl shadow-brand-600/30 transition-all active:scale-95">
-                        Start Deployment
+                        Get Started
                     </Link>
                     <Link href="/login" className="w-full h-16 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-2xl flex items-center justify-center text-[10px] font-black uppercase tracking-[0.2em] backdrop-blur-md transition-all active:scale-95">
-                        Access Registry
+                        Staff Login
                     </Link>
                 </div>
 
@@ -87,9 +87,9 @@ export default function MobileLanding() {
                         { label: "Availability", val: "99.9%", icon: <Globe className="w-3.5 h-3.5" /> }
                     ].map((s) => (
                         <div key={s.label} className="bg-white/5 border border-white/5 rounded-2xl p-5 flex flex-col items-center justify-center backdrop-blur-sm transition-all active:bg-white/10">
-                            <div className="text-neutral-500 mb-2">{s.icon}</div>
+                            <div className="text-neutral-400 mb-2">{s.icon}</div>
                             <div className="text-xl font-black tracking-tight mb-0.5 font-mono text-white">{s.val}</div>
-                            <div className="text-[7px] font-black text-neutral-600 uppercase tracking-widest">{s.label}</div>
+                            <div className="text-[7px] font-black text-neutral-500 uppercase tracking-widest">{s.label}</div>
                         </div>
                     ))}
                 </div>
@@ -112,26 +112,26 @@ export default function MobileLanding() {
                                 </div>
                                 <span className="font-black text-xl italic tracking-tighter uppercase text-white">FLOW-Q</span>
                             </div>
-                            <p className="text-neutral-500 text-[10px] leading-relaxed font-medium max-w-xs italic mb-8">
-                                High-performance queue management for the future of clinical operations. Enterprise B2B SaaS solutions.
+                            <p className="text-neutral-400 text-[10px] leading-relaxed font-medium max-w-xs italic mb-8">
+                                High-performance waiting list management. Simple tools for your business.
                             </p>
                         </div>
                         
                         <div className="grid grid-cols-2 gap-10">
                             <div className="space-y-6">
                                 <h4 className="text-[9px] font-black uppercase tracking-[0.4em] text-white">System</h4>
-                                <div className="flex flex-col gap-4 text-[9px] font-black uppercase tracking-widest text-neutral-600">
-                                    <Link href="/login">Doctor</Link>
-                                    <Link href="/login">Registry</Link>
+                                <div className="flex flex-col gap-4 text-[9px] font-black uppercase tracking-widest text-neutral-400">
+                                    <Link href="/login">Doctors</Link>
+                                    <Link href="/login">Front Desk</Link>
                                     <Link href="/login">Kiosk</Link>
                                 </div>
                             </div>
 
                             <div className="space-y-6">
                                 <h4 className="text-[9px] font-black uppercase tracking-[0.4em] text-white">Protocol</h4>
-                                <div className="flex flex-col gap-4 text-[9px] font-black uppercase tracking-widest text-neutral-600">
+                                <div className="flex flex-col gap-4 text-[9px] font-black uppercase tracking-widest text-neutral-400">
                                     <Link href="/docs">API Key</Link>
-                                    <Link href="/docs#playground">Reference</Link>
+                                    <Link href="/docs#playground">Guide</Link>
                                     <Link href="/">Privacy</Link>
                                 </div>
                             </div>
