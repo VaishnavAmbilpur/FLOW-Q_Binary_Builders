@@ -68,19 +68,23 @@ router.use((req, res, next) => {
  */
 router.post("/demo/provision", async (req, res) => {
     try {
-        const uniqueId = Date.now().toString().slice(-4);
+        const ApiKey = require("../models/ApiKey");
+        const crypto = require("crypto");
+        
+        // Increased entropy for unique IDs to prevent collisions
+        const uniqueId = crypto.randomBytes(4).toString('hex').toUpperCase();
         const orgName = `Sandbox Organization #${uniqueId}`;
-        const slug = `sandbox-org-${uniqueId}`;
+        const slug = `sandbox-org-${uniqueId.toLowerCase()}`;
 
         // 1. Create a demo organization
         const org = new Organization({
             name: orgName,
             slug: slug,
-            industry: "service",
-            email: `demo${uniqueId}@smartqueue.com`,
+            industry: "other", // Fixed: "service" was not in the enum
+            email: `demo-${uniqueId.toLowerCase()}@smartqueue.demo`,
             status: "Active",
             subscriptionPlan: "Growth",
-            locations: [{ name: "Main Office", timezone: "UTC" }],
+            locations: [{ name: "Main Office", address: "Sandbox Virtual Environment" }],
             settings: {
                 allowAppointments: true,
                 allowWalkIn: true
@@ -98,15 +102,14 @@ router.post("/demo/provision", async (req, res) => {
             await new Service({
                 ...s,
                 organizationId: org._id,
-                isActive: true,
-                locationId: org.locations[0]._id
+                isActive: true
             }).save();
         }
 
         // 3. Generate the API Key
-        const ApiKey = require("../models/ApiKey");
         const secret = crypto.randomBytes(32).toString('hex');
         const hash = await bcrypt.hash(secret, 10);
+        
         const apiKeyDoc = new ApiKey({
             organizationId: org._id,
             name: `Sandbox Key - ${orgName}`,
@@ -116,6 +119,7 @@ router.post("/demo/provision", async (req, res) => {
         });
         await apiKeyDoc.save();
 
+        // Standardized Key Format: prefix_idBase64_secret
         const idBase64 = Buffer.from(apiKeyDoc._id.toString()).toString('base64').replace(/=/g, '');
         const fullKey = `sq_test_${idBase64}_${secret}`;
 
@@ -128,8 +132,8 @@ router.post("/demo/provision", async (req, res) => {
         });
 
     } catch (err) {
-        console.error("Sandbox provisioning error:", err);
-        res.status(500).json({ success: false, message: "Server error during provisioning" });
+        logger.error("Sandbox provisioning error:", { error: err.message, stack: err.stack });
+        res.status(500).json({ success: false, message: err.message || "Server error during provisioning" });
     }
 });
 
