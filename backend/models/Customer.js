@@ -26,10 +26,11 @@ const customerSchema = new mongoose.Schema({
   sortOrder: { type: Number }, // Controls queue position
   status: {
     type: String,
-    enum: ["waiting", "completed", "cancelled"],
+    enum: ["waiting", "serving", "completed", "cancelled", "no-show"],
     default: "waiting",
     index: true
   },
+
   number: { type: String }, // Made optional
   clientPhone: { type: String }, // Compatibility for v2 API
   uniqueLinkId: { type: String, required: true, unique: true },

@@ -159,8 +159,6 @@ export default function ReceptionistDashboard() {
     toast('Link copied ✓');
   };
 
-  if (!mounted) return null;
-
   const activeQueue = queue.filter(e => e.status === 'waiting' || e.status === 'serving');
 
   const handleProvision = async () => {
@@ -168,9 +166,7 @@ export default function ReceptionistDashboard() {
     try {
       const res = await axios.post(`${API_BASE}/demo/provision`);
       const newKey = res.data.apiKey;
-      // In a real app we'd save to .env or cookie, here we just refresh with a hint
       setError(`New Key Generated: ${newKey}. Update your .env.local and reload.`);
-      console.log("PROVISIONED:", res.data);
       alert(`NEW API KEY GENERATED:\n\n${newKey}\n\nPlease copy this into your .env.local then refresh.`);
     } catch (err: any) {
       setError(`Provision failed: ${err.message}`);
@@ -178,6 +174,8 @@ export default function ReceptionistDashboard() {
       setLoading(false);
     }
   };
+
+  if (!mounted) return null;
 
   if (error) return (
     <div className="h-screen flex flex-col items-center justify-center bg-[#0a0a12] text-center p-6 text-white font-sans">

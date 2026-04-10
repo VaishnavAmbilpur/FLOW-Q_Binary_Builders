@@ -14,8 +14,14 @@ export default function StatusPage({ params }: { params: Promise<{ id: string }>
     const [data, setData] = useState<any>(null);
     const [error, setError] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    useEffect(() => {
+        if (!mounted) return;
         const fetchStatus = async () => {
             try {
                 const { id } = await params;
@@ -44,7 +50,9 @@ export default function StatusPage({ params }: { params: Promise<{ id: string }>
         return () => {
             timerPromise.then(id => clearInterval(id));
         };
-    }, [params]);
+    }, [params, mounted]);
+
+    if (!mounted) return null;
 
     if (loading) return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#0a0a12] gap-6">
