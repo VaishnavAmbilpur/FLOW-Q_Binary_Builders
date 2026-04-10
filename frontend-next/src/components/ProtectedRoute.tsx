@@ -5,37 +5,37 @@ import { useRouter } from "next/navigation";
 import Loader from "./Loader";
 import api from "@/services/api";
 
+import { useAuthStore } from "@/store";
+
 export default function ProtectedRoute({ children }) {
     const router = useRouter();
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const { isAuthenticated, setAuth, clearAuth } = useAuthStore();
+    const [loading, setLoading] = useState(!isAuthenticated);
 
     useEffect(() => {
-        const agentId = localStorage.getItem("agentId");
-
-        if (agentId) {
-            // Already authenticated via localStorage (email/password login)
-            setIsAuthenticated(true);
+        // Instant pass if already authenticated in store
+        if (isAuthenticated) {
+            setLoading(false);
             return;
         }
 
-        // No localStorage entry — might be a Google OAuth user.
-        // Verify via cookie-based auth by calling /auth/me
+        // Try to recover session from cookie/API
         api.get("/auth/me")
             .then((res) => {
                 const user = res.data;
-                // Persist to localStorage so subsequent checks are instant
-                if (user?.id) {
-                    localStorage.setItem("agentId", user.id);
-                    localStorage.setItem("role", user.role);
-                }
-                setIsAuthenticated(true);
+                const token = localStorage.getItem("accessToken") || "";
+                setAuth(user, token);
+                setLoading(false);
             })
             .catch(() => {
+                clearAuth();
                 router.push("/login");
             });
-    }, [router]);
+    }, [router, isAuthenticated, setAuth, clearAuth]);
 
-    if (!isAuthenticated) return <Loader />;
+
+    if (loading) return <Loader />;
 
     return <>{children}</>;
 }
+

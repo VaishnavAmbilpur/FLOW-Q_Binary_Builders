@@ -3,14 +3,22 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useAuthStore } from "@/store";
 import { 
     LayoutDashboard, BarChart3, History, Power, 
     ShieldCheck, Bell, Settings, Search, Menu, X
 } from "lucide-react";
 
 export default function OrganizationAdminNavbar() {
+    const { clearAuth } = useAuthStore();
     const pathname = usePathname();
     const router = useRouter();
+
+    const handleLogout = () => {
+        localStorage.clear();
+        clearAuth();
+        router.push("/login");
+    };
 
     const navLinks = [
         { name: "Admin Dashboard", path: "/org-admin/dashboard", icon: LayoutDashboard },
@@ -18,11 +26,7 @@ export default function OrganizationAdminNavbar() {
         { name: "Waitlist History", path: "/org-admin/history", icon: History }
     ];
 
-    const handleLogout = () => {
-        // Simple client-side logout for organization admin
-        localStorage.removeItem("token");
-        router.push("/login");
-    };
+
 
     return (
         <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] w-[95%] max-w-7xl animate-fade-down">

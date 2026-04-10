@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import api from "@/services/api";
+import { useAppStore, useAuthStore } from "@/store";
 import {
   LogOut,
   Menu,
@@ -33,20 +34,23 @@ interface NavLink {
 }
 
 export default function Navbar() {
-  const [open, setOpen] = useState(false);
+  const { sidebarOpen, toggleSidebar, setSidebarOpen } = useAppStore();
+  const { user, setAuth, clearAuth } = useAuthStore();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
   const pathname = usePathname();
   const router = useRouter();
 
   useEffect(() => {
-    loadUser();
-  }, []);
+    if (!user) {
+      loadUser();
+    }
+  }, [user]);
 
   const loadUser = async () => {
     try {
       const res = await api.get("/auth/me");
-      setUser(res.data);
+      const token = localStorage.getItem('accessToken') || "";
+      setAuth(res.data, token);
     } catch (err) {
       console.error("Failed to load user:", err);
     }
@@ -59,9 +63,11 @@ export default function Navbar() {
       console.error("Logout error:", err);
     } finally {
       localStorage.clear();
+      clearAuth();
       router.push("/login");
     }
   };
+
 
   // Role-based navigation links
   const allNavLinks: NavLink[] = [
@@ -206,16 +212,16 @@ export default function Navbar() {
           {/* Mobile Node Switch */}
           <div className="flex items-center gap-3 md:hidden">
             <button
-              onClick={() => setOpen(!open)}
+              onClick={() => toggleSidebar()}
               className="p-3 bg-neutral-100 dark:bg-white/5 rounded-2xl hover:bg-neutral-200 dark:hover:bg-white/10 transition-colors"
             >
-              {open ? <X className="w-6 h-6 text-neutral-900 dark:text-white" /> : <Menu className="w-6 h-6 text-neutral-900 dark:text-white" />}
+              {sidebarOpen ? <X className="w-6 h-6 text-neutral-900 dark:text-white" /> : <Menu className="w-6 h-6 text-neutral-900 dark:text-white" />}
             </button>
           </div>
         </div>
 
         {/* Mobile Terminal Overlay */}
-        {open && (
+        {sidebarOpen && (
           <div className="md:hidden border-t border-neutral-100 dark:border-white/5 bg-white dark:bg-neutral-950 py-6 space-y-4 px-2 animate-fade-down">
             {navLinks.map((item) => {
               const isActive = pathname === item.path;
@@ -224,7 +230,7 @@ export default function Navbar() {
                 <Link
                   key={item.name}
                   href={item.path}
-                  onClick={() => setOpen(false)}
+                  onClick={() => setSidebarOpen(false)}
                   className={`
                         flex items-center gap-4 px-6 py-4 rounded-2xl font-black transition-all uppercase tracking-widest text-[10px]
                         ${isActive
@@ -238,6 +244,7 @@ export default function Navbar() {
                 </Link>
               );
             })}
+
             <button
               onClick={handleLogout}
               className="w-full flex items-center gap-4 px-6 py-5 rounded-2xl text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all font-black text-[10px] uppercase tracking-[0.2em]"

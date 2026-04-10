@@ -1,4 +1,5 @@
 import axios from "axios";
+import { useAuthStore } from "../store";
 
 const api = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api",
@@ -12,19 +13,24 @@ api.interceptors.request.use(
             const urlParams = new URLSearchParams(window.location.search);
             const urlToken = urlParams.get('token');
             if (urlToken) {
+                // Keep setItem for legacy support during migration, 
+                // but also update the store
                 localStorage.setItem('accessToken', urlToken);
+                useAuthStore.getState().updateToken(urlToken);
+                
                 // Clean up URL to prevent token reuse or bookmarking with token
                 const newUrl = window.location.pathname + window.location.search.replace(/[?&]token=[^&]+/, '').replace(/^&/, '?');
                 window.history.replaceState({}, document.title, newUrl);
             }
 
-            const token = localStorage.getItem('accessToken');
+            const token = useAuthStore.getState().accessToken || localStorage.getItem('accessToken');
             if (token) {
                 config.headers.Authorization = `Bearer ${token}`;
             }
         }
         return config;
     },
+
     (error) => {
         return Promise.reject(error);
     }
@@ -90,6 +96,7 @@ api.interceptors.response.use(
                 const { accessToken } = refreshRes.data;
                 if (typeof window !== 'undefined' && accessToken) {
                     localStorage.setItem('accessToken', accessToken);
+                    useAuthStore.getState().updateToken(accessToken);
                 }
 
                 // Token refreshed successfully, process queued requests
@@ -103,9 +110,10 @@ api.interceptors.response.use(
                 processQueue(refreshError, null);
                 isRefreshing = false;
 
-                // Clear localStorage and redirect to login
+                // Clear storage and redirect to login
                 if (typeof window !== "undefined") {
                     localStorage.clear();
+                    useAuthStore.getState().clearAuth();
                     window.location.href = '/login';
                 }
 

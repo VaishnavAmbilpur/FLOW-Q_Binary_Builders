@@ -1,29 +1,32 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import api from "@/services/api";
+import { useAppStore, useAuthStore } from "@/store";
 import { Monitor, Users, Activity } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 
+
 export default function AdminNavbar() {
-    const [open, setOpen] = useState(false);
+    const { sidebarOpen, setSidebarOpen, toggleSidebar } = useAppStore();
+    const { clearAuth } = useAuthStore();
     const pathname = usePathname();
     const router = useRouter();
 
     const handleLogout = async () => {
         try {
-            await api.post("/auth/logout");
-            localStorage.removeItem("adminId");
-            localStorage.removeItem("adminName");
-            localStorage.removeItem("organizationId");
+            await api.post("/auth/logout").catch(() => {});
+            localStorage.clear();
+            clearAuth();
             router.push("/developer/login");
         } catch (err) {
             console.error(err);
         }
     };
+
 
     const navLinks = [
         { name: "Portal", path: "/developer", icon: Monitor, bgClass: "bg-indigo-100 dark:bg-indigo-900/30", borderClass: "border-indigo-200 dark:border-indigo-800", textClass: "text-indigo-600 dark:text-indigo-400" },
@@ -104,14 +107,14 @@ export default function AdminNavbar() {
                     </div>
                     <button
                         className="text-3xl text-gray-900 dark:text-white"
-                        onClick={() => setOpen(!open)}
+                        onClick={() => toggleSidebar()}
                     >
-                        {open ? "✖" : "☰"}
+                        {sidebarOpen ? "✖" : "☰"}
                     </button>
                 </div>
             )}
 
-            {open && (
+            {sidebarOpen && (
                 <div
                     className="
           absolute top-[68px] left-0 w-full
@@ -128,7 +131,7 @@ export default function AdminNavbar() {
                                 <Link
                                     key={item.name}
                                     href={item.path}
-                                    onClick={() => setOpen(false)}
+                                    onClick={() => setSidebarOpen(false)}
                                     className={`
                     relative group flex items-center justify-center gap-2
                     hover:text-fuchsia-400 dark:hover:text-fuchsia-300 transition text-lg
@@ -139,6 +142,7 @@ export default function AdminNavbar() {
                                         <Icon className={`w-5 h-5 drop-shadow-sm`} />
                                     </div>
                                     {item.name}
+
                                     <span
                                         className={`
                       block mx-auto h-[2px]
