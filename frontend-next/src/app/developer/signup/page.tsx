@@ -9,7 +9,7 @@ import { Terminal, Shield, ArrowRight, Activity, Code, Server } from "lucide-rea
 export default function AdminSignup() {
     const router = useRouter();
     const [formData, setFormData] = useState({
-        hospitalName: "",
+        orgName: "",
         name: "",
         email: "",
         password: "",
@@ -31,22 +31,22 @@ export default function AdminSignup() {
         setLoading(true);
         try {
             const signupData = {
-                hospitalName: formData.hospitalName,
+                orgName: formData.orgName,
                 name: formData.name,
                 email: formData.email,
                 password: formData.password
             };
-            await api.post("/admin/auth/signup", signupData);
+            await api.post("/auth/signup", signupData);
 
             // Auto login after signup
-            const loginRes = await api.post("/admin/auth/login", {
+            const loginRes = await api.post("/auth/login", {
                 email: formData.email,
                 password: formData.password
             });
 
             localStorage.setItem("adminId", loginRes.data.admin.id);
             localStorage.setItem("adminName", loginRes.data.admin.name);
-            localStorage.setItem("hospitalId", loginRes.data.admin.hospitalId);
+            localStorage.setItem("organizationId", loginRes.data.admin.organizationId);
 
             router.push("/developer");
         } catch (err: any) {
@@ -71,17 +71,17 @@ export default function AdminSignup() {
                     </div>
 
                     <h1 className="text-5xl font-black text-gray-900 dark:text-white mb-6 leading-tight">
-                        Power Your Clinic's <br />
+                        Power Your Hub's <br />
                         <span className="bg-gradient-to-r from-fuchsia-400 to-pink-500 bg-clip-text text-transparent">Digital Infrastructure</span>
                     </h1>
 
                     <p className="text-xl text-gray-600 dark:text-gray-400 mb-10 leading-relaxed font-light">
-                        Create an admin workspace to orchestrate multi-tenant queues, provision Webhooks, and manage B2B API access for your entire hospital system.
+                        Create an admin workspace to orchestrate multi-tenant queues, provision Webhooks, and manage B2B API access for your entire organization system.
                     </p>
 
                     <div className="space-y-6">
                         <Feature icon={<Shield />} title="Secure API Gateway" desc="Generate and revoke keys instantly with SHA-256 hashing." />
-                        <Feature icon={<Activity />} title="Real-time Webhooks" desc="Listen to queue and doctor state changes securely." />
+                        <Feature icon={<Activity />} title="Real-time Webhooks" desc="Listen to queue and agent state changes securely." />
                         <Feature icon={<Server />} title="Multi-tenant Segregation" desc="100% data isolation for massive enterprise scale." />
                     </div>
                 </div>
@@ -95,7 +95,7 @@ export default function AdminSignup() {
 
                         <div className="text-center mb-8 relative z-10">
                             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Create Workspace</h2>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Provision your Hospital Admin environment</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Provision your Organization Admin environment</p>
                         </div>
 
                         {error && (
@@ -106,8 +106,8 @@ export default function AdminSignup() {
 
                         <form onSubmit={handleSubmit} className="space-y-5 relative z-10">
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2 ml-1">Hospital / Clinic Name</label>
-                                <input required type="text" name="hospitalName" value={formData.hospitalName} onChange={handleChange}
+                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2 ml-1">Organization / Hub Name</label>
+                                <input required type="text" name="orgName" value={formData.orgName} onChange={handleChange}
                                     className="w-full px-4 py-3.5 rounded-xl bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 focus:border-fuchsia-500/50 focus:ring-1 focus:ring-fuchsia-500 outline-none text-gray-900 dark:text-white transition-all font-medium"
                                     placeholder="St. Jude Medical" />
                             </div>
@@ -158,9 +158,9 @@ export default function AdminSignup() {
                                 </Link>
                             </p>
                             <p className="text-gray-500 text-xs mt-4">
-                                Looking to manage patients?{" "}
+                                Looking to manage customers?{" "}
                                 <Link href="/login" className="text-cyan-400 hover:text-cyan-300 transition-colors">
-                                    Doctor Login
+                                    Agent Login
                                 </Link>
                             </p>
                         </div>

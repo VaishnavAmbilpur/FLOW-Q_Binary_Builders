@@ -1,8 +1,7 @@
 const mongoose = require("mongoose");
 
 const apiUsageSchema = new mongoose.Schema({
-    hospitalId: { type: mongoose.Schema.Types.ObjectId, ref: "Hospital", required: false, index: true },
-    organizationId: { type: mongoose.Schema.Types.ObjectId, ref: "Organization", required: false, index: true },
+    organizationId: { type: mongoose.Schema.Types.ObjectId, ref: "Organization", required: true, index: true },
     yearMonth: { type: String, required: true, index: true }, // Format: YYYY-MM
     requestCount: { type: Number, default: 0 }
 });

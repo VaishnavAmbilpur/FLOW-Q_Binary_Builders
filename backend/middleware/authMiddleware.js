@@ -24,11 +24,12 @@ const auth = async (req, res, next) => {
     req.user = {
       id: decoded.userId,
       role: decoded.role,
-      hospitalId: decoded.hospitalId
+      organizationId: decoded.organizationId,
+      locationId: decoded.locationId
     };
 
-    // For backwards compatibility where endpoints exclusively look for req.doctorId
-    req.doctorId = decoded.role === "DOCTOR" ? decoded.userId : null;
+    // For backwards compatibility where endpoints look for req.agentId
+    req.agentId = decoded.role === "AGENT" ? decoded.userId : null;
 
     next();
   } catch (err) {

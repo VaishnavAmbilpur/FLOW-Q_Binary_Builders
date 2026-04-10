@@ -15,10 +15,10 @@ export default function AdminNavbar() {
 
     const handleLogout = async () => {
         try {
-            await api.post("/admin/auth/logout");
+            await api.post("/auth/logout");
             localStorage.removeItem("adminId");
             localStorage.removeItem("adminName");
-            localStorage.removeItem("hospitalId");
+            localStorage.removeItem("organizationId");
             router.push("/developer/login");
         } catch (err) {
             console.error(err);

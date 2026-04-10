@@ -20,7 +20,7 @@ export default function GoogleCompleteSignup() {
     const searchParams = useSearchParams();
     const token = searchParams.get("token") || "";
 
-    const [hospitalName, setHospitalName] = useState("");
+    const [organizationName, setOrganizationName] = useState("");
     const [prefill, setPrefill] = useState<{ name: string; email: string } | null>(null);
     const [msg, setMsg] = useState("");
     const [loading, setLoading] = useState(false);
@@ -37,16 +37,16 @@ export default function GoogleCompleteSignup() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!hospitalName.trim()) return;
+        if (!organizationName.trim()) return;
         setLoading(true);
         setMsg("");
         try {
-            const res = await api.post("/auth/google/complete", { token, hospitalName: hospitalName.trim() });
+            const res = await api.post("/auth/google/complete", { token, organizationName: organizationName.trim() });
             localStorage.setItem("accessToken", res.data.accessToken);
             setMsg("Account created! Redirecting to dashboard...");
             // Use hard navigation so auth cookies are picked up properly
             setTimeout(() => {
-                window.location.href = res.data.redirectTo || "/admin/dashboard";
+                window.location.href = res.data.redirectTo || "/org-admin/dashboard";
             }, 600);
         } catch (err: any) {
             setMsg(err.response?.data?.message || "Something went wrong. Please try again.");
@@ -86,7 +86,7 @@ export default function GoogleCompleteSignup() {
                             One last step
                         </h2>
                         <p className="text-neutral-500 dark:text-neutral-400 text-sm font-medium">
-                            You're signing up as <strong className="text-neutral-700 dark:text-neutral-200">{prefill?.name || "a new admin"}</strong> ({prefill?.email}). Enter your hospital name to finish.
+                            You're signing up as <strong className="text-neutral-700 dark:text-neutral-200">{prefill?.name || "a new admin"}</strong> ({prefill?.email}). Enter your organization name to finish.
                         </p>
                     </div>
 
@@ -99,15 +99,15 @@ export default function GoogleCompleteSignup() {
                     <form onSubmit={handleSubmit} className="space-y-5">
                         <div className="space-y-1 text-left">
                             <label className="text-xs font-bold text-neutral-600 dark:text-neutral-400 ml-1">
-                                Clinic / Hospital Name
+                                Hub / Organization Name
                             </label>
                             <div className="relative">
                                 <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-neutral-400" />
                                 <input
                                     type="text"
-                                    placeholder="e.g. City General Hospital"
-                                    value={hospitalName}
-                                    onChange={e => setHospitalName(e.target.value)}
+                                    placeholder="e.g. City General Organization"
+                                    value={organizationName}
+                                    onChange={e => setOrganizationName(e.target.value)}
                                     className="w-full pl-10 pr-4 py-3.5 rounded-xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-white placeholder-neutral-400 focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 outline-none transition-all shadow-sm"
                                     required
                                     minLength={2}
@@ -118,7 +118,7 @@ export default function GoogleCompleteSignup() {
 
                         <button
                             type="submit"
-                            disabled={loading || !hospitalName.trim()}
+                            disabled={loading || !organizationName.trim()}
                             className="w-full py-4 rounded-xl font-bold text-base bg-brand-600 hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-600 text-white shadow-lg transition-transform active:scale-95 disabled:opacity-70 disabled:pointer-events-none"
                         >
                             {loading ? "Creating Account..." : "Complete Sign Up →"}
@@ -149,7 +149,7 @@ export default function GoogleCompleteSignup() {
                     </div>
                     <h1 className="text-3xl font-extrabold mb-4">Almost there!</h1>
                     <p className="text-blue-100 dark:text-neutral-400 text-base leading-relaxed">
-                        Your Google account is verified. Just name your hospital and SmartQueue will set up your admin dashboard instantly.
+                        Your Google account is verified. Just name your organization and SmartQueue will set up your admin dashboard instantly.
                     </p>
                 </div>
             </div>

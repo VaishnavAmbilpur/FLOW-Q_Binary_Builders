@@ -199,10 +199,10 @@ The Smart Queue Team
 /**
  * Send password change confirmation email
  * @param {string} email - Recipient email address
- * @param {string} doctorName - Doctor's name
+ * @param {string} agentName - Agent's name
  * @returns {Promise<boolean>} Success status
  */
-const sendPasswordChangeConfirmation = async (email, doctorName) => {
+const sendPasswordChangeConfirmation = async (email, agentName) => {
   const mailOptions = {
     from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
     to: email,

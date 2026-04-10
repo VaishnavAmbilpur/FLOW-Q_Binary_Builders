@@ -56,7 +56,7 @@ export default function GoogleCompleteSignupClient() {
             });
             setMsg("Account created! Redirecting to dashboard...");
             setTimeout(() => {
-                window.location.href = res.data.redirectTo || "/admin/dashboard";
+                window.location.href = res.data.redirectTo || "/org-admin/dashboard";
             }, 600);
         } catch (err: any) {
             setMsg(err.response?.data?.message || "Something went wrong. Please try again.");
@@ -108,7 +108,7 @@ export default function GoogleCompleteSignupClient() {
                                 <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-neutral-400" />
                                 <input
                                     type="text"
-                                    placeholder="e.g. City General Hospital"
+                                    placeholder="e.g. City General Organization"
                                     value={orgName}
                                     onChange={e => setOrgName(e.target.value)}
                                     className="w-full pl-10 pr-4 py-3.5 rounded-xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-white placeholder-neutral-400 focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 outline-none transition-all shadow-sm"

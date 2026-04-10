@@ -11,7 +11,7 @@ const Service       = require("../models/Service");
 const ApiKey        = require("../models/ApiKey");
 const Webhook       = require("../models/Webhook");
 const ApiUsage      = require("../models/ApiUsage");
-const QueueEntry    = require("../models/QueueEntry");
+const Customer    = require("../models/Customer");
 
 const orgAuth = require("../middleware/orgAuthMiddleware");
 const { generateTokenPair } = require("../utils/tokenUtils");
@@ -67,18 +67,18 @@ function generateSlug(name) {
  *             properties:
  *               orgName:
  *                 type: string
- *                 example: City General Hospital
+ *                 example: Professional Services Group
  *               industry:
  *                 type: string
  *                 enum: [healthcare, banking, government, education, salon, retail, other]
- *                 example: healthcare
+ *                 example: other
  *               name:
  *                 type: string
- *                 example: John Admin
+ *                 example: Admin User
  *               email:
  *                 type: string
  *                 format: email
- *                 example: admin@citygeneral.com
+ *                 example: admin@organization.com
  *               password:
  *                 type: string
  *                 minLength: 8
@@ -206,7 +206,7 @@ router.post("/signup", orgLimiter, async (req, res) => {
  *               email:
  *                 type: string
  *                 format: email
- *                 example: admin@citygeneral.com
+ *                 example: admin@organization.com
  *               password:
  *                 type: string
  *                 example: SecurePass123
@@ -298,6 +298,7 @@ router.get("/info", orgAuth, async (req, res) => {
         if (!admin) return res.status(404).json({ message: "Admin not found" });
         res.json(admin);
     } catch (err) {
+        logger.error("GET /info Error", { error: err.message, stack: err.stack, adminId: req.orgAdminId });
         res.status(500).json({ message: "Server error" });
     }
 });
@@ -324,14 +325,14 @@ router.get("/info", orgAuth, async (req, res) => {
  *             properties:
  *               name:
  *                 type: string
- *                 example: Dr. Sarah Chen
+ *                 example: Sarah Chen
  *               email:
  *                 type: string
  *                 format: email
- *                 example: sarah@citygeneral.com
+ *                 example: sarah@org.com
  *               serviceCategory:
  *                 type: string
- *                 example: Cardiology
+ *                 example: Professional Service
  *               serviceId:
  *                 type: string
  *                 description: Optional — assign agent to an existing Service
@@ -423,7 +424,7 @@ router.post("/staff/agent", orgAuth, async (req, res) => {
  *               email:
  *                 type: string
  *                 format: email
- *                 example: jane@citygeneral.com
+ *                 example: jane@org.com
  *               password:
  *                 type: string
  *                 minLength: 8
@@ -546,6 +547,7 @@ router.get("/staff", orgAuth, async (req, res) => {
             .select("-password -refreshToken -resetPasswordToken");
         res.json(staff);
     } catch (err) {
+        logger.error("GET /staff Error", { error: err.message, stack: err.stack, organizationId: req.organizationId });
         res.status(500).json({ message: "Server error" });
     }
 });
@@ -657,7 +659,7 @@ router.get("/services", orgAuth, async (req, res) => {
  *                 type: string
  *               category:
  *                 type: string
- *                 example: Cardiology
+ *                 example: Professional Service
  *               avgSessionDuration:
  *                 type: number
  *                 example: 10
@@ -936,20 +938,21 @@ router.get("/analytics", orgAuth, async (req, res) => {
         thirtyDaysAgo.setHours(0, 0, 0, 0);
 
         // 1. Daily client volume (last 30 days)
-        const dailyVolume = await QueueEntry.aggregate([
+        const dailyVolume = await Customer.aggregate([
             { $match: { organizationId, createdAt: { $gte: thirtyDaysAgo } } },
             { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }, count: { $sum: 1 } } },
             { $sort: { _id: 1 } }
         ]);
 
         // 2. Agent performance
-        const agentPerformance = await QueueEntry.aggregate([
+        const agentPerformance = await Customer.aggregate([
             { $match: { organizationId, createdAt: { $gte: thirtyDaysAgo } } },
             {
                 $group: {
                     _id:       "$agentId",
                     completed: { $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] } },
                     cancelled: { $sum: { $cond: [{ $eq: ["$status", "cancelled"] }, 1, 0] } },
+                    waiting:   { $sum: { $cond: [{ $eq: ["$status", "waiting"] }, 1, 0] } },
                     total:     { $sum: 1 },
                     avgWaitTime: {
                         $avg: {
@@ -969,6 +972,7 @@ router.get("/analytics", orgAuth, async (req, res) => {
                     agentName:   "$agent.name",
                     completed:   1,
                     cancelled:   1,
+                    waiting:     1,
                     total:       1,
                     avgWaitTime: { $round: ["$avgWaitTime", 0] }
                 }
@@ -976,7 +980,7 @@ router.get("/analytics", orgAuth, async (req, res) => {
         ]);
 
         // 3. Heatmap (day of week × hour of day)
-        const heatmapRaw = await QueueEntry.aggregate([
+        const heatmapRaw = await Customer.aggregate([
             { $match: { organizationId, createdAt: { $gte: thirtyDaysAgo } } },
             {
                 $project: {
@@ -993,7 +997,16 @@ router.get("/analytics", orgAuth, async (req, res) => {
             count:     item.count
         }));
 
+        // 4. Summary Totals
+        const totalWaiting = await Customer.countDocuments({ organizationId, status: "waiting" });
+        const recentCompleted = await Customer.countDocuments({ organizationId, status: "completed", createdAt: { $gte: thirtyDaysAgo } });
+
         res.json({
+            summary: {
+                totalWaiting,
+                recentCompleted,
+                totalVolume: dailyVolume.reduce((acc, curr) => acc + curr.count, 0)
+            },
             dailyVolume:     dailyVolume.map(v => ({ date: v._id, count: v.count })),
             agentPerformance,
             heatmap

@@ -13,22 +13,19 @@ const idempotencyMiddleware = async (req, res, next) => {
 
     const key = req.header('Idempotency-Key');
     if (!key) {
-        // If not provided, optionally reject or just proceed. We'll proceed but log.
-        // For strict compliance, you might reject: return res.status(400)...
         return next();
     }
 
-    const hospitalId = req.user ? req.user.hospitalId : null;
-    if (!hospitalId) {
+    const organizationId = req.user ? req.user.organizationId : (req.organizationId || null);
+    if (!organizationId) {
         return next(); // Cannot scope idempotency without tenant context
     }
 
     try {
-        const existingRecord = await IdempotencyKey.findOne({ hospitalId, key });
+        const existingRecord = await IdempotencyKey.findOne({ organizationId, key });
 
         if (existingRecord) {
             logger.info(`Idempotency hit! Returning cached response for key ${key}`);
-            // If the original request finished, it saved a response Status and Body
             if (existingRecord.responseStatus) {
                 return res.status(existingRecord.responseStatus).json(existingRecord.responseBody);
             } else {
@@ -38,7 +35,7 @@ const idempotencyMiddleware = async (req, res, next) => {
 
         // Create a lock record signifying "processing"
         const lockRecord = new IdempotencyKey({
-            hospitalId,
+            organizationId,
             key,
             requestPath: req.originalUrl,
             requestMethod: req.method,
@@ -69,7 +66,7 @@ const idempotencyMiddleware = async (req, res, next) => {
             return res.status(409).json({ error: "Conflict: Concurrent request processing." });
         }
         logger.error('Idempotency middleware error:', err);
-        next(); // Default to passing it through on DB error rather than blocking
+        next();
     }
 };
 

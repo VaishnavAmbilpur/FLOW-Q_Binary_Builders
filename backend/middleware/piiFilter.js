@@ -1,8 +1,8 @@
-const Hospital = require("../models/Hospital");
+const Organization = require("../models/Organization");
 
 /**
  * Middleware to conditionally mask PII data based on the organization's PII Mode setting.
- * If piiMode is false, patient names and phone numbers are masked in the outgoing response.
+ * If piiMode is false, customer names and phone numbers are masked in the outgoing response.
  */
 const piiFilterMiddleware = async (req, res, next) => {
     // Intercept the response res.json
@@ -10,17 +10,20 @@ const piiFilterMiddleware = async (req, res, next) => {
 
     res.json = function (data) {
         // We only process if we know the organizationId
-        if (req.user && req.user.hospitalId) {
+        const organizationId = req.user?.organizationId || req.organizationId;
+        
+        if (organizationId) {
             try {
                 // Skip masking for authorized staff roles
-                const isStaff = ['HOSPITAL_ADMIN', 'DOCTOR', 'RECEPTIONIST'].includes(req.user.role);
+                const roles = ['ORG_ADMIN', 'AGENT', 'OPERATOR'];
+                const isStaff = req.user && roles.includes(req.user.role);
                 
-                // Assuming piiMode is fetched and attached to req.hospital by an earlier middleware
-                // If it's not present, we default to masking (false) UNLESS the user is staff.
-                const piiMode = req.hospital && req.hospital.piiMode !== undefined ? req.hospital.piiMode : false;
+                // Prioritize 'organization' context from earlier middleware
+                const organization = req.organization || req.hospital;
+                const piiMode = organization && organization.piiMode !== undefined ? organization.piiMode : false;
 
                 if (!isStaff && !piiMode && data) {
-                    // Mask data recursively for others (e.g. patients or public views)
+                    // Mask data recursively for others (e.g. customers or public views)
                     data = maskPii(data);
                 }
             } catch (err) {

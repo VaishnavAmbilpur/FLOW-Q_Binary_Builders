@@ -1,45 +1,34 @@
 /**
- * Calculates estimated waiting times for patients in queue
+ * Calculates estimated waiting times for customers in queue
  * Based on:
  *  - queue position
- *  - doctor's avg consultation time (minutes)
- *  - doctor availability state
+ *  - agent's avg session time (minutes)
+ *  - agent availability state
  */
 
-function calculateWaitTimes(queue, doctor) {
-  const avgTime = doctor?.avgConsultationTime || 8; // default 8 mins
-  const availability = doctor?.availability || "Available";
+function calculateWaitTimes(queue, agent) {
+  const avgTime = agent?.avgSessionTime || 5; // default 5 mins
+  const availability = agent?.availability || "Available";
 
-  return queue.map((patient, index) => {
-    // if doctor unavailable - show unknown wait time
+  return queue.map((customer, index) => {
+    // if agent unavailable - show unknown wait time
     if (availability === "Not Available") {
       return {
-        ...patient.toObject(),
+        ...(customer.toObject ? customer.toObject() : customer),
         waitMinutes: null,
         etaTime: null,
-        message: "Doctor is currently unavailable"
+        message: "Agent is currently unavailable"
       };
     }
 
-    // if doctor on break
-    if (availability === "Break") {
-      return {
-        ...patient.toObject(),
-        waitMinutes: null,
-        etaTime: null,
-        message: "Doctor is on break – please wait"
-      };
-    }
-
-    // Normal calculation
     const waitMinutes = index * avgTime;
     const eta = new Date(Date.now() + waitMinutes * 60000);
 
     return {
-      ...patient.toObject(),
+      ...(customer.toObject ? customer.toObject() : customer),
       waitMinutes,
       etaTime: eta,
-      isTopThree: index < 3   // Top‑3 alert flag
+      isTopThree: index < 3
     };
   });
 }

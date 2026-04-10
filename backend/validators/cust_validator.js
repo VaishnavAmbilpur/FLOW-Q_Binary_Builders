@@ -1,12 +1,12 @@
 const { z } = require("zod");
 
-const patientZodSchema = z.object({
+const customerZodSchema = z.object({
   name: z.string()
-    .min(1, "Patient name is required")
+    .min(1, "Customer name is required")
     .max(100, "Name is too long"),
 
-  doctorId: z.string()
-    .min(1, "Doctor ID is required"),
+  agentId: z.string()
+    .min(1, "Agent ID is required"),
 
   description: z.string()
     .max(500, "Description is too long")
@@ -42,17 +42,17 @@ const patientZodSchema = z.object({
     .optional(),
 });
 
-// Schema for adding a patient (only required fields from frontend)
-const addPatientSchema = patientZodSchema.pick({
+// Schema for adding a customer (only required fields from frontend)
+const addCustomerSchema = customerZodSchema.pick({
   name: true,
   description: true,
   number: true,
 }).extend({
-  doctorId: z.string().optional(), // Optional: required for receptionists, not for doctors
-  notes: z.string().max(300, "Note is too long").optional().or(z.literal("")) // Receptionist clinical note
+  agentId: z.string().optional(), // Optional: required for operators, not for agents
+  notes: z.string().max(300, "Note is too long").optional().or(z.literal("")) // Personnel service note
 });
 
 module.exports = {
-  patientZodSchema,
-  addPatientSchema,
+  customerZodSchema,
+  addCustomerSchema,
 };

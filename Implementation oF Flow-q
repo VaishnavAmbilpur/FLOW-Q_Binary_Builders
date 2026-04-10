@@ -1,0 +1,82 @@
+# 🚀 Ultra-Detailed Implementation Plan: AI Engine Context Suite
+
+This plan defines the exact technical granularity for the documentation suite, ensuring total project transparency for any AI coding assistant.
+
+## Proposed Changes: Documentation Hierarchy & Content
+
+### 1. `AI_CONTEXT_INDEX.md` (The Master Entry Point)
+- **Top-Level Stats**: Repo Size, Dependency Count, Test Coverage, Main Language Mix (Node/Next/TS).
+- **Core Narrative**: "SaaS Multi-tenant Queue Management for Healthcare & Service Sectors."
+- **File Directory**: Linking to all other docs with 1-sentence "Why read this?" notes.
+- **AI Contribution Checklist**:
+    - Pre-contribution: Check `AI_CONTRIBUTION_GUIDELINES.md`.
+    - During: Consult `DATABASE_SCHEMA_GUIDE.md` for field types.
+    - Post: Update `BACKEND_DEEP_DIVE.md` if routes changed.
+
+### 2. `SYSTEM_ARCHITECTURE.md` (Design Patterns & Flow)
+- **Tenant Isolation logic**:
+    - `req.dbQuery` injection patterns.
+    - Scoping: `organizationId` (top) -> `locationId` (branch) -> `agentId` (personnel).
+- **The "Industry Rebranding" Engine**:
+    - How `industry` enum (`healthcare`, `salon`, `banking`) triggers UI string overrides.
+- **Deployment Pipeline**:
+    - Render Backend ping mechanism (14m intervals).
+    - Vercel Frontend route group handling.
+- **Privacy Flow**:
+    - `piiFilterMiddleware` logic flow: `Staff Roles -> Bypass Masking`, `Public Roles -> Masking On`.
+
+### 3. `BACKEND_DEEP_DIVE.md` (The Server Logic)
+- **Middleware Execution Stack**:
+    1. `Sentry.requestHandler` (Telemetry)
+    2. `cors` (Domain security)
+    3. `requestLogger` (Audit trail attempt)
+    4. `piiFilterMiddleware` (Response interception)
+    5. `tenantIsolationMiddleware` (Enforced scoping)
+    6. `auditLogger` (Database mutations log)
+- **Core Logic Snapshots**:
+    - **Token Logic**: Sequential per-service daily incrementing.
+    - **Wait-Time Math**: `position * avgSessionDuration`.
+- **API Versioning Strategy**: v1 (Legacy) vs v2 (Headless/B2B).
+
+### 4. `DATABASE_SCHEMA_GUIDE.md` (Model Dictionary)
+- **ERD (Mermaid)**: Visualizing connections between `Organization`, `Service`, `User`, and `QueueEntry`.
+- **Primary Schema Definitions**:
+    - **`QueueEntry`**: Fields, index groups (multi-tenant performance), and status enum logic.
+    - **`Organization`**: Industry settings, kiosk flags, slug generation.
+    - **`ApiKey`**: Prefixing (`sq_test_`), hashing (bcrypt), and metadata.
+- **Index Inventory**: Listing all compound indexes used for performance optimization.
+
+### 5. `FRONTEND_APP_MAP.md` (The UI Engine)
+- **App Router Map**:
+    - `(dashboard)`: Restricted layouts for Doctors/Receptionists.
+    - `(auth)`: Login/Signup flows.
+    - `(public)`: Kiosk and Patient Live Status pages.
+- **Context API Inventory**:
+    - `AuthContext`: Session persistence.
+    - `SocketContext`: Real-time event bridge.
+- **Tailwind System**: Global themes, custom colors for different industries.
+
+### 6. `REALTIME_EVENT_DICTIONARY.md` (The WebSocket Spec)
+- **Emmiter Map**:
+    - `queue.updated`: Informs dashboard to re-fetch waitlist.
+    - `ticket.called`: Triggers voice/visual alerts on Kiosks.
+- **Room Scoping Spec**:
+    - `service_{id}`: Granular service queue.
+    - `org_{id}`: All activities for an organization branch.
+
+### 7. `AI_CONTRIBUTION_GUIDELINES.md` (The Code Law)
+- **Error Schema**: `{ success: false, message: "...", code: "ERROR_ID" }`.
+- **Commit Pattern**: `type(scope): message` (e.g., `feat(queue): add bulk join endpoint`).
+- **Styling Law**: "No inline styles; use Tailwind utilities; keep components < 200 lines."
+
+---
+
+## Technical Highlights for Documentation Content
+- **Self-Healing Logic**: Documentation of index cleanup triggers in `server.js`.
+- **Headless QaaS**: Explanation of the "Demo Provisioning" flow for B2B testers.
+- **PII Masking Regex**: Documenting the logic for 2-char visibility (`Va******`).
+
+## Verification Plan
+1. **Link Integrity Check**: Auto-verifying all `file:///` and anchor links.
+2. **Schema Audit**: Ensuring documentation matches the `mongoose` model definitions exactly.
+3. **Cross-Ref Verification**: Checking that `SYSTEM_ARCHITECTURE.md` doesn't contradict `FRONTEND_APP_MAP.md`.

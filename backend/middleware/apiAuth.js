@@ -15,17 +15,7 @@ const requireApiKey = async (req, res, next) => {
             });
         }
 
-        // We expect the key to format like: prefix_actualkey 
-        // We will need to check all active keys for the given prefix or just fetch them all.
-        // For performance, an API Key should ideally include a public ID (e.g. sq_live_PUBID_SECRET).
-        // If not, we have to iterate through all active keys.
-        // Alternatively, the Hospital ID can be passed in a header `x-hospital-id` to narrow it down.
-        // Let's assume the external client passes just the key, and we look it up.
-        // To avoid looping through the whole DB, standard practice is `prefix_PubKeyId_Secret`
-        // For simplicity now, let's assume the key is passed, we find the first match, but in a real 
-        // large SaaS we extract a fast lookup ID from the string. Let's design it with a lookup ID.
         // Format: {prefix}_{base64(apiKeyId)}_{secret}
-
         const parts = apiKeyHeader.split('_');
 
         if (parts.length < 4) {
@@ -43,7 +33,6 @@ const requireApiKey = async (req, res, next) => {
         const keyId = Buffer.from(keyIdBase64, 'base64').toString('utf8');
 
         const keyRecord = await ApiKey.findOne({ _id: keyId, status: 'Active' })
-            .populate('hospitalId')
             .populate('organizationId');
 
         if (!keyRecord) {
@@ -54,14 +43,14 @@ const requireApiKey = async (req, res, next) => {
             });
         }
 
-        const linkedEntity = keyRecord.organizationId || keyRecord.hospitalId;
-        const linkedId = linkedEntity?._id;
+        const organization = keyRecord.organizationId;
+        const organizationId = organization?._id;
 
-        if (!linkedEntity || linkedEntity.status !== 'Active') {
+        if (!organization || organization.status !== 'Active') {
             return res.status(401).json({
                 success: false,
                 error: 'Unauthorized',
-                message: 'Linked Organization/Hospital is inactive or missing'
+                message: 'Linked Organization is inactive or missing'
             });
         }
 
@@ -84,19 +73,16 @@ const requireApiKey = async (req, res, next) => {
             "Basic": 1000,
             "Pro": 10000,
             "Enterprise": Infinity,
-            "Growth": 5000 // Added for demo
+            "Growth": 5000
         };
 
-        // Quota check: fallback to "Basic" if plan not set
-        const plan = linkedEntity.subscriptionPlan || "Basic";
+        const plan = organization.subscriptionPlan || "Basic";
         const maxLimit = planLimits[plan] || 1000;
-
         const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
 
-        // Atomic usage increment (upserts if not exists)
         try {
             const usageRecord = await ApiUsage.findOneAndUpdate(
-                { organizationId: linkedId, yearMonth: currentMonth },
+                { organizationId: organizationId, yearMonth: currentMonth },
                 { $inc: { requestCount: 1 } },
                 { returnDocument: 'after', upsert: true }
             );
@@ -110,14 +96,13 @@ const requireApiKey = async (req, res, next) => {
             }
         } catch (usageErr) {
             console.error('API Usage Tracking Error:', usageErr);
-            // Allow request through if tracking fails (fail-open)
         }
 
-        // Set request context
-        req.hospital = keyRecord.hospitalId;
-        req.hospitalId = keyRecord.hospitalId?._id;
-        req.organization = keyRecord.organizationId;
-        req.organizationId = linkedId; // Bridging: prioritize the active linked record
+        // Set request context (Bridging legacy to professional SaaS terms)
+        req.organization = organization;
+        req.organizationId = organizationId;
+        req.hospital = organization; // Legacy compatibility
+        req.hospitalId = organizationId; // Legacy compatibility
         req.apiKey = keyRecord;
 
         next();

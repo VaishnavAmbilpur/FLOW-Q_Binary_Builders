@@ -17,7 +17,7 @@ export default function StaffLogin() {
         if (typeof window !== "undefined") {
             const params = new URLSearchParams(window.location.search);
             const error = params.get("error");
-            if (error === "not_registered") setMsg("Your Google account is not registered. Doctors and Receptionists must use their admin-registered email.");
+            if (error === "not_registered") setMsg("Your Google account is not registered. Agents and Receptionists must use their admin-registered email.");
             if (error === "oauth_error") setMsg("Google sign-in failed. Please try again.");
         }
     }, []);
@@ -34,18 +34,18 @@ export default function StaffLogin() {
             const { id, role } = res.data.user;
             const { accessToken } = res.data; // New: Get token from body
 
-            localStorage.setItem("doctorId", id);
+            localStorage.setItem("agentId", id);
             localStorage.setItem("role", role);
             localStorage.setItem("accessToken", accessToken); // Store for Header strategy
 
             setMsg("Login Successful 🎉 Redirecting...");
             setTimeout(() => {
-                if (role === "DOCTOR") {
-                    router.push("/doctor");
-                } else if (role === "RECEPTIONIST") {
-                    router.push("/reception");
-                } else if (role === "HOSPITAL_ADMIN") {
-                    router.push("/admin/dashboard");
+                if (role === "AGENT") {
+                    router.push("/agent");
+                } else if (role === "OPERATOR") {
+                    router.push("/operator");
+                } else if (role === "ORG_ADMIN") {
+                    router.push("/org-admin/dashboard");
                 } else {
                     router.push("/");
                 }
@@ -85,7 +85,7 @@ export default function StaffLogin() {
                                 Welcome <span className="text-brand-500">Back.</span>
                             </h2>
                             <p className="text-neutral-500 text-[10px] font-bold uppercase tracking-widest">
-                                Clinical Access Portal
+                                Business Access Portal
                             </p>
                         </div>
 
@@ -105,7 +105,7 @@ export default function StaffLogin() {
                                     <input
                                         name="email"
                                         type="email"
-                                        placeholder="dr.name@hospital.com"
+                                        placeholder="user@organization.com"
                                         value={form.email}
                                         onChange={handleChange}
                                         className="w-full bg-white/[0.03] border border-white/5 p-3 rounded-xl text-[11px] text-white placeholder-neutral-700 outline-none transition-all group-hover:border-white/10 group-focus:bg-white/[0.05]"
@@ -183,18 +183,18 @@ export default function StaffLogin() {
                     <div className="relative z-10 max-w-sm space-y-8 animate-fade-left">
                         <div className="space-y-4">
                             <h3 className="text-2xl md:text-3xl font-black text-white leading-tight underline decoration-brand-500/50 underline-offset-8 italic">
-                                Architecting the future of healthcare.
+                                Architecting the future of service.
                             </h3>
                             <p className="text-neutral-500 text-sm font-medium leading-relaxed">
-                                A high-fidelity patient management system designed for speed, precision, and world-class care quality.
+                                A high-fidelity business management system designed for speed, precision, and world-class service quality.
                             </p>
                         </div>
 
                         <div className="grid gap-2.5">
                             {[
                                 { icon: Activity, title: "Real-time Matrix", desc: "Global queue synchronization across all nodes." },
-                                { icon: Shield, title: "Ledger Security", desc: "Encrypted role-based access for all clinical staff." },
-                                { icon: Users, title: "Flow Optimization", desc: "Smart AI predictions for patient throughput." }
+                                { icon: Shield, title: "Ledger Security", desc: "Encrypted role-based access for all team members." },
+                                { icon: Users, title: "Flow Optimization", desc: "Smart predictions for customer throughput." }
                             ].map((item, i) => (
                                 <div key={i} className="flex items-center gap-4 bg-white/[0.03] border border-white/5 p-3.5 md:p-4 rounded-xl hover:bg-white/[0.07] transition-all group">
                                     <div className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center border border-white/10 group-hover:border-brand-500/50 transition-colors">

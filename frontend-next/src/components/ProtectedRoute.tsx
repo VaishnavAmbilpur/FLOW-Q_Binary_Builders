@@ -10,9 +10,9 @@ export default function ProtectedRoute({ children }) {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     useEffect(() => {
-        const doctorId = localStorage.getItem("doctorId");
+        const agentId = localStorage.getItem("agentId");
 
-        if (doctorId) {
+        if (agentId) {
             // Already authenticated via localStorage (email/password login)
             setIsAuthenticated(true);
             return;
@@ -25,7 +25,7 @@ export default function ProtectedRoute({ children }) {
                 const user = res.data;
                 // Persist to localStorage so subsequent checks are instant
                 if (user?.id) {
-                    localStorage.setItem("doctorId", user.id);
+                    localStorage.setItem("agentId", user.id);
                     localStorage.setItem("role", user.role);
                 }
                 setIsAuthenticated(true);

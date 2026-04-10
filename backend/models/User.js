@@ -2,20 +2,20 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
 const UserSchema = new mongoose.Schema({
-    hospitalId: {
+    organizationId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Hospital",
+        ref: "Organization",
         required: true
     },
-    branchId: {
+    locationId: {
         type: mongoose.Schema.Types.ObjectId,
         required: function () {
-            return this.role === "DOCTOR" || this.role === "RECEPTIONIST";
+            return this.role === "AGENT" || this.role === "OPERATOR";
         }
     },
     role: {
         type: String,
-        enum: ["HOSPITAL_ADMIN", "DOCTOR", "RECEPTIONIST"],
+        enum: ["ORG_ADMIN", "AGENT", "OPERATOR"],
         required: true
     },
     name: {
@@ -43,17 +43,22 @@ const UserSchema = new mongoose.Schema({
     },
 
     // ----------------------------------------
-    // DOCTOR Role Fields
+    // AGENT Role Fields
     // ----------------------------------------
-    specialization: {
+    serviceCategory: {
         type: String,
         required: function () {
-            return this.role === "DOCTOR";
+            return this.role === "AGENT";
         }
     },
-    avgConsultationTime: {
+    avgSessionTime: {
         type: Number,
         default: 5
+    },
+    serviceId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Service",
+        default: null
     },
     availability: {
         type: String,
@@ -73,14 +78,14 @@ const UserSchema = new mongoose.Schema({
         endTime: String
     }],
     metrics: {
-        totalPatientsSeen: { type: Number, default: 0 },
+        totalCustomersServed: { type: Number, default: 0 },
         avgWaitTimeOverall: { type: Number, default: 0 }
     },
 
     // ----------------------------------------
-    // RECEPTIONIST Role Fields
+    // OPERATOR Role Fields
     // ----------------------------------------
-    assignedDoctors: [{
+    assignedAgents: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
     }],
@@ -109,6 +114,6 @@ UserSchema.pre("save", async function () {
         this.password = await bcrypt.hash(this.password, 10);
     }
 });
-UserSchema.index({ hospitalId: 1, email: 1 }, { unique: true });
+UserSchema.index({ organizationId: 1, email: 1 }, { unique: true });
 
 module.exports = mongoose.model("User", UserSchema);

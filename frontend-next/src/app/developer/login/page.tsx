@@ -21,10 +21,10 @@ export default function AdminLogin() {
         setLoading(true);
 
         try {
-            const res = await api.post("/admin/auth/login", formData);
+            const res = await api.post("/auth/login", formData);
             localStorage.setItem("adminId", res.data.admin.id);
             localStorage.setItem("adminName", res.data.admin.name);
-            localStorage.setItem("hospitalId", res.data.admin.hospitalId);
+            localStorage.setItem("organizationId", res.data.admin.organizationId);
             router.push("/developer");
         } catch (err: any) {
             setError(err.response?.data?.message || err.response?.data?.errors?.[0]?.message || "Login failed");
@@ -45,17 +45,17 @@ export default function AdminLogin() {
                 </div>
 
                 <h1 className="text-5xl font-black text-gray-900 dark:text-white mb-6 leading-tight">
-                    Power Your Clinic's <br />
+                    Power Your Hub's <br />
                     <span className="bg-gradient-to-r from-fuchsia-400 to-pink-500 bg-clip-text text-transparent">Digital Infrastructure</span>
                 </h1>
 
                 <p className="text-xl text-gray-600 dark:text-gray-400 mb-10 leading-relaxed font-light">
-                    Welcome back to the Admin workspace. Manage your B2B API access, Webhooks, and hospital endpoints.
+                    Welcome back to the Admin workspace. Manage your B2B API access, Webhooks, and organization endpoints.
                 </p>
 
                 <div className="space-y-6">
                     <Feature icon={<Shield />} title="Secure API Gateway" desc="Generate and revoke keys instantly with SHA-256 hashing." />
-                    <Feature icon={<Activity />} title="Real-time Webhooks" desc="Listen to queue and doctor state changes securely." />
+                    <Feature icon={<Activity />} title="Real-time Webhooks" desc="Listen to queue and agent state changes securely." />
                 </div>
             </div>
 
@@ -68,7 +68,7 @@ export default function AdminLogin() {
 
                     <div className="text-center mb-8 relative z-10">
                         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Admin Login</h2>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Access your Hospital Admin environment</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Access your Organization Admin environment</p>
                     </div>
 
                     {error && (
@@ -109,9 +109,9 @@ export default function AdminLogin() {
                             </Link>
                         </p>
                         <p className="text-gray-500 text-xs mt-4">
-                            Looking to manage patients?{" "}
+                            Looking to manage customers?{" "}
                             <Link href="/login" className="text-cyan-400 hover:text-cyan-300 transition-colors">
-                                Doctor Login
+                                Agent Login
                             </Link>
                         </p>
                     </div>

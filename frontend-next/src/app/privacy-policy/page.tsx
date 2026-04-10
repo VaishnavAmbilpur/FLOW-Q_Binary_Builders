@@ -39,10 +39,10 @@ export default function PrivacyPolicy() {
                             <UserCheck className="w-5 h-5 text-brand-500" /> 1. Introduction
                         </h2>
                         <p className="mb-4">
-                            Welcome to FLOW-Q ("Software," "we," "us," or "our"). We understand that in the healthcare and service industries, privacy is paramount. This Privacy Policy outlines how your personal information and patient data is collected, used, and protected when you use our queue management and real-time appointment platform.
+                            Welcome to FLOW-Q ("Software," "we," "us," or "our"). We understand that in the healthcare and service industries, privacy is paramount. This Privacy Policy outlines how your personal information and customer data is collected, used, and protected when you use our queue management and real-time appointment platform.
                         </p>
                         <p>
-                            By using FLOW-Q, either as a Hospital Administrator, Receptionist, Doctor, or End-User (Patient), you agree to the collection and use of information in accordance with this policy. We align our data principles securely and compliantly, offering features like Zero-PII modes and DPDP-aligned auto-erasure protocols.
+                            By using FLOW-Q, either as a Organization Administrator, Receptionist, Agent, or End-User (Customer), you agree to the collection and use of information in accordance with this policy. We align our data principles securely and compliantly, offering features like Zero-PII modes and DPDP-aligned auto-erasure protocols.
                         </p>
                     </section>
 
@@ -53,14 +53,14 @@ export default function PrivacyPolicy() {
                         <div className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl p-6 shadow-sm">
                             <h3 className="font-bold text-neutral-900 dark:text-white mb-2">For Organizations and Staff</h3>
                             <ul className="list-disc pl-5 space-y-2 mb-6">
-                                <li><strong>Account Details:</strong> Admin and Staff names, professional email addresses, specializations, and encrypted passwords.</li>
+                                <li><strong>Account Details:</strong> Admin and Staff names, professional email addresses, serviceCategorys, and encrypted passwords.</li>
                                 <li><strong>Operational Data:</strong> Usage metrics, API keys, schedule hours, and audit logs of administrative actions.</li>
                             </ul>
 
-                            <h3 className="font-bold text-neutral-900 dark:text-white mb-2">For Patients (End-Users)</h3>
+                            <h3 className="font-bold text-neutral-900 dark:text-white mb-2">For Customers (End-Users)</h3>
                             <ul className="list-disc pl-5 space-y-2">
                                 <li><strong>Voluntary PII:</strong> Names, phone numbers, and optional contextual health descriptions provided during booking.</li>
-                                <li><strong>Zero-PII Mode:</strong> If a hospital forces Zero-PII operation, FLOW-Q collects strictly anonymous UUIDs and token numbers without tying them to real identities.</li>
+                                <li><strong>Zero-PII Mode:</strong> If a organization forces Zero-PII operation, FLOW-Q collects strictly anonymous UUIDs and token numbers without tying them to real identities.</li>
                                 <li><strong>Tracking Metadata:</strong> Socket IDs and browser sessions to facilitate real-time WebSocket queue updates.</li>
                             </ul>
                         </div>
@@ -71,10 +71,10 @@ export default function PrivacyPolicy() {
                             <Lock className="w-5 h-5 text-brand-500" /> 3. Data Protection and Encryption
                         </h2>
                         <p className="mb-4">
-                            FLOW-Q takes data security rigorously. We deploy database-level field encryption for all highly sensitive Patient Identifiable Information (PII). This means that even if the database is illegally accessed, names and phone numbers remain cryptographically scrambled.
+                            FLOW-Q takes data security rigorously. We deploy database-level field encryption for all highly sensitive Customer Identifiable Information (PII). This means that even if the database is illegally accessed, names and phone numbers remain cryptographically scrambled.
                         </p>
                         <p>
-                            Our platform operates on a strictly separated Multi-Tenant Architecture. Data is logically isolated via specialized middleware to guarantee that queues and patient records are exclusively accessible only by authorized staff scoped to the exact hospital and branch origin.
+                            Our platform operates on a strictly separated Multi-Tenant Architecture. Data is logically isolated via specialized middleware to guarantee that queues and customer records are exclusively accessible only by authorized staff scoped to the exact organization and branch origin.
                         </p>
                     </section>
 
@@ -90,10 +90,10 @@ export default function PrivacyPolicy() {
                     <section>
                         <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-4">5. Data Retention and Erasure (DSR)</h2>
                         <p className="mb-4">
-                            In honoring privacy rights such as the DPDP and GDPR, FLOW-Q offers automated data lifecycle management. Hospitals can configure active retention limits (e.g., 30 days). Expired records, or those subject to explicit deletion requests, are systematically scrubbed of identifying traces—leaving behind only non-identifying statistical hashes required for analytics.
+                            In honoring privacy rights such as the DPDP and GDPR, FLOW-Q offers automated data lifecycle management. Organizations can configure active retention limits (e.g., 30 days). Expired records, or those subject to explicit deletion requests, are systematically scrubbed of identifying traces—leaving behind only non-identifying statistical hashes required for analytics.
                         </p>
                         <p>
-                            If you are a patient looking to invoke a Data Subject Request (DSR) to erase your data, please contact the specific hospital/clinic administration through which you registered your appointment queue. They uniquely hold the decryption keys required to process your request securely via our Admin Dashboard.
+                            If you are a customer looking to invoke a Data Subject Request (DSR) to erase your data, please contact the specific organization/hub administration through which you registered your appointment queue. They uniquely hold the decryption keys required to process your request securely via our Admin Dashboard.
                         </p>
                     </section>
 
@@ -107,7 +107,7 @@ export default function PrivacyPolicy() {
 
                 <div className="mt-16 pt-8 border-t border-neutral-200 dark:border-neutral-800 text-center">
                     <p className="text-sm font-bold text-neutral-500 dark:text-neutral-400">
-                        Have questions regarding compliance? Contact your hospital administrator or our support engineering team.
+                        Have questions regarding compliance? Contact your organization administrator or our support engineering team.
                     </p>
                 </div>
             </main>

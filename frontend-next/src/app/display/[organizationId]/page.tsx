@@ -8,15 +8,15 @@ import io from 'socket.io-client';
 
 export default function DisplayBoard() {
     const params = useParams();
-    const hospitalId = params.hospitalId;
-    const [doctors, setDoctors] = useState([]);
+    const organizationId = params.organizationId;
+    const [agents, setAgents] = useState([]);
     const [loading, setLoading] = useState(true);
 
     const loadDisplayData = async () => {
         try {
-            const res = await api.get(`/kiosk/${hospitalId}/display`);
+            const res = await api.get(`/kiosk/${organizationId}/display`);
             if (res.data.success) {
-                setDoctors(res.data.data);
+                setAgents(res.data.data);
             }
         } catch (err) {
             console.error("Failed to load display data", err);
@@ -26,7 +26,7 @@ export default function DisplayBoard() {
     };
 
     useEffect(() => {
-        if (!hospitalId) return;
+        if (!organizationId) return;
 
         loadDisplayData();
 
@@ -37,7 +37,7 @@ export default function DisplayBoard() {
 
         socket.on('connect', () => {
             console.log("Connected to display socket");
-            socket.emit('joinHospitalPublicRoom', hospitalId);
+            socket.emit('joinOrganizationPublicRoom', organizationId);
         });
 
         socket.on('queueUpdated', () => {
@@ -45,8 +45,8 @@ export default function DisplayBoard() {
             loadDisplayData();
         });
 
-        socket.on('doctorAvailabilityChanged', () => {
-            console.log("Doctor Availability Changed via Socket, Reloading Display Data...");
+        socket.on('agentAvailabilityChanged', () => {
+            console.log("Agent Availability Changed via Socket, Reloading Display Data...");
             loadDisplayData();
         });
 
@@ -57,11 +57,11 @@ export default function DisplayBoard() {
 
         return () => {
             socket.off('queueUpdated');
-            socket.off('doctorAvailabilityChanged');
+            socket.off('agentAvailabilityChanged');
             socket.disconnect();
             clearInterval(interval);
         };
-    }, [hospitalId]);
+    }, [organizationId]);
 
     if (loading) {
         return (
@@ -86,7 +86,7 @@ export default function DisplayBoard() {
                         <MonitorPlay className="w-12 h-12 text-brand-400" />
                     </div>
                     <div>
-                        <h1 className="text-6xl font-black tracking-tighter text-white mb-2 uppercase">Hospital Board</h1>
+                        <h1 className="text-6xl font-black tracking-tighter text-white mb-2 uppercase">Organization Board</h1>
                         <p className="text-[10px] font-black text-neutral-500 uppercase tracking-[0.6em]">Command Center <span className="mx-4 text-neutral-800">/</span> Real-Time Display Service</p>
                     </div>
                 </div>
@@ -103,15 +103,15 @@ export default function DisplayBoard() {
 
             {/* Matrix View */}
             <main className="flex-1 relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-12 content-start">
-                {doctors.length === 0 ? (
+                {agents.length === 0 ? (
                     <div className="col-span-full h-[60vh] flex flex-col items-center justify-center text-center opacity-40">
                         <Activity className="w-20 h-20 text-neutral-700 mb-8 animate-pulse" />
                         <p className="text-4xl text-neutral-700 font-black uppercase tracking-widest">No Active Queue Found</p>
                     </div>
                 ) : (
-                    doctors.map((doc: any, index: number) => (
+                    agents.map((doc: any, index: number) => (
                         <div
-                            key={doc.doctorId}
+                            key={doc.agentId}
                             className="group bg-white/[0.03] border border-white/5 rounded-[4rem] p-12 transition-all duration-700 backdrop-blur-2xl flex flex-col justify-between shadow-2xl hover:bg-white/[0.05] hover:border-white/10 animate-fade-up"
                             style={{ animationDelay: `${index * 150}ms` }}
                         >
@@ -121,8 +121,8 @@ export default function DisplayBoard() {
                                         <Stethoscope className="w-8 h-8" />
                                     </div>
                                     <div className="min-w-0">
-                                        <h2 className="text-4xl font-black tracking-tight truncate uppercase pr-4">{doc.doctorName}</h2>
-                                        <p className="text-[10px] font-black text-brand-400 uppercase tracking-[0.4em] mt-1">{doc.specialization}</p>
+                                        <h2 className="text-4xl font-black tracking-tight truncate uppercase pr-4">{doc.agentName}</h2>
+                                        <p className="text-[10px] font-black text-brand-400 uppercase tracking-[0.4em] mt-1">{doc.serviceCategory}</p>
                                     </div>
                                 </div>
                             </div>

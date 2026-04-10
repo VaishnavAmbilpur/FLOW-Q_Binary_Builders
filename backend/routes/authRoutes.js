@@ -7,8 +7,8 @@ const rateLimit = require("express-rate-limit");
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const User = require("../models/User");
-const Hospital = require("../models/Hospital");
-const { adminSignupSchema, adminLoginSchema } = require("../validators/admin_validator");
+const Organization = require("../models/Organization");
+const { orgLoginSchema, orgSignupSchema } = require("../validators/org_validator");
 const logger = require("../utils/logger");
 const { generateTokenPair, verifyRefreshToken } = require("../utils/tokenUtils");
 const { getCookieOptions } = require("../utils/authUtils");
@@ -73,7 +73,7 @@ const loginBruteForceLimiter = (req, res, next) => next(); // Disabled per user 
  * @swagger
  * /auth/signup:
  *   post:
- *     summary: Register a new doctor
+ *     summary: Register a new organization admin
  *     tags: [Authentication]
  *     requestBody:
  *       required: true
@@ -83,20 +83,16 @@ const loginBruteForceLimiter = (req, res, next) => next(); // Disabled per user 
  *             type: object
  *             required:
  *               - name
- *               - specialization
  *               - email
  *               - password
  *             properties:
  *               name:
  *                 type: string
- *                 example: Dr. John Smith
- *               specialization:
- *                 type: string
- *                 example: Cardiology
+ *                 example: John Smith
  *               email:
  *                 type: string
  *                 format: email
- *                 example: doctor@hospital.com
+ *                 example: admin@organization.com
  *               password:
  *                 type: string
  *                 format: password
@@ -104,7 +100,7 @@ const loginBruteForceLimiter = (req, res, next) => next(); // Disabled per user 
  *                 example: SecurePass123
  *     responses:
  *       200:
- *         description: Doctor registered successfully
+ *         description: Organization Admin registered successfully
  *         content:
  *           application/json:
  *             schema:
@@ -113,8 +109,8 @@ const loginBruteForceLimiter = (req, res, next) => next(); // Disabled per user 
  *                 message:
  *                   type: string
  *                   example: Signup successful
- *                 doctor:
- *                   $ref: '#/components/schemas/Doctor'
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
  *       400:
  *         description: Validation error or email already exists
  *         content:
@@ -129,40 +125,41 @@ const loginBruteForceLimiter = (req, res, next) => next(); // Disabled per user 
 router.post("/signup", authLimiter, async (req, res) => {
   try {
     // Validate input with Zod
-    const validatedData = adminSignupSchema.parse(req.body);
-    const { name, email, password, hospitalName } = validatedData;
+    const validatedData = orgSignupSchema.parse(req.body);
+    const { name, email, password, orgName, industry } = validatedData;
 
     const existing = await User.findOne({ email });
     if (existing) {
       return res.status(400).json({ message: "Email already exists" });
     }
 
-    const existingHospital = await Hospital.findOne({ email });
-    if (existingHospital) {
-      return res.status(400).json({ message: "A hospital with this email is already registered." });
+    const existingOrg = await Organization.findOne({ email });
+    if (existingOrg) {
+      return res.status(400).json({ message: "An organization with this email is already registered." });
     }
 
-    const hospital = await Hospital.create({
-      name: hospitalName,
+    const organization = await Organization.create({
+      name: orgName,
       email: email,
-      branches: [{ name: "Main Branch", address: "Local Branch" }]
+      industry: industry || "other",
+      locations: [{ name: "Main Location", address: "Default Location" }]
     });
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({
-      hospitalId: hospital._id,
-      role: "HOSPITAL_ADMIN",
+      organizationId: organization._id,
+      role: "ORG_ADMIN",
       name,
       email,
       password: hashedPassword,
-    }); // HOSPITAL_ADMIN doesn't require branchId
+    });
 
     res.json({
       message: "Signup successful",
       user: {
         id: user._id,
         role: user.role,
-        hospitalId: user.hospitalId,
+        organizationId: user.organizationId,
         name: user.name,
         email: user.email,
       },
@@ -188,7 +185,7 @@ router.post("/signup", authLimiter, async (req, res) => {
  * @swagger
  * /auth/login:
  *   post:
- *     summary: Login as a doctor
+ *     summary: Login to the platform
  *     tags: [Authentication]
  *     requestBody:
  *       required: true
@@ -203,7 +200,7 @@ router.post("/signup", authLimiter, async (req, res) => {
  *               email:
  *                 type: string
  *                 format: email
- *                 example: doctor@hospital.com
+ *                 example: admin@organization.com
  *               password:
  *                 type: string
  *                 format: password
@@ -224,8 +221,8 @@ router.post("/signup", authLimiter, async (req, res) => {
  *                 message:
  *                   type: string
  *                   example: Login successful
- *                 doctor:
- *                   $ref: '#/components/schemas/Doctor'
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
  *       401:
  *         description: Invalid credentials
  *       429:
@@ -236,10 +233,9 @@ router.post("/signup", authLimiter, async (req, res) => {
 router.post("/login", loginBruteForceLimiter, async (req, res) => {
   try {
     // Validate input with Zod
-    const validatedData = adminLoginSchema.parse(req.body);
-    const { email, password } = validatedData;
+    const { email, password } = orgLoginSchema.parse(req.body);
 
-    const user = await User.findOne({ email }).populate("assignedDoctors", "name email specialization availability");
+    const user = await User.findOne({ email }).populate("assignedAgents", "name email serviceCategory availability");
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
@@ -252,21 +248,19 @@ router.post("/login", loginBruteForceLimiter, async (req, res) => {
     const { accessToken, refreshToken, refreshTokenExpiry } = generateTokenPair({
       userId: user._id,
       role: user.role,
-      hospitalId: user.hospitalId,
-      branchId: user.branchId
+      organizationId: user.organizationId,
+      locationId: user.locationId
     });
 
-    // Fix legacy users missing a branchId
-    if (!user.branchId) {
-      const Hospital = require("../models/Hospital");
-      const hospital = await Hospital.findById(user.hospitalId);
-      if (hospital && hospital.branches && hospital.branches.length > 0) {
-        user.branchId = hospital.branches[0]._id;
-      } else if (hospital) {
-        // Create a default branch if none exist
-        hospital.branches = [{ name: "Main Branch", address: "Legacy Auto-Created" }];
-        await hospital.save();
-        user.branchId = hospital.branches[0]._id;
+    // Fix legacy users missing a locationId
+    if (!user.locationId) {
+      const org = await Organization.findById(user.organizationId);
+      if (org && org.locations && org.locations.length > 0) {
+        user.locationId = org.locations[0]._id;
+      } else if (org) {
+        org.locations = [{ name: "Main Location", address: "Legacy Auto-Created" }];
+        await org.save();
+        user.locationId = org.locations[0]._id;
       }
     }
 
@@ -286,12 +280,12 @@ router.post("/login", loginBruteForceLimiter, async (req, res) => {
       accessToken, // Return token for use in frontend Authorization header
       user: {
         id: user._id,
-        hospitalId: user.hospitalId,
-        branchId: user.branchId,
+        organizationId: user.organizationId,
+        locationId: user.locationId,
         role: user.role,
         name: user.name,
         email: user.email,
-        assignedDoctors: user.assignedDoctors || []
+        assignedAgents: user.assignedAgents || []
       },
     });
   } catch (err) {
@@ -326,9 +320,9 @@ router.post("/login", loginBruteForceLimiter, async (req, res) => {
  */
 router.get("/me", auth, async (req, res) => {
   try {
-    // req.user is populated by the authMiddleware with role, hospitalId, and id
+    // req.user is populated by the authMiddleware
     const user = await User.findById(req.user.id)
-      .populate("assignedDoctors", "name email specialization availability")
+      .populate("assignedAgents", "name email serviceCategory availability")
       .select("-password -refreshToken -resetPasswordToken");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -337,10 +331,10 @@ router.get("/me", auth, async (req, res) => {
     res.json({
       id: user._id,
       role: user.role,
-      hospitalId: user.hospitalId,
+      organizationId: user.organizationId,
       name: user.name,
       email: user.email,
-      assignedDoctors: user.assignedDoctors || []
+      assignedAgents: user.assignedAgents || []
     });
   } catch (err) {
     logger.error("Get Me Error", { error: err.message });
@@ -352,7 +346,7 @@ router.get("/me", auth, async (req, res) => {
  * @swagger
  * /auth/logout:
  *   post:
- *     summary: Logout doctor and clear tokens
+ *     summary: Logout user and clear tokens
  *     tags: [Authentication]
  *     security:
  *       - cookieAuth: []
@@ -372,7 +366,7 @@ router.get("/me", auth, async (req, res) => {
  */
 router.post("/logout", async (req, res) => {
   try {
-    // Get doctor ID from token if available
+    // Get user ID from token if available
     const token = req.cookies.token;
     if (token) {
       try {
@@ -469,11 +463,10 @@ router.post("/refresh", async (req, res) => {
       return res.status(401).json({ message: "Refresh token expired" });
     }
 
-    // Generate new access token and rotate refresh token
     const { accessToken, refreshToken: newRefreshToken, refreshTokenExpiry } = generateTokenPair({
       userId: user._id,
       role: user.role,
-      hospitalId: user.hospitalId
+      organizationId: user.organizationId
     });
 
     // Update refresh token in database (token rotation)
@@ -516,7 +509,7 @@ router.post("/refresh", async (req, res) => {
  *               email:
  *                 type: string
  *                 format: email
- *                 example: doctor@hospital.com
+ *                 example: user@organization.com
  *     responses:
  *       200:
  *         description: Password reset email sent (or not, but message is same for security)
@@ -685,21 +678,21 @@ const FRONTEND = process.env.FRONTEND_URL || "https://flow-q-binary-builders.ver
 
 // Helper: set JWT cookies + redirect to correct dashboard
 async function loginAndRedirect(res, user) {
-  const hospital = await Hospital.findById(user.hospitalId);
-  if (!hospital) {
-    return res.redirect(`${FRONTEND}/login?error=hospital_not_found`);
+  const org = await Organization.findById(user.organizationId);
+  if (!org) {
+    return res.redirect(`${FRONTEND}/login?error=organization_not_found`);
   }
 
-  // Fix missing branchId for legacy users
-  if (!user.branchId && hospital.branches?.length > 0) {
-    user.branchId = hospital.branches[0]._id;
+  // Fix missing locationId for legacy users
+  if (!user.locationId && org.locations?.length > 0) {
+    user.locationId = org.locations[0]._id;
   }
 
   const { accessToken, refreshToken, refreshTokenExpiry } = generateTokenPair({
     userId: user._id,
     role: user.role,
-    hospitalId: user.hospitalId,
-    branchId: user.branchId
+    organizationId: user.organizationId,
+    locationId: user.locationId
   });
 
   user.refreshToken = refreshToken;
@@ -710,9 +703,9 @@ async function loginAndRedirect(res, user) {
   res.cookie("refreshToken", refreshToken, getCookieOptions(true));
 
   const redirectMap = {
-    DOCTOR: "/doctor",
-    RECEPTIONIST: "/reception",
-    HOSPITAL_ADMIN: "/admin/dashboard"
+    AGENT: "/agent",
+    OPERATOR: "/operator",
+    ORG_ADMIN: "/org-admin/dashboard"
   };
   res.redirect(`${FRONTEND}${redirectMap[user.role] || "/"}?token=${accessToken}`);
 }
@@ -742,7 +735,7 @@ router.get("/google/callback",
         return loginAndRedirect(res, user);
       }
 
-      // New user — only allow new Hospital Admin registrations
+      // New user — only allow new Organization Admin registrations
       if (info?.isNew) {
         const tempPayload = {
           googleId: info.profile.id,
@@ -758,12 +751,12 @@ router.get("/google/callback",
   }
 );
 
-// POST /auth/google/complete — new Admin user provides hospitalName
+// POST /auth/google/complete — new Admin user provides orgName
 router.post("/google/complete", async (req, res) => {
   try {
-    const { token, hospitalName } = req.body;
-    if (!token || !hospitalName?.trim()) {
-      return res.status(400).json({ message: "Token and hospital name are required" });
+    const { token, orgName } = req.body;
+    if (!token || !orgName?.trim()) {
+      return res.status(400).json({ message: "Token and organization name are required" });
     }
 
     let payload;
@@ -781,37 +774,37 @@ router.post("/google/complete", async (req, res) => {
       return res.status(400).json({ message: "Account already exists. Please log in." });
     }
 
-    // Check for orphaned Hospital (created during a previously failed attempt)
-    // If no User exists but a Hospital does, clean it up and recreate
-    const existingHospital = await Hospital.findOne({ email });
-    if (existingHospital) {
-      logger.warn("Deleting orphaned hospital from a previous failed signup attempt", { email });
-      await Hospital.deleteOne({ _id: existingHospital._id });
+    // Check for orphaned Organization
+    const existingOrg = await Organization.findOne({ email });
+    if (existingOrg) {
+      logger.warn("Deleting orphaned organization from a previous failed signup attempt", { email });
+      await Organization.deleteOne({ _id: existingOrg._id });
     }
 
-    const hospital = await Hospital.create({
-      name: hospitalName.trim(),
+    const org = await Organization.create({
+      name: orgName.trim(),
       email,
-      branches: [{ name: "Main Branch", address: "Local Branch" }]
+      industry: "other", // Default for Google signup unless we add a UI picker
+      locations: [{ name: "Main Location", address: "Default Location" }]
     });
 
     const newUser = await User.create({
-      hospitalId: hospital._id,
-      role: "HOSPITAL_ADMIN",
+      organizationId: org._id,
+      role: "ORG_ADMIN",
       name: name || email.split("@")[0],
       email,
       googleId,
       password: undefined // No password for Google users
     });
 
-    // Assign branchId and issue JWT cookies
-    newUser.branchId = hospital.branches[0]._id;
+    // Assign locationId and issue JWT cookies
+    newUser.locationId = org.locations[0]._id;
 
     const { accessToken, refreshToken, refreshTokenExpiry } = generateTokenPair({
       userId: newUser._id,
       role: newUser.role,
-      hospitalId: newUser.hospitalId,
-      branchId: newUser.branchId
+      organizationId: newUser.organizationId,
+      locationId: newUser.locationId
     });
 
     newUser.refreshToken = refreshToken;
@@ -829,7 +822,7 @@ router.post("/google/complete", async (req, res) => {
     return res.json({
       message: "Signup successful",
       accessToken,
-      redirectTo: "/admin/dashboard"
+      redirectTo: "/org-admin/dashboard"
     });
   } catch (err) {
     logger.error("Google Complete Error", { error: err.message, stack: err.stack });

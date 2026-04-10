@@ -8,18 +8,18 @@ import {
     ShieldCheck, Bell, Settings, Search, Menu, X
 } from "lucide-react";
 
-export default function HospitalAdminNavbar() {
+export default function OrganizationAdminNavbar() {
     const pathname = usePathname();
     const router = useRouter();
 
     const navLinks = [
-        { name: "Admin Dashboard", path: "/admin/dashboard", icon: LayoutDashboard },
-        { name: "Analytics", path: "/admin/analytics", icon: BarChart3 },
-        { name: "Waitlist History", path: "/admin/history", icon: History }
+        { name: "Admin Dashboard", path: "/org-admin/dashboard", icon: LayoutDashboard },
+        { name: "Analytics", path: "/org-admin/analytics", icon: BarChart3 },
+        { name: "Waitlist History", path: "/org-admin/history", icon: History }
     ];
 
     const handleLogout = () => {
-        // Simple client-side logout for hospital admin
+        // Simple client-side logout for organization admin
         localStorage.removeItem("token");
         router.push("/login");
     };

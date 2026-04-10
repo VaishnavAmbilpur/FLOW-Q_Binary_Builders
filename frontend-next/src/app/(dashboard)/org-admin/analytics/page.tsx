@@ -22,7 +22,7 @@ export default function AnalyticsDashboard() {
 
     const loadAnalytics = async () => {
         try {
-            const res = await api.get("/admin/analytics");
+            const res = await api.get("/organizations/analytics");
             setData(res.data);
         } catch (err) {
             console.error("Failed to load analytics", err);
@@ -33,7 +33,7 @@ export default function AnalyticsDashboard() {
 
     if (loading || !data) return <Loader />;
 
-    const { dailyVolume, doctorPerformance, heatmap } = data;
+    const { dailyVolume, agentPerformance, heatmap } = data;
 
     // Heatmap Preparation
     const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -50,12 +50,12 @@ export default function AnalyticsDashboard() {
         return "bg-brand-500 border-white/20 text-white font-bold shadow-[0_0_30px_rgba(59,130,246,0.6)] animate-pulse";
     };
 
-    const totalPatients = doctorPerformance.reduce((acc: number, doc: any) => acc + doc.total, 0);
-    const totalCompleted = doctorPerformance.reduce((acc: number, doc: any) => acc + (doc.completed || 0), 0);
-    const totalCancelled = doctorPerformance.reduce((acc: number, doc: any) => acc + (doc.cancelled || 0), 0);
-    const completedRate = totalPatients ? Math.round((totalCompleted / totalPatients) * 100) : 0;
+    const totalCustomers = agentPerformance.reduce((acc: number, doc: any) => acc + doc.total, 0);
+    const totalCompleted = agentPerformance.reduce((acc: number, doc: any) => acc + (doc.completed || 0), 0);
+    const totalCancelled = agentPerformance.reduce((acc: number, doc: any) => acc + (doc.cancelled || 0), 0);
+    const completedRate = totalCustomers ? Math.round((totalCompleted / totalCustomers) * 100) : 0;
 
-    const validWaitTimes = doctorPerformance.filter((d: any) => d.avgWaitTime != null).map((d: any) => d.avgWaitTime);
+    const validWaitTimes = agentPerformance.filter((d: any) => d.avgWaitTime != null).map((d: any) => d.avgWaitTime);
     const avgOverallWait = validWaitTimes.length ? Math.round(validWaitTimes.reduce((a: number, b: number) => a + b, 0) / validWaitTimes.length) : 0;
 
     return (
@@ -87,7 +87,7 @@ export default function AnalyticsDashboard() {
                 {/* Primary Intelligence Metrics */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12 animate-fade-up">
                     { [
-                        { label: "Matrix Volume", value: totalPatients, icon: <Users className="w-5 h-5" />, color: "text-brand-400 border-brand-500/20" },
+                        { label: "Matrix Volume", value: totalCustomers, icon: <Users className="w-5 h-5" />, color: "text-brand-400 border-brand-500/20" },
                         { label: "Commitment Rate", value: `${completedRate}%`, icon: <Target className="w-5 h-5" />, color: "text-success-400 border-success-500/20" },
                         { label: "Neural Latency", value: `${avgOverallWait}m`, icon: <Zap className="w-5 h-5" />, color: "text-warning-400 border-warning-500/20" },
                         { label: "Sync Failures", value: totalCancelled, icon: <XCircle className="w-5 h-5" />, color: "text-danger-400 border-danger-500/20" },
@@ -169,10 +169,10 @@ export default function AnalyticsDashboard() {
                         </div>
                         <div className="h-[300px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={doctorPerformance}>
+                                <BarChart data={agentPerformance}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
                                     <XAxis
-                                        dataKey="doctorName"
+                                        dataKey="agentName"
                                         stroke="#404040"
                                         fontSize={10}
                                         tickLine={false}

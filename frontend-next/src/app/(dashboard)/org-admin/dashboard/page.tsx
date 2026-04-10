@@ -5,7 +5,7 @@ import api from "@/services/api";
 import { useRouter } from "next/navigation";
 import Loader from "@/components/Loader";
 import {
-    Users, UserPlus, FileText, CheckCircle, Stethoscope, Power, Activity,
+    Users, UserPlus, FileText, CheckCircle, Briefcase, Power, Activity,
     QrCode, Clock, X, Monitor, Key, Trash2, Shield, Calendar,
     ChevronRight, MapPin, Search, Plus, ShieldCheck, Mail, Lock, Settings
 } from "lucide-react";
@@ -18,17 +18,17 @@ export default function AdminDashboard() {
     const [loading, setLoading] = useState(false);
 
     // Form states
-    const [doctorForm, setDoctorForm] = useState({ name: "", email: "", specialization: "", password: "" });
-    const [receptionistForm, setReceptionistForm] = useState({ name: "", email: "", password: "", assignedDoctors: [] });
+    const [agentForm, setAgentForm] = useState({ name: "", email: "", serviceCategory: "", password: "" });
+    const [operatorForm, setOperatorForm] = useState({ name: "", email: "", password: "", assignedAgents: [] });
 
     // Lists
-    const [doctors, setDoctors] = useState<any[]>([]);
-    const [receptionists, setReceptionists] = useState<any[]>([]);
+    const [agents, setAgents] = useState<any[]>([]);
+    const [operators, setOperators] = useState<any[]>([]);
     const [revealedIds, setRevealedIds] = useState<string[]>([]);
-    const [editingAssignmentRec, setEditingAssignmentRec] = useState<any>(null);
+    const [editingAssignmentOp, setEditingAssignmentOp] = useState<any>(null);
 
     // Scheduling State
-    const [editingScheduleDoc, setEditingScheduleDoc] = useState<any>(null);
+    const [editingScheduleAgent, setEditingScheduleAgent] = useState<any>(null);
     const [scheduleForm, setScheduleForm] = useState<any[]>([]);
 
     const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -39,66 +39,70 @@ export default function AdminDashboard() {
 
     const loadAdminData = async () => {
         try {
-            const meRes = await api.get("/admin/info");
+            const meRes = await api.get("/organizations/info");
             const userData = meRes.data;
 
-            if (userData.role !== "HOSPITAL_ADMIN") {
+            if (userData.role !== "ORG_ADMIN") {
                 router.push("/login");
                 return;
             }
             setAdmin(userData);
 
-            const staffRes = await api.get("/admin/staff");
+            const staffRes = await api.get("/organizations/staff");
             const allStaff = staffRes.data || [];
-            const doctorsList = allStaff.filter((s: any) => s.role === "DOCTOR");
-            const receptionistsList = allStaff.filter((s: any) => s.role === "RECEPTIONIST");
-            setDoctors(doctorsList);
-            setReceptionists(receptionistsList);
+            const agentsList = allStaff.filter((s: any) => s.role === "AGENT");
+            const operatorsList = allStaff.filter((s: any) => s.role === "OPERATOR");
+            setAgents(agentsList);
+            setOperators(operatorsList);
 
         } catch (err: any) {
-            console.error(err);
-            if (err.response?.status === 401) router.push("/login");
+            console.error("Dashboard Load Error:", err);
+            if (err.response?.status === 401) {
+                router.push("/login");
+            } else {
+                showMsg("Failed to load dashboard data. Please refresh.", "error");
+            }
         }
     }
 
-    const handleAddDoctor = async (e: any) => {
+    const handleAddAgent = async (e: any) => {
         e.preventDefault();
         setLoading(true);
         try {
-            await api.post("/admin/staff/doctor", doctorForm);
-            showMsg("Doctor Added Successfully", "success");
-            setDoctorForm({ name: "", email: "", specialization: "", password: "" });
+            await api.post("/organizations/staff/agent", agentForm);
+            showMsg("Agent Added Successfully", "success");
+            setAgentForm({ name: "", email: "", serviceCategory: "", password: "" });
             loadAdminData();
         } catch (err: any) {
-            showMsg(err.response?.data?.message || "Failed to add doctor", "error");
+            showMsg(err.response?.data?.message || "Failed to add agent", "error");
         } finally {
             setLoading(false);
         }
     };
 
-    const handleAddReceptionist = async (e: any) => {
+    const handleAddOperator = async (e: any) => {
         e.preventDefault();
-        if (receptionistForm.assignedDoctors.length === 0) {
-            showMsg("Select at least one doctor first!", "error");
+        if (operatorForm.assignedAgents.length === 0) {
+            showMsg("Select at least one agent first!", "error");
             return;
         }
         setLoading(true);
         try {
-            await api.post("/admin/staff/receptionist", receptionistForm);
-            showMsg("Receptionist Added Successfully", "success");
-            setReceptionistForm({ name: "", email: "", password: "", assignedDoctors: [] });
+            await api.post("/organizations/staff/operator", operatorForm);
+            showMsg("Operator Added Successfully", "success");
+            setOperatorForm({ name: "", email: "", password: "", assignedAgents: [] });
             loadAdminData();
         } catch (err: any) {
-            showMsg(err.response?.data?.message || "Failed to add receptionist", "error");
+            showMsg(err.response?.data?.message || "Failed to add operator", "error");
         } finally {
             setLoading(false);
         }
     };
 
-    const handleDoctorSelection = (id: string) => {
-        setReceptionistForm(prev => ({
+    const handleAgentSelection = (id: string) => {
+        setOperatorForm(prev => ({
             ...prev,
-            assignedDoctors: [id] as any
+            assignedAgents: [id] as any
         }));
     };
 
@@ -109,7 +113,7 @@ export default function AdminDashboard() {
     const handleDeleteStaff = async (id: string, name: string) => {
         setLoading(true);
         try {
-            await api.delete(`/admin/staff/${id}`);
+            await api.delete(`/organizations/staff/${id}`);
             showMsg(`Removed: ${name}`, "success");
             loadAdminData();
         } catch (err) {
@@ -119,9 +123,9 @@ export default function AdminDashboard() {
         }
     };
 
-    const handleOpenSchedule = (doc: any) => {
-        setEditingScheduleDoc(doc);
-        const currentSchedule = doc.schedule || [];
+    const handleOpenSchedule = (agent: any) => {
+        setEditingScheduleAgent(agent);
+        const currentSchedule = agent.schedule || [];
         const initialForm = daysOfWeek.map(day => {
             const found = currentSchedule.find((s: any) => s.day === day);
             return { day, startTime: found?.startTime || "", endTime: found?.endTime || "" };
@@ -139,9 +143,9 @@ export default function AdminDashboard() {
         setLoading(true);
         try {
             const finalSchedule = scheduleForm.filter(s => s.startTime && s.endTime);
-            await api.put(`/admin/staff/doctor/${editingScheduleDoc._id}/schedule`, { schedule: finalSchedule });
+            await api.put(`/organizations/staff/${editingScheduleAgent._id}/schedule`, { schedule: finalSchedule });
             showMsg("Schedule Updated", "success");
-            setEditingScheduleDoc(null);
+            setEditingScheduleAgent(null);
             loadAdminData();
         } catch (err) {
             showMsg("Sync Failure", "error");
@@ -150,11 +154,11 @@ export default function AdminDashboard() {
         }
     };
 
-    const handleUpdateAssignment = async (recId: string, docId: string) => {
+    const handleUpdateAssignment = async (opId: string, agentId: string) => {
         try {
-            await api.put(`/admin/staff/receptionist/${recId}/assign`, { doctorId: docId });
-            showMsg("Doctor Assigned", "success");
-            setEditingAssignmentRec(null);
+            await api.put(`/organizations/staff/${opId}/assign`, { agentId });
+            showMsg("Agent Assigned", "success");
+            setEditingAssignmentOp(null);
             loadAdminData();
         } catch (err) {
             showMsg("Reassignment Failure", "error");
@@ -189,7 +193,7 @@ export default function AdminDashboard() {
                         </div>
                         <div>
                             <h1 className="text-xl sm:text-3xl font-black tracking-tight text-white mb-1 italic uppercase decoration-brand-500/30 underline-offset-4">Admin Dashboard</h1>
-                            <p className="text-neutral-100 text-[10px] font-black uppercase tracking-[0.4em]">{admin.hospitalName} <span className="mx-2 text-neutral-800">/</span> Control Center</p>
+                            <p className="text-neutral-100 text-[10px] font-black uppercase tracking-[0.4em]">{admin.organizationId?.name || "Organization"} <span className="mx-2 text-neutral-800">/</span> Control Center</p>
                         </div>
                     </div>
                 </div>
@@ -197,8 +201,8 @@ export default function AdminDashboard() {
                 {/* System Metrics */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mb-12 animate-fade-up">
                     {[
-                        { label: "Active Doctors", value: doctors.length, icon: <Stethoscope className="w-5 h-5" />, color: "text-brand-400 bg-brand-500/5 border-brand-500/20" },
-                        { label: "Receptionists", value: receptionists.length, icon: <Users className="w-5 h-5" />, color: "text-success-400 bg-success-500/5 border-success-500/20" },
+                        { label: "Active Agents", value: agents.length, icon: <Activity className="w-5 h-5" />, color: "text-brand-400 bg-brand-500/5 border-brand-500/20" },
+                        { label: "Operators", value: operators.length, icon: <Users className="w-5 h-5" />, color: "text-success-400 bg-success-500/5 border-success-500/20" },
                         { label: "Queue Load", value: "84%", icon: <Activity className="w-5 h-5" />, color: "text-info-400 bg-info-500/5 border-info-500/20" },
                         { label: "System Status", value: "Live", icon: <ShieldCheck className="w-5 h-5" />, color: "text-warning-400 bg-warning-500/5 border-warning-500/20" },
                     ].map(({ label, value, icon, color }) => (
@@ -219,33 +223,33 @@ export default function AdminDashboard() {
                 <div className="space-y-10">
                     {/* ROW 1: ENROLLMENT FORMS */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-10">
-                        {/* SECTION: DOCTOR ENROLLMENT */}
+                        {/* SECTION: AGENT ENROLLMENT */}
                         <div className="bg-white/5 border border-white/10 rounded-[1.5rem] sm:rounded-[2.5rem] p-5 sm:p-6 backdrop-blur-3xl relative overflow-hidden animate-fade-up">
                             <div className="absolute top-0 right-0 w-[40%] h-[40%] bg-brand-600/5 blur-[80px] rounded-full pointer-events-none" />
                             <div className="flex items-center gap-4 mb-8">
                                 <Plus className="w-5 h-5 text-brand-400" />
-                                <h2 className="text-lg sm:text-xl font-black tracking-tight text-white uppercase tracking-[0.2em]">Add New Doctor</h2>
+                                <h2 className="text-lg sm:text-xl font-black tracking-tight text-white uppercase tracking-[0.2em]">Add New Agent</h2>
                             </div>
 
-                            <form onSubmit={handleAddDoctor} className="space-y-4">
+                            <form onSubmit={handleAddAgent} className="space-y-4">
                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-bold text-neutral-100 uppercase tracking-wider ml-5 italic">Doctor Name</label>
+                                        <label className="text-[10px] font-bold text-neutral-100 uppercase tracking-wider ml-5 italic">Agent Name</label>
                                         <input
-                                            placeholder="e.g. Dr. Arthur Ledger"
+                                            placeholder="e.g. Alex Ledger"
                                             className="w-full bg-white/[0.03] border border-white/5 p-3.5 sm:p-4 rounded-2xl text-white placeholder-neutral-500 outline-none transition-all focus:border-brand-500/50 focus:bg-white/[0.05] text-[13px]"
-                                            value={doctorForm.name}
-                                            onChange={(e) => setDoctorForm({ ...doctorForm, name: e.target.value })}
+                                            value={agentForm.name}
+                                            onChange={(e) => setAgentForm({ ...agentForm, name: e.target.value })}
                                             required
                                         />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-bold text-neutral-100 uppercase tracking-wider ml-5 italic">Specialization</label>
+                                        <label className="text-[10px] font-bold text-neutral-100 uppercase tracking-wider ml-5 italic">Service Category</label>
                                         <input
                                             placeholder="e.g. Cardiology"
                                             className="w-full bg-white/[0.03] border border-white/5 p-3.5 sm:p-4 rounded-2xl text-white placeholder-neutral-500 outline-none transition-all focus:border-brand-500/50 focus:bg-white/[0.05] text-[13px]"
-                                            value={doctorForm.specialization}
-                                            onChange={(e) => setDoctorForm({ ...doctorForm, specialization: e.target.value })}
+                                            value={agentForm.serviceCategory}
+                                            onChange={(e) => setAgentForm({ ...agentForm, serviceCategory: e.target.value })}
                                             required
                                         />
                                     </div>
@@ -255,10 +259,10 @@ export default function AdminDashboard() {
                                         <label className="text-[10px] font-bold text-neutral-100 uppercase tracking-wider ml-5 italic">Email Address</label>
                                         <input
                                             type="email"
-                                            placeholder="doctor@hospital.com"
+                                            placeholder="agent@organization.com"
                                             className="w-full bg-white/[0.03] border border-white/5 p-3.5 sm:p-4 rounded-2xl text-white placeholder-neutral-500 outline-none transition-all focus:border-brand-500/50 focus:bg-white/[0.05] text-[13px]"
-                                            value={doctorForm.email}
-                                            onChange={(e) => setDoctorForm({ ...doctorForm, email: e.target.value })}
+                                            value={agentForm.email}
+                                            onChange={(e) => setAgentForm({ ...agentForm, email: e.target.value })}
                                             required
                                         />
                                     </div>
@@ -268,8 +272,8 @@ export default function AdminDashboard() {
                                             type="password"
                                             placeholder="********"
                                             className="w-full bg-white/[0.03] border border-white/5 p-3.5 sm:p-4 rounded-2xl text-white placeholder-neutral-500 outline-none transition-all focus:border-brand-500/50 focus:bg-white/[0.05] text-[13px] font-mono"
-                                            value={doctorForm.password}
-                                            onChange={(e) => setDoctorForm({ ...doctorForm, password: e.target.value })}
+                                            value={agentForm.password}
+                                            onChange={(e) => setAgentForm({ ...agentForm, password: e.target.value })}
                                             required
                                         />
                                     </div>
@@ -279,28 +283,28 @@ export default function AdminDashboard() {
                                     disabled={loading}
                                     className="w-full py-4 sm:py-5 mt-2 rounded-2xl bg-brand-600 hover:bg-brand-500 text-white font-black text-[10px] uppercase tracking-[0.3em] shadow-2xl shadow-brand-600/30 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-4"
                                 >
-                                    {loading ? <Activity className="w-5 h-5 animate-spin" /> : "Add Doctor"}
+                                    {loading ? <Activity className="w-5 h-5 animate-spin" /> : "Add Agent"}
                                 </button>
                             </form>
                         </div>
 
-                        {/* SECTION: RECEPTIONIST ENROLLMENT */}
+                        {/* SECTION: OPERATOR ENROLLMENT */}
                         <div className="bg-white/5 border border-white/10 rounded-[1.5rem] sm:rounded-[2.5rem] p-5 sm:p-6 backdrop-blur-3xl relative overflow-hidden animate-fade-up delay-100">
                             <div className="absolute top-0 left-0 w-[40%] h-[40%] bg-success-600/5 blur-[80px] rounded-full pointer-events-none" />
                             <div className="flex items-center gap-4 mb-8">
                                 <Plus className="w-5 h-5 text-success-400" />
-                                <h2 className="text-lg sm:text-xl font-black tracking-tight text-white uppercase tracking-[0.2em]">Add New Receptionist</h2>
+                                <h2 className="text-lg sm:text-xl font-black tracking-tight text-white uppercase tracking-[0.2em]">Add New Operator</h2>
                             </div>
 
-                            <form onSubmit={handleAddReceptionist} className="space-y-4">
+                            <form onSubmit={handleAddOperator} className="space-y-4">
                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
                                         <label className="text-[10px] font-bold text-neutral-100 uppercase tracking-wider ml-5 italic">Staff Name</label>
                                         <input
                                             placeholder="e.g. John Matrix"
                                             className="w-full bg-white/[0.03] border border-white/5 p-3.5 sm:p-4 rounded-2xl text-white placeholder-neutral-500 outline-none transition-all focus:border-success-500/50 focus:bg-white/[0.05] text-[13px]"
-                                            value={receptionistForm.name}
-                                            onChange={(e) => setReceptionistForm({ ...receptionistForm, name: e.target.value })}
+                                            value={operatorForm.name}
+                                            onChange={(e) => setOperatorForm({ ...operatorForm, name: e.target.value })}
                                             required
                                         />
                                     </div>
@@ -308,10 +312,10 @@ export default function AdminDashboard() {
                                         <label className="text-[10px] font-bold text-neutral-100 uppercase tracking-wider ml-5 italic">Work Email</label>
                                         <input
                                             type="email"
-                                            placeholder="staff@hospital.com"
+                                            placeholder="staff@organization.com"
                                             className="w-full bg-white/[0.03] border border-white/5 p-3.5 sm:p-4 rounded-2xl text-white placeholder-neutral-500 outline-none transition-all focus:border-success-500/50 focus:bg-white/[0.05] text-[13px]"
-                                            value={receptionistForm.email}
-                                            onChange={(e) => setReceptionistForm({ ...receptionistForm, email: e.target.value })}
+                                            value={operatorForm.email}
+                                            onChange={(e) => setOperatorForm({ ...operatorForm, email: e.target.value })}
                                             required
                                         />
                                     </div>
@@ -322,21 +326,21 @@ export default function AdminDashboard() {
                                         type="password"
                                         placeholder="********"
                                         className="w-full bg-white/[0.03] border border-white/5 p-3.5 sm:p-4 rounded-2xl text-white placeholder-neutral-500 outline-none transition-all focus:border-success-500/50 focus:bg-white/[0.05] text-xs font-mono"
-                                        value={receptionistForm.password}
-                                        onChange={(e) => setReceptionistForm({ ...receptionistForm, password: e.target.value })}
+                                        value={operatorForm.password}
+                                        onChange={(e) => setOperatorForm({ ...operatorForm, password: e.target.value })}
                                         required
                                     />
                                 </div>
 
                                  <div className="space-y-3">
-                                    <label className="text-[9px] font-black text-neutral-100 uppercase tracking-[0.3em] ml-5">Assign Doctor</label>
+                                    <label className="text-[9px] font-black text-neutral-100 uppercase tracking-[0.3em] ml-5">Assign Agent</label>
                                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                        {doctors.map((d) => (
+                                        {agents.map((d) => (
                                             <button
                                                 key={d._id}
                                                 type="button"
-                                                onClick={() => handleDoctorSelection(d._id)}
-                                                className={`p-3 rounded-xl border text-[8px] font-black uppercase tracking-widest transition-all ${receptionistForm.assignedDoctors.includes(d._id as any) ? "bg-white text-black border-white shadow-xl scale-105" : "bg-white/5 border-white/5 text-neutral-100 hover:border-white/20"}`}
+                                                onClick={() => handleAgentSelection(d._id)}
+                                                className={`p-3 rounded-xl border text-[8px] font-black uppercase tracking-widest transition-all ${operatorForm.assignedAgents.includes(d._id as any) ? "bg-white text-black border-white shadow-xl scale-105" : "bg-white/5 border-white/5 text-neutral-100 hover:border-white/20"}`}
                                             >
                                                 {d.name.split(' ').pop()}
                                             </button>
@@ -349,7 +353,7 @@ export default function AdminDashboard() {
                                     disabled={loading}
                                     className="w-full py-4 sm:py-5 mt-2 rounded-2xl bg-success-600 hover:bg-success-500 text-white font-black text-[10px] uppercase tracking-[0.3em] shadow-2xl shadow-success-600/30 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-4"
                                 >
-                                    {loading ? <Activity className="w-5 h-5 animate-spin" /> : "Add Receptionist"}
+                                    {loading ? <Activity className="w-5 h-5 animate-spin" /> : "Add Operator"}
                                 </button>
                             </form>
                         </div>
@@ -357,40 +361,40 @@ export default function AdminDashboard() {
 
                     {/* ROW 2: ACTIVE LISTS */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-10">
-                        {/* SECTION: DOCTOR LIST */}
+                        {/* SECTION: AGENT LIST */}
                         <div className="space-y-4 animate-fade-up delay-200">
-                            <h3 className="text-[10px] font-bold uppercase tracking-wider text-neutral-300 px-6 italic">Active Doctors</h3>
+                            <h3 className="text-[10px] font-bold uppercase tracking-wider text-neutral-300 px-6 italic">Active Agents</h3>
                             <div className="space-y-3">
-                                {doctors.length === 0 ? (
+                                {agents.length === 0 ? (
                                     <div className="p-8 text-center bg-white/5 border border-white/5 rounded-3xl text-neutral-200 font-bold uppercase tracking-widest text-[9px]">No staff members found</div>
                                 ) : (
-                                    doctors.map((doc) => (
-                                        <div key={doc._id} className="group bg-white/[0.03] border border-white/5 p-4 rounded-2xl hover:bg-white/[0.06] hover:border-white/20 transition-all backdrop-blur-sm">
+                                    agents.map((agent) => (
+                                        <div key={agent._id} className="group bg-white/[0.03] border border-white/5 p-4 rounded-2xl hover:bg-white/[0.06] hover:border-white/20 transition-all backdrop-blur-sm">
                                             <div className="flex items-center justify-between gap-4">
                                                 <div className="flex items-center gap-4 min-w-0">
                                                     <div className="w-10 h-10 bg-brand-500/10 border border-brand-500/20 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-brand-500 group-hover:text-white transition-all">
-                                                        <Stethoscope className="w-4 h-4" />
+                                                        <Briefcase className="w-4 h-4" />
                                                     </div>
                                                      <div className="min-w-0">
-                                                        <h4 className="text-sm font-black truncate text-white">{doc.name}</h4>
-                                                        <p className="text-[8px] font-black text-neutral-200 uppercase tracking-widest">{doc.specialization}</p>
+                                                        <h4 className="text-sm font-black truncate text-white">{agent.name}</h4>
+                                                        <p className="text-[8px] font-black text-neutral-200 uppercase tracking-widest">{agent.serviceCategory}</p>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-1.5 flex-shrink-0">
-                                                    <button onClick={() => handleToggleReveal(doc._id)} className="p-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-brand-500 hover:text-white transition-all" title="Reveal Info"><Key className="w-3.5 h-3.5" /></button>
-                                                    <button onClick={() => handleOpenSchedule(doc)} className="p-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-info-500 hover:text-white transition-all" title="Manage Schedule"><Clock className="w-3.5 h-3.5" /></button>
-                                                    <button onClick={() => handleDeleteStaff(doc._id, doc.name)} className="p-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-danger-500 hover:text-white transition-all text-danger-500 hover:border-danger-500" title="Delete Doctor"><Trash2 className="w-3.5 h-3.5" /></button>
+                                                    <button onClick={() => handleToggleReveal(agent._id)} className="p-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-brand-500 hover:text-white transition-all" title="Reveal Info"><Key className="w-3.5 h-3.5" /></button>
+                                                    <button onClick={() => handleOpenSchedule(agent)} className="p-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-info-500 hover:text-white transition-all" title="Manage Schedule"><Clock className="w-3.5 h-3.5" /></button>
+                                                    <button onClick={() => handleDeleteStaff(agent._id, agent.name)} className="p-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-danger-500 hover:text-white transition-all text-danger-500 hover:border-danger-500" title="Delete Agent"><Trash2 className="w-3.5 h-3.5" /></button>
                                                 </div>
                                             </div>
-                                             {revealedIds.includes(doc._id) && (
+                                             {revealedIds.includes(agent._id) && (
                                                 <div className="mt-4 pt-4 border-t border-white/5 grid grid-cols-2 gap-3 animate-fade-down">
                                                     <div className="p-2.5 bg-black/20 rounded-xl border border-white/5">
                                                         <p className="text-[7px] font-black text-neutral-100 uppercase tracking-widest mb-1">Email</p>
-                                                        <p className="text-[10px] font-bold text-neutral-300 truncate">{doc.email}</p>
+                                                        <p className="text-[10px] font-bold text-neutral-300 truncate">{agent.email}</p>
                                                     </div>
                                                     <div className="p-2.5 bg-black/20 rounded-xl border border-white/5">
                                                         <p className="text-[7px] font-black text-neutral-400 uppercase tracking-widest mb-1">Password</p>
-                                                        <p className="text-[10px] font-mono font-bold text-white uppercase">{doc.creationPassword || "Encrypted"}</p>
+                                                        <p className="text-[10px] font-mono font-bold text-white uppercase">{agent.creationPassword || "Encrypted"}</p>
                                                     </div>
                                                 </div>
                                             )}
@@ -400,45 +404,45 @@ export default function AdminDashboard() {
                             </div>
                         </div>
 
-                        {/* SECTION: RECEPTIONIST LIST */}
+                        {/* SECTION: OPERATOR LIST */}
                         <div className="space-y-4 animate-fade-up delay-300">
-                            <h3 className="text-[10px] font-bold uppercase tracking-wider text-neutral-300 px-6 italic">Support Staff</h3>
+                            <h3 className="text-[10px] font-bold uppercase tracking-wider text-neutral-300 px-6 italic">Active Operators</h3>
                             <div className="space-y-3">
-                                {receptionists.length === 0 ? (
-                                    <div className="p-8 text-center bg-white/5 border border-white/5 rounded-3xl text-neutral-200 font-bold uppercase tracking-widest text-[9px]">No staff members found</div>
+                                {operators.length === 0 ? (
+                                    <div className="p-8 text-center bg-white/5 border border-white/5 rounded-3xl text-neutral-200 font-bold uppercase tracking-widest text-[9px]">No operators found</div>
                                 ) : (
-                                    receptionists.map((rec) => (
-                                        <div key={rec._id} className="group bg-white/[0.03] border border-white/5 p-4 rounded-2xl hover:bg-white/[0.06] hover:border-white/20 transition-all backdrop-blur-sm">
+                                    operators.map((op) => (
+                                        <div key={op._id} className="group bg-white/[0.03] border border-white/5 p-4 rounded-2xl hover:bg-white/[0.06] hover:border-white/20 transition-all backdrop-blur-sm">
                                             <div className="flex items-center justify-between gap-4">
                                                 <div className="flex items-center gap-4 min-w-0">
                                                     <div className="w-10 h-10 bg-success-500/10 border border-success-500/20 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-success-500 group-hover:text-white transition-all">
                                                         <Users className="w-4 h-4" />
                                                     </div>
                                                      <div className="min-w-0">
-                                                        <h4 className="text-sm font-black truncate text-white">{rec.name}</h4>
+                                                        <h4 className="text-sm font-black truncate text-white">{op.name}</h4>
                                                         <div className="flex items-center gap-2 mt-1">
-                                                            <span className="text-[8px] font-black text-neutral-200 uppercase tracking-widest">Support Center</span>
-                                                            {rec.assignedDoctors?.length > 0 && (
+                                                            <span className="text-[8px] font-black text-neutral-200 uppercase tracking-widest">Support Node</span>
+                                                            {op.assignedAgents?.length > 0 && (
                                                                 <span className="text-[7px] font-black bg-success-500/20 text-success-400 px-1.5 py-0.5 rounded-full border border-success-500/30">ASSIGNED</span>
                                                             )}
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-1.5 flex-shrink-0">
-                                                    <button onClick={() => setEditingAssignmentRec(rec)} className="p-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-success-500 hover:text-white transition-all font-bold" title="Update Assignment"><UserPlus className="w-3.5 h-3.5" /></button>
-                                                    <button onClick={() => handleToggleReveal(rec._id)} className="p-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-brand-500 hover:text-white transition-all" title="Recall Info"><Key className="w-3.5 h-3.5" /></button>
-                                                    <button onClick={() => handleDeleteStaff(rec._id, rec.name)} className="p-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-danger-500 hover:text-white transition-all text-danger-500 hover:border-danger-500" title="Terminate Node"><Trash2 className="w-3.5 h-3.5" /></button>
+                                                    <button onClick={() => setEditingAssignmentOp(op)} className="p-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-success-500 hover:text-white transition-all font-bold" title="Update Assignment"><UserPlus className="w-3.5 h-3.5" /></button>
+                                                    <button onClick={() => handleToggleReveal(op._id)} className="p-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-brand-500 hover:text-white transition-all" title="Recall Info"><Key className="w-3.5 h-3.5" /></button>
+                                                    <button onClick={() => handleDeleteStaff(op._id, op.name)} className="p-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-danger-500 hover:text-white transition-all text-danger-500 hover:border-danger-500" title="Terminate Node"><Trash2 className="w-3.5 h-3.5" /></button>
                                                 </div>
                                             </div>
-                                             {revealedIds.includes(rec._id) && (
+                                             {revealedIds.includes(op._id) && (
                                                 <div className="mt-4 pt-4 border-t border-white/5 grid grid-cols-2 gap-3 animate-fade-down">
                                                     <div className="p-2.5 bg-black/20 rounded-xl border border-white/5">
                                                         <p className="text-[7px] font-black text-neutral-100 uppercase tracking-widest mb-1">Email</p>
-                                                        <p className="text-[10px] font-bold text-neutral-300 truncate">{rec.email}</p>
+                                                        <p className="text-[10px] font-bold text-neutral-300 truncate">{op.email}</p>
                                                     </div>
                                                     <div className="p-2.5 bg-black/20 rounded-xl border border-white/5">
                                                         <p className="text-[7px] font-black text-neutral-400 uppercase tracking-widest mb-1">Password</p>
-                                                        <p className="text-[10px] font-mono font-bold text-white uppercase">{rec.creationPassword || "Encrypted"}</p>
+                                                        <p className="text-[10px] font-mono font-bold text-white uppercase">{op.creationPassword || "Encrypted"}</p>
                                                     </div>
                                                 </div>
                                             )}
@@ -452,15 +456,15 @@ export default function AdminDashboard() {
             </div>
 
             {/* MODAL: SCHEDULE */}
-            {editingScheduleDoc && (
+            {editingScheduleAgent && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-black/80 backdrop-blur-xl animate-fadeIn">
                     <div className="bg-[#0a0a0a] w-full max-w-2xl rounded-[3.5rem] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col max-h-[90vh]">
                         <div className="px-10 py-10 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
                              <div>
                                 <h2 className="text-2xl font-black text-white uppercase tracking-tight">Work Schedule</h2>
-                                <p className="text-[10px] font-black text-neutral-100 uppercase tracking-[0.4em] mt-1">Dr. {editingScheduleDoc.name}</p>
+                                <p className="text-[10px] font-black text-neutral-100 uppercase tracking-[0.4em] mt-1">Professional {editingScheduleAgent.name}</p>
                             </div>
-                            <button onClick={() => setEditingScheduleDoc(null)} className="p-4 bg-white/5 rounded-2xl hover:bg-white/10 transition-all text-neutral-500 hover:text-white">
+                            <button onClick={() => setEditingScheduleAgent(null)} className="p-4 bg-white/5 rounded-2xl hover:bg-white/10 transition-all text-neutral-500 hover:text-white">
                                 <X className="w-6 h-6" />
                             </button>
                         </div>
@@ -492,7 +496,7 @@ export default function AdminDashboard() {
                         </div>
 
                         <div className="p-10 border-t border-white/5 bg-white/[0.02] flex justify-end gap-4">
-                            <button onClick={() => setEditingScheduleDoc(null)} className="px-8 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest text-neutral-600 hover:text-white transition-all">Back</button>
+                            <button onClick={() => setEditingScheduleAgent(null)} className="px-8 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest text-neutral-600 hover:text-white transition-all">Back</button>
                             <button onClick={handleSaveSchedule} disabled={loading} className="px-10 py-4 rounded-[1.5rem] bg-brand-600 hover:bg-brand-500 text-white font-black text-[10px] uppercase tracking-widest shadow-2xl shadow-brand-600/20 transition-all active:scale-95">Save Schedule</button>
                         </div>
                     </div>
@@ -500,29 +504,29 @@ export default function AdminDashboard() {
             )}
 
             {/* MODAL: ASSIGNMENT */}
-            {editingAssignmentRec && (
+            {editingAssignmentOp && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-8 bg-black/80 backdrop-blur-xl animate-fadeIn">
                     <div className="bg-[#0a0a0a] w-full max-w-md rounded-[3.5rem] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col max-h-[80vh]">
                          <div className="px-10 py-10 border-b border-white/5 bg-white/[0.02]">
-                            <h2 className="text-2xl font-black text-white uppercase tracking-tight">Assign Doctor</h2>
-                            <p className="text-[10px] font-black text-neutral-100 uppercase tracking-[0.4em] mt-1">Reassigning {editingAssignmentRec.name}</p>
+                            <h2 className="text-2xl font-black text-white uppercase tracking-tight">Assign Agent</h2>
+                            <p className="text-[10px] font-black text-neutral-100 uppercase tracking-[0.4em] mt-1">Reassigning {editingAssignmentOp.name}</p>
                         </div>
 
                         <div className="p-10 overflow-y-auto custom-scrollbar flex-1 space-y-3">
-                            {doctors.map(d => (
+                            {agents.map(d => (
                                 <button
                                     key={d._id}
-                                    onClick={() => handleUpdateAssignment(editingAssignmentRec._id, d._id)}
-                                    className={`w-full flex items-center gap-5 p-6 rounded-[2rem] border transition-all text-left ${editingAssignmentRec.assignedDoctors?.some((ad: any) => ad._id === d._id || ad === d._id) ? 'bg-brand-600 text-white border-brand-500 shadow-2xl' : 'bg-white/5 border-white/5 text-neutral-100 hover:border-white/20'}`}
+                                    onClick={() => handleUpdateAssignment(editingAssignmentOp._id, d._id)}
+                                    className={`w-full flex items-center gap-5 p-6 rounded-[2rem] border transition-all text-left ${editingAssignmentOp.assignedAgents?.some((ad: any) => ad._id === d._id || ad === d._id) ? 'bg-brand-600 text-white border-brand-500 shadow-2xl' : 'bg-white/5 border-white/5 text-neutral-100 hover:border-white/20'}`}
                                 >
-                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${editingAssignmentRec.assignedDoctors?.some((ad: any) => ad._id === d._id || ad === d._id) ? 'bg-white/20' : 'bg-white/5'}`}>
-                                        <Stethoscope className="w-6 h-6" />
+                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${editingAssignmentOp.assignedAgents?.some((ad: any) => ad._id === d._id || ad === d._id) ? 'bg-white/20' : 'bg-white/5'}`}>
+                                        <Activity className="w-6 h-6" />
                                     </div>
                                     <div className="min-w-0">
                                         <p className="text-lg font-black truncate">{d.name}</p>
-                                        <p className={`text-[10px] font-black uppercase tracking-widest ${editingAssignmentRec.assignedDoctors?.some((ad: any) => ad._id === d._id || ad === d._id) ? 'text-white/60' : 'text-neutral-700'}`}>{d.specialization}</p>
+                                        <p className={`text-[10px] font-black uppercase tracking-widest ${editingAssignmentOp.assignedAgents?.some((ad: any) => ad._id === d._id || ad === d._id) ? 'text-white/60' : 'text-neutral-700'}`}>{d.serviceCategory}</p>
                                     </div>
-                                    {editingAssignmentRec.assignedDoctors?.some((ad: any) => ad._id === d._id || ad === d._id) && (
+                                    {editingAssignmentOp.assignedAgents?.some((ad: any) => ad._id === d._id || ad === d._id) && (
                                         <CheckCircle className="w-5 h-5 ml-auto text-white" />
                                     )}
                                 </button>
@@ -530,7 +534,7 @@ export default function AdminDashboard() {
                         </div>
 
                         <div className="p-10 border-t border-white/5 bg-white/[0.02] flex justify-end">
-                            <button onClick={() => setEditingAssignmentRec(null)} className="px-8 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest text-neutral-600 hover:text-white transition-all">Cancel</button>
+                            <button onClick={() => setEditingAssignmentOp(null)} className="px-8 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest text-neutral-600 hover:text-white transition-all">Cancel</button>
                         </div>
                     </div>
                 </div>

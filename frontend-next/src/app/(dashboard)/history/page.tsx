@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import api from "@/services/api";
 import { 
     History, Search, Filter, Calendar, CheckCircle, XCircle, 
-    Stethoscope, Clock, Users, Activity, FileText, MonitorSmartphone,
+    Briefcase, Clock, Users, Activity, FileText, MonitorSmartphone,
     RefreshCw, ChevronRight, User, Trash2, Smartphone, ExternalLink,
     GripVertical, Copy
 } from "lucide-react";
@@ -18,8 +18,8 @@ export default function HistoryDashboard() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [user, setUser] = useState<any>(null);
-    const [doctors, setDoctors] = useState<any[]>([]);
-    const [selectedDoctorId, setSelectedDoctorId] = useState<string>("");
+    const [agents, setAgents] = useState<any[]>([]);
+    const [selectedAgentId, setSelectedAgentId] = useState<string>("");
     const [msg, setMsg] = useState("");
 
     useEffect(() => {
@@ -30,14 +30,13 @@ export default function HistoryDashboard() {
                 const userData = userRes.data;
                 setUser(userData);
 
-                if (userData.role === "RECEPTIONIST") {
-                    const docsRes = await api.get("/admin/reception/doctors");
-                    setDoctors(docsRes.data || []);
-                } else if (userData.role === "HOSPITAL_ADMIN") {
-                    const staffRes = await api.get("/admin/staff");
+                if (userData.role === "OPERATOR") {
+                    setAgents(userData.assignedAgents || []);
+                } else if (userData.role === "ORG_ADMIN") {
+                    const staffRes = await api.get("/organizations/staff");
                     const allStaff = staffRes.data || [];
-                    const doctorsList = allStaff.filter((s: any) => s.role === "DOCTOR");
-                    setDoctors(doctorsList);
+                    const agentsList = allStaff.filter((s: any) => s.role === "AGENT");
+                    setAgents(agentsList);
                 }
             } catch (err: any) {
                 setError("Failed to initialize. Please login again.");
@@ -54,8 +53,8 @@ export default function HistoryDashboard() {
             setLoading(true);
             setError("");
             const params: any = { date, status, search };
-            if ((user.role === "RECEPTIONIST" || user.role === "HOSPITAL_ADMIN") && selectedDoctorId) {
-                params.doctorId = selectedDoctorId;
+            if ((user.role === "OPERATOR" || user.role === "ORG_ADMIN") && selectedAgentId) {
+                params.agentId = selectedAgentId;
             }
             const res = await api.get(`/queue/history/`, { params });
             setHistory(res.data);
@@ -69,7 +68,7 @@ export default function HistoryDashboard() {
 
     useEffect(() => {
         if (user) loadHistory();
-    }, [user, selectedDoctorId]);
+    }, [user, selectedAgentId]);
 
     const showMsg = (text: string, type: string) => {
         setMsg(text);
@@ -102,8 +101,8 @@ export default function HistoryDashboard() {
                             <History className="w-8 h-8 text-brand-400" />
                         </div>
                         <div>
-                            <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-white mb-1">Patient History</h1>
-                            <p className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.2em]">Comprehensive Patient Logs <span className="mx-2 text-neutral-800">/</span> Archive</p>
+                            <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-white mb-1">Customer History</h1>
+                            <p className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.2em]">Comprehensive Customer Logs <span className="mx-2 text-neutral-800">/</span> Archive</p>
                         </div>
                     </div>
                 </div>
@@ -111,17 +110,17 @@ export default function HistoryDashboard() {
                 {/* Status Toggles & Rapid Filters */}
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-12 animate-fade-up">
                     <div className="lg:col-span-1 space-y-2">
-                        <label className="text-[10px] font-black text-neutral-600 uppercase tracking-[0.3em] ml-5">Clinician Filter</label>
+                        <label className="text-[10px] font-black text-neutral-600 uppercase tracking-[0.3em] ml-5">Hubian Filter</label>
                         <div className="relative group">
-                            <Stethoscope className="absolute left-5 top-5 w-4 h-4 text-neutral-600 group-focus-within:text-brand-500 transition-colors" />
+                            <Briefcase className="absolute left-5 top-5 w-4 h-4 text-neutral-600 group-focus-within:text-brand-500 transition-colors" />
                             <select
                                 className="w-full bg-white/[0.03] border border-white/5 p-5 pl-12 rounded-[1.5rem] text-white outline-none appearance-none transition-all cursor-pointer focus:border-brand-500/50 focus:bg-white/[0.05]"
-                                value={selectedDoctorId}
-                                onChange={e => setSelectedDoctorId(e.target.value)}
+                                value={selectedAgentId}
+                                onChange={e => setSelectedAgentId(e.target.value)}
                             >
-                                <option value="" className="bg-neutral-900 text-neutral-500">All Specialists</option>
-                                {doctors.map(doc => (
-                                    <option key={doc._id} value={doc._id} className="bg-neutral-900">{doc.name} ({doc.specialization})</option>
+                                <option value="" className="bg-neutral-900 text-neutral-500">All Agents</option>
+                                {agents.map(agent => (
+                                    <option key={agent._id} value={agent._id} className="bg-neutral-900">{agent.name} ({agent.serviceCategory})</option>
                                 ))}
                             </select>
                         </div>
@@ -144,7 +143,7 @@ export default function HistoryDashboard() {
                     </div>
 
                     <div className="lg:col-span-2 space-y-2">
-                        <label className="text-[10px] font-black text-neutral-600 uppercase tracking-[0.3em] ml-5">Patient Search</label>
+                        <label className="text-[10px] font-black text-neutral-600 uppercase tracking-[0.3em] ml-5">Customer Search</label>
                         <div className="relative group flex gap-4">
                             <div className="relative flex-1">
                                 <Search className="absolute left-5 top-5 w-4 h-4 text-neutral-600 group-focus-within:text-brand-500 transition-colors" />
@@ -179,7 +178,7 @@ export default function HistoryDashboard() {
                         {loading ? (
                             <div className="py-40 flex flex-col items-center justify-center animate-pulse">
                                 <MonitorSmartphone className="w-12 h-12 text-brand-500/30 mb-6" />
-                                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-neutral-600">Loading Patient Logs...</p>
+                                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-neutral-600">Loading Customer Logs...</p>
                             </div>
                         ) : history.length === 0 ? (
                             <div className="py-40 flex flex-col items-center justify-center">
@@ -209,19 +208,19 @@ export default function HistoryDashboard() {
                                                     #{p.tokenNumber}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="text-[10px] font-black uppercase tracking-widest text-neutral-600 mb-1">Patient Entry</p>
+                                                    <p className="text-[10px] font-black uppercase tracking-widest text-neutral-600 mb-1">Customer Entry</p>
                                                     <p className="text-xl font-black text-white truncate uppercase tracking-tight group-hover:text-brand-400 transition-colors">{p.name}</p>
                                                 </div>
                                             </div>
 
                                             <div className="space-y-4 mb-8">
                                                 <div className="flex items-center gap-3 text-neutral-400">
-                                                    <Stethoscope className="w-4 h-4 opacity-40" />
-                                                    <span className="text-[10px] font-black uppercase tracking-widest">Dr. {p.doctorId?.name || "Specialist"}</span>
+                                                    <Briefcase className="w-4 h-4 opacity-40" />
+                                                    <span className="text-[10px] font-black uppercase tracking-widest">Professional {p.agentId?.name || "Specialist"}</span>
                                                 </div>
                                                 <div className="flex items-start gap-3 text-neutral-500">
                                                     <FileText className="w-4 h-4 opacity-40 mt-0.5" />
-                                                    <p className="text-[10px] font-black uppercase tracking-widest leading-relaxed line-clamp-2">{p.description || "Routine Consultation Note"}</p>
+                                                    <p className="text-[10px] font-black uppercase tracking-widest leading-relaxed line-clamp-2">{p.description || "Routine Session Note"}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -253,7 +252,7 @@ export default function HistoryDashboard() {
                 </div>
 
                 <div className="mt-12 text-center">
-                    <p className="text-[10px] font-black uppercase tracking-[0.5em] text-neutral-800">Hospital Management System //</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.5em] text-neutral-800">Organization Management System //</p>
                 </div>
             </div>
         </div>

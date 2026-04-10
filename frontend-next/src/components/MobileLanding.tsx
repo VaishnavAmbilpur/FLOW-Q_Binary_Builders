@@ -121,7 +121,7 @@ export default function MobileLanding() {
                             <div className="space-y-6">
                                 <h4 className="text-[9px] font-black uppercase tracking-[0.4em] text-white">System</h4>
                                 <div className="flex flex-col gap-4 text-[9px] font-black uppercase tracking-widest text-neutral-100">
-                                    <Link href="/login">Doctors</Link>
+                                    <Link href="/login">Agents</Link>
                                     <Link href="/login">Front Desk</Link>
                                     <Link href="/login">Kiosk</Link>
                                 </div>

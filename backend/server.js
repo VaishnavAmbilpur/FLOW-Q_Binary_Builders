@@ -22,34 +22,28 @@ const axios = require('axios');
 const { requestLogger, errorLogger } = require('./middleware/requestLogger');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 const queueRoutes = require('./routes/queueRoutes');
-const doctorRoutes = require('./routes/doctorRoutes');
+const agentRoutes = require('./routes/agentRoutes');
 const authRoutes = require('./routes/authRoutes');
 const apiV1Routes = require('./routes/apiV1Routes');
 const apiV2Routes = require('./routes/apiV2Routes');
-const hospitalRoutes = require('./routes/hospitalRoutes');
-const adminRoutes = require('./routes/adminRoutes');
+const orgRoutes = require('./routes/orgRoutes');
 const kioskRoutes = require('./routes/kioskRoutes');
 const appointmentRoutes = require('./routes/appointmentRoutes');
 const sentry = require('./config/sentry');
 const swaggerSpec = require('./config/swagger');
 
 const { initScheduleCron } = require('./cron/scheduleCron');
-const { initReminderCron } = require('./cron/reminderCron');
 const { initDataRetentionCron } = require('./cron/dataRetentionCron');
 const { initDsrEraserCron } = require('./cron/dsrEraserCron');
-const { initTelegramBot } = require('./utils/telegramBot');
+
 
 connectDB();
 
 // Initialize automated scheduled jobs and services
 if (process.env.NODE_ENV !== 'test') {
   initScheduleCron();
-  initReminderCron();
   initDataRetentionCron();
   initDsrEraserCron();
-
-  // Start Telegram Bot Polling
-  initTelegramBot();
 }
 
 const app = express();
@@ -139,7 +133,7 @@ app.use(passport.initialize());
 // Request logging middleware
 app.use(requestLogger);
 
-// Setup PII Output Filtering (Dependent on auth/hospital loading where applicable)
+// Setup PII Output Filtering (Dependent on auth/organization loading where applicable)
 // Applied early enough so all JSON responses pass through its maskPii mechanism.
 const piiFilterMiddleware = require('./middleware/piiFilter');
 app.use(piiFilterMiddleware);
@@ -157,13 +151,12 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Internal Legacy UI Routes
+// Internal Generalized UI Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/doctors', doctorRoutes);
+app.use('/api/organizations', orgRoutes);
+app.use('/api/agents', agentRoutes);
 app.use('/api/queue', queueRoutes);
 app.use('/api/appointments', appointmentRoutes);
-app.use('/api/hospitals', hospitalRoutes);
 app.use('/api/kiosk', kioskRoutes);
 
 // B2B QaaS External Headless Routes

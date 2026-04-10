@@ -10,13 +10,31 @@ import {
     Database, Lock, FileJson, Info, AlertTriangle, PlayCircle
 } from 'lucide-react';
 
+const sections = [
+    { id: 'introduction', label: 'Introduction', icon: <Globe className="w-4 h-4" /> },
+    { id: 'auth', label: 'Authentication', icon: <Lock className="w-4 h-4" /> },
+    { id: 'discovery', label: 'I. Discovery', icon: <Search className="w-4 h-4" /> },
+    { id: 'scheduling', label: 'II. Scheduling', icon: <Zap className="w-4 h-4" /> },
+    { id: 'orchestration', label: 'III. Orchestration', icon: <Cpu className="w-4 h-4" /> },
+    { id: 'lifecycle', label: 'IV. Lifecycle', icon: <RefreshCw className="w-4 h-4" /> },
+    { id: 'intelligence', label: 'V. Intelligence', icon: <Activity className="w-4 h-4" /> },
+    { id: 'errors', label: 'VI. Fault Matrix', icon: <ShieldCheck className="w-4 h-4" /> },
+    { id: 'playground', label: 'VII. API Playground', icon: <Terminal className="w-4 h-4" /> },
+];
+
 export default function DocsPage() {
+    const [mounted, setMounted] = useState(false);
     const [provisionResult, setProvisionResult] = useState<{ apiKey: string; orgName: string; orgId: string } | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [copied, setCopied] = useState(false);
     const [activeTab, setActiveTab] = useState('javascript');
     const [searchTerm, setSearchTerm] = useState("");
+    const [activeSection, setActiveSection] = useState('introduction');
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const provisionApiKey = async () => {
         setLoading(true);
@@ -46,20 +64,36 @@ export default function DocsPage() {
         setTimeout(() => setCopied(false), 2000);
     };
 
-    const sections = [
-        { id: 'introduction', label: 'Introduction', icon: <Globe className="w-4 h-4" /> },
-        { id: 'auth', label: 'Authentication', icon: <Lock className="w-4 h-4" /> },
-        { id: 'discovery', label: 'I. Discovery', icon: <Search className="w-4 h-4" /> },
-        { id: 'orchestration', label: 'II. Orchestration', icon: <Cpu className="w-4 h-4" /> },
-        { id: 'lifecycle', label: 'III. Lifecycle', icon: <RefreshCw className="w-4 h-4" /> },
-        { id: 'intelligence', label: 'IV. Intelligence', icon: <Activity className="w-4 h-4" /> },
-        { id: 'errors', label: 'Error Handling', icon: <ShieldCheck className="w-4 h-4" /> },
-        { id: 'playground', label: 'Swagger API', icon: <Terminal className="w-4 h-4" /> },
-    ];
+    useEffect(() => {
+        if (!mounted) return;
+
+        const observerOptions = {
+            root: null,
+            rootMargin: '-10% 0px -80% 0px',
+            threshold: 0
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    setActiveSection(entry.target.id);
+                }
+            });
+        }, observerOptions);
+
+        sections.forEach((section) => {
+            const element = document.getElementById(section.id);
+            if (element) observer.observe(element);
+        });
+
+        return () => observer.disconnect();
+    }, [mounted]);
 
     const filteredSections = sections.filter(s =>
         s.label.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    if (!mounted) return null;
 
     return (
         <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-blue-500/20 selection:text-blue-100 antialiased">
@@ -70,12 +104,15 @@ export default function DocsPage() {
                 <div className="max-w-[1400px] mx-auto h-full flex items-center justify-between">
                     <div className="flex items-center gap-10">
                         <Link href="/" className="flex items-center gap-3 group">
-                            <div className="w-8 h-8 bg-blue-600/90 rounded-lg flex items-center justify-center text-white transition-all group-hover:bg-blue-500">
+                            <div className="w-8 h-8 bg-cyan-600/90 rounded-lg flex items-center justify-center text-white transition-all group-hover:bg-cyan-500 shadow-lg shadow-cyan-500/20">
                                 <Cpu className="w-5 h-5" />
                             </div>
                             <div>
-                                <h2 className="text-xs font-bold tracking-tight text-white mb-0.5 uppercase tracking-[0.1em]">Flow-Q <span className="opacity-40 font-medium">B2B Core</span></h2>
-                                <p className="text-[9px] font-medium text-slate-600 uppercase tracking-widest leading-none">Protocol v2.0</p>
+                                <h1 className="text-xs font-black tracking-tight text-white mb-0.5 uppercase tracking-[0.2em] flex items-center gap-2">
+                                    Flow-Q <span className="opacity-40 font-medium">B2B Core</span>
+                                    <span className="px-1.5 py-0.5 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-[8px] rounded uppercase">v2.0</span>
+                                </h1>
+                                <p className="text-[9px] font-medium text-slate-500 uppercase tracking-[0.3em] leading-none">Enterprise Protocol</p>
                             </div>
                         </Link>
                     </div>
@@ -83,10 +120,10 @@ export default function DocsPage() {
                         <button
                             onClick={provisionApiKey}
                             disabled={loading}
-                            className="px-5 py-2 bg-slate-900 border border-white/10 text-white rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all hover:bg-slate-800 hover:border-white/20 active:scale-95 disabled:opacity-50"
+                            className="px-5 py-2 bg-white/5 border border-white/10 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all hover:bg-white hover:text-black hover:border-white active:scale-95 disabled:opacity-50"
                         >
-                            {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-2 inline" /> : <Zap className="w-3.5 h-3.5 mr-2 inline text-blue-400" />}
-                            Provision Sandbox
+                            {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-2 inline" /> : <Zap className="w-3.5 h-3.5 mr-2 inline text-cyan-400" />}
+                            Spin Up Sandbox
                         </button>
                     </div>
                 </div>
@@ -101,37 +138,53 @@ export default function DocsPage() {
                             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-700" />
                             <input
                                 type="text"
-                                placeholder="Search Protocol..."
+                                placeholder="Search the protocol..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-white/5 rounded-xl text-[11px] font-medium text-white focus:outline-none focus:border-blue-500/30 transition-all placeholder:text-slate-800"
+                                className="w-full pl-10 pr-4 py-2.5 bg-black/40 border border-white/5 rounded-2xl text-[11px] font-medium text-white focus:outline-none focus:border-cyan-500/30 transition-all placeholder:text-slate-800"
                             />
                         </div>
                     </div>
 
                     <nav className="space-y-12">
                         {filteredSections.map((section) => (
-                            <div key={section.id}>
+                            <div key={section.id} className="relative">
+                                {activeSection === section.id && (
+                                    <div className="absolute -left-12 top-0 bottom-4 w-1 bg-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.5)] rounded-r-full animate-in fade-in slide-in-from-left-2 duration-500" />
+                                )}
                                 <a
                                     href={`#${section.id}`}
-                                    className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-widest text-slate-600 hover:text-white transition-colors mb-4"
+                                    className={`flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] transition-all mb-4 group ${activeSection === section.id ? 'text-cyan-400' : 'text-slate-600 hover:text-white'}`}
                                 >
-                                    <span className="opacity-40">{section.icon}</span>
+                                    <span className={`transition-all duration-500 ${activeSection === section.id ? 'opacity-100 scale-110 text-cyan-500' : 'opacity-20 group-hover:opacity-100 text-slate-500 group-hover:text-cyan-500'}`}>{section.icon}</span>
                                     {section.label}
                                 </a>
-                                {['discovery', 'orchestration', 'lifecycle', 'intelligence'].includes(section.id) && (
+                                {['discovery', 'scheduling', 'orchestration', 'lifecycle', 'intelligence'].includes(section.id) && (
                                     <ul className="space-y-3.5 ml-7 border-l border-white/5 pl-6">
                                         {section.id === 'discovery' && (
                                             <>
-                                                <li><a href="#get-services" className="text-[10px] text-slate-600 hover:text-blue-400 transition-colors block italic">GET /services</a></li>
-                                                <li><a href="#get-slots" className="text-[10px] text-slate-600 hover:text-blue-400 transition-colors block italic">GET /services/:id/slots</a></li>
+                                                <li><a href="#discovery" className="text-[10px] text-slate-600 hover:text-cyan-400 transition-colors block font-mono">GET /info</a></li>
+                                                <li><a href="#get-services" className="text-[10px] text-slate-600 hover:text-cyan-400 transition-colors block font-mono">GET /services</a></li>
+                                                <li><a href="#get-agents" className="text-[10px] text-slate-600 hover:text-cyan-400 transition-colors block font-mono">GET /agents</a></li>
+                                            </>
+                                        )}
+                                        {section.id === 'scheduling' && (
+                                            <>
+                                                <li><a href="#scheduling" className="text-[10px] text-slate-600 hover:text-cyan-400 transition-colors block font-mono">GET /slots</a></li>
+                                                <li><a href="#scheduling" className="text-[10px] text-slate-600 hover:text-cyan-400 transition-colors block font-mono">POST /book</a></li>
                                             </>
                                         )}
                                         {section.id === 'orchestration' && (
                                             <>
-                                                <li><a href="#get-queue" className="text-[10px] text-slate-600 hover:text-blue-400 transition-colors block italic">GET /queue</a></li>
-                                                <li><a href="#post-checkin" className="text-[10px] text-slate-600 hover:text-blue-400 transition-colors block italic">POST /queue/check-in</a></li>
-                                                <li><a href="#patch-action" className="text-[10px] text-slate-600 hover:text-blue-400 transition-colors block italic">PATCH /queue/:id/action</a></li>
+                                                <li><a href="#post-queue" className="text-[10px] text-slate-600 hover:text-cyan-400 transition-colors block font-mono">POST /queue</a></li>
+                                                <li><a href="#post-queue" className="text-[10px] text-slate-600 hover:text-cyan-400 transition-colors block font-mono">PUT /priority</a></li>
+                                                <li><a href="#patch-action" className="text-[10px] text-slate-600 hover:text-cyan-400 transition-colors block font-mono">PATCH /action</a></li>
+                                            </>
+                                        )}
+                                        {section.id === 'intelligence' && (
+                                            <>
+                                                <li><a href="#intelligence" className="text-[10px] text-slate-600 hover:text-cyan-400 transition-colors block font-mono">GET /stats</a></li>
+                                                <li><a href="#intelligence" className="text-[10px] text-slate-600 hover:text-cyan-400 transition-colors block font-mono">GET /summary</a></li>
                                             </>
                                         )}
                                     </ul>
@@ -141,167 +194,170 @@ export default function DocsPage() {
                     </nav>
                 </aside>
 
-                <main className="flex-1 px-12 lg:px-24 py-16 max-w-5xl scroll-smooth overflow-x-hidden">
+                <main className="flex-1 px-12 lg:px-24 py-24 max-w-5xl scroll-smooth overflow-x-hidden">
 
                     {/* Introduction */}
-                    <header id="introduction" className="mb-24">
-                        <div className="inline-flex items-center gap-3 px-3 py-1 bg-blue-500/5 border border-blue-500/10 rounded-full text-blue-500 font-bold text-[9px] uppercase tracking-widest mb-10">
-                            <Activity className="w-3 h-3" /> Technical Specification
+                    <header id="introduction" className="mb-32">
+                        <div className="inline-flex items-center gap-3 px-3 py-1 bg-cyan-500/5 border border-cyan-500/10 rounded-full text-cyan-500 font-bold text-[9px] uppercase tracking-widest mb-12">
+                            <Activity className="w-3 h-3" /> System Specification v2.0
                         </div>
-                        <h1 className="text-6xl font-medium text-white tracking-tight leading-[1.1] mb-10">
-                            The Headless Clinical <br />
-                            <span className="text-slate-700 italic">Queue Engine.</span>
+                        <h1 className="text-7xl font-black text-white tracking-tighter leading-[1] mb-12">
+                            The Headless <br />
+                            <span className="text-slate-700 italic">Merchant Engine.</span>
                         </h1>
-                        <p className="text-xl text-slate-300 font-normal leading-relaxed max-w-2xl mb-16 italic">
-                            A mission-critical protocol for synchronizing high-traffic medical environments. All routes are designed for third-party clinical software, kiosk hardware, and patient tracking apps.
+                        <p className="text-2xl text-slate-400 font-medium leading-relaxed max-w-2xl mb-20">
+                            The definitive protocol for synchronizing high-traffic physical storefronts. Build your own kiosks, tracking apps, and staff dashboards powered by our real-time state mesh.
                         </p>
 
                         <div className="grid sm:grid-cols-2 gap-10">
-                            <div className="p-10 bg-slate-900/10 border border-white/5 rounded-[2.5rem] group hover:bg-slate-900/20 transition-all cursor-default">
-                                <div className="w-12 h-12 bg-white/5 text-slate-400 rounded-2xl flex items-center justify-center mb-8 border border-white/5 grayscale group-hover:grayscale-0 transition-all">
-                                    <Lock className="w-6 h-6" />
+                            <div className="p-10 bg-white/[0.02] border border-white/5 rounded-[3rem] group hover:bg-white/[0.04] transition-all cursor-default">
+                                <div className="w-14 h-14 bg-white/5 text-slate-400 rounded-2xl flex items-center justify-center mb-10 border border-white/5 group-hover:text-cyan-400 transition-all">
+                                    <ShieldCheck className="w-7 h-7" />
                                 </div>
-                                <h3 className="text-lg font-medium text-white mb-3">Privacy-by-Design</h3>
-                                <p className="text-sm text-slate-400 leading-relaxed italic font-medium">All sensitive PII is masked by default. Public tracking utilizes secure, single-use UUID tokens instead of identity strings.</p>
+                                <h3 className="text-xl font-bold text-white mb-4">Enterprise Privacy</h3>
+                                <p className="text-sm text-slate-500 leading-relaxed font-medium">All personal identifiers are encrypted at rest. Public interactions utilize secure, single-use UUID tokens.</p>
                             </div>
-                            <div className="p-10 bg-slate-900/10 border border-white/5 rounded-[2.5rem] group hover:bg-slate-900/20 transition-all cursor-default">
-                                <div className="w-12 h-12 bg-white/5 text-slate-400 rounded-2xl flex items-center justify-center mb-8 border border-white/5 grayscale group-hover:grayscale-0 transition-all">
-                                    <Layers className="w-6 h-6" />
+                            <div className="p-10 bg-white/[0.02] border border-white/5 rounded-[3rem] group hover:bg-white/[0.04] transition-all cursor-default">
+                                <div className="w-14 h-14 bg-white/5 text-slate-400 rounded-2xl flex items-center justify-center mb-10 border border-white/5 group-hover:text-cyan-400 transition-all">
+                                    <Layers className="w-7 h-7" />
                                 </div>
-                                <h3 className="text-lg font-medium text-white mb-3">Actuator Model</h3>
-                                <p className="text-sm text-slate-400 leading-relaxed italic font-medium">Headless by nature. We handle the state synchronization; you build the terminal branding and user experience.</p>
+                                <h3 className="text-xl font-bold text-white mb-4">Stateless Actuators</h3>
+                                <p className="text-sm text-slate-500 leading-relaxed font-medium">Headless by nature. We handle the complex queue logic; you control the terminal branding and user journey.</p>
                             </div>
                         </div>
                     </header>
 
                     {/* Authentication */}
-                    <section id="auth" className="mb-24 scroll-mt-24">
-                        <div className="flex items-center gap-4 mb-14">
-                            <span className="text-[10px] font-bold text-slate-800 uppercase tracking-[0.4em]">Section 01</span>
+                    <section id="auth" className="mb-32 scroll-mt-24">
+                        <div className="flex items-center gap-4 mb-20">
+                            <span className="text-[10px] font-black text-slate-800 uppercase tracking-[0.5em]">Protocol Auth</span>
                             <div className="flex-1 h-px bg-white/5" />
                         </div>
 
-                        <h2 className="text-4xl font-medium text-white mb-8 tracking-tight">Authentication Handshake</h2>
+                        <h2 className="text-5xl font-black text-white mb-10 tracking-tighter">Bearer Handshake</h2>
 
-                        <p className="text-lg text-slate-300 mb-12 leading-relaxed max-w-3xl">
-                            Flow-Q utilizes header-based authentication. Every request to the <code className="bg-slate-900 px-2 py-0.5 rounded text-blue-400 text-sm font-mono italic">v2</code> protocol must include your Organization API Key.
+                        <p className="text-xl text-slate-400 mb-16 leading-relaxed max-w-3xl">
+                            Flow-Q utilizes header-based authentication. Every request to the <code className="bg-slate-900 px-3 py-1 rounded-lg text-cyan-400 text-sm font-mono border border-white/5 mx-2">v2.0</code> protocol must include your Organization API Key passed as X-API-KEY.
                         </p>
 
                         {/* Sandbox Provisioner */}
-                        <div className="bg-slate-900/20 border border-white/5 rounded-[3rem] p-8 text-white relative overflow-hidden group mb-16 backdrop-blur-sm shadow-2xl shadow-blue-500/5">
-                            <div className="flex items-center justify-between mb-16">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center shadow-lg shadow-blue-600/20">
-                                        <Zap className="w-5 h-5 text-white" />
+                        <div className="bg-gradient-to-br from-slate-900/50 to-black/50 border border-white/10 rounded-[3.5rem] p-12 text-white relative overflow-hidden group mb-16 backdrop-blur-xl shadow-2xl shadow-cyan-500/5">
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 blur-[100px] pointer-events-none" />
+                            
+                            <div className="flex items-center justify-between mb-20">
+                                <div className="flex items-center gap-6">
+                                    <div className="w-12 h-12 bg-cyan-600 rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(8,145,178,0.3)] rotate-3">
+                                        <Zap className="w-6 h-6 text-white" />
                                     </div>
                                     <div>
-                                        <h4 className="text-xs font-bold uppercase tracking-widest text-white leading-none mb-1.5">Sandbox Provisioner</h4>
-                                        <p className="text-[10px] font-medium text-slate-700 uppercase tracking-widest leading-none">Clinical Sandbox Context</p>
+                                        <h4 className="text-sm font-black uppercase tracking-[0.2em] text-white leading-none mb-1.5">Sandbox Provisioner</h4>
+                                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none">Live Deployment Simulator</p>
                                     </div>
                                 </div>
                             </div>
 
                             {!provisionResult ? (
-                                <div className="text-center py-20 border border-dashed border-white/5 rounded-[2rem] bg-slate-950/20">
-                                    <h3 className="text-2xl font-medium text-slate-400 mb-8 tracking-tight italic">Initialize Medical Environment</h3>
+                                <div className="text-center py-20 border-2 border-dashed border-white/5 rounded-[3rem] bg-black/20 group-hover:border-cyan-500/20 transition-all">
+                                    <h3 className="text-3xl font-black text-white mb-10 tracking-tight italic">Initialize Developer Sandbox</h3>
                                     <button
                                         onClick={provisionApiKey}
                                         disabled={loading}
-                                        className="px-12 py-4 bg-white text-slate-950 rounded-2xl text-[11px] font-bold uppercase tracking-widest transition-all hover:bg-blue-600 hover:text-white active:scale-95 disabled:opacity-50 shadow-xl shadow-white/5"
+                                        className="px-16 py-5 bg-white text-black rounded-2xl text-[12px] font-black uppercase tracking-[0.2em] transition-all hover:bg-cyan-500 hover:text-white active:scale-95 disabled:opacity-50 shadow-2xl shadow-white/10"
                                     >
-                                        {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2 inline" /> : <PlayCircle className="w-4 h-4 mr-2 inline" />}
-                                        Create Org Sandbox
+                                        {loading ? <Loader2 className="w-5 h-5 animate-spin mr-3 inline" /> : <PlayCircle className="w-5 h-5 mr-3 inline" />}
+                                        Generate New Org Context
                                     </button>
-                                    {error && <p className="text-rose-500 mt-8 text-xs font-bold uppercase tracking-widest italic">{error}</p>}
+                                    {error && <p className="text-rose-500 mt-10 text-[10px] font-black uppercase tracking-[0.3em] animate-pulse">{error}</p>}
                                 </div>
                             ) : (
-                                <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-12">
-                                    <div className="grid md:grid-cols-2 gap-12 border-b border-white/5 pb-10">
+                                <div className="animate-in fade-in zoom-in-95 duration-1000 space-y-16">
+                                    <div className="grid md:grid-cols-2 gap-16 border-b border-white/5 pb-12">
                                         <div>
-                                            <span className="text-[10px] font-bold text-slate-700 uppercase tracking-widest block mb-1.5">Organization Context</span>
-                                            <p className="text-lg font-medium text-white italic">"{provisionResult.orgName}"</p>
+                                            <span className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em] block mb-3">Merchant ID</span>
+                                            <p className="text-xl font-bold text-white tracking-tight">"{provisionResult.orgName}"</p>
                                         </div>
                                         <div>
-                                            <span className="text-[10px] font-bold text-slate-700 uppercase tracking-widest block mb-1.5">System Reference</span>
-                                            <p className="text-xs font-mono text-slate-500 break-all">{provisionResult.orgId}</p>
+                                            <span className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em] block mb-3">System Identifier</span>
+                                            <p className="text-sm font-mono text-cyan-500/60 break-all">{provisionResult.orgId}</p>
                                         </div>
                                     </div>
 
-                                    <div className="bg-slate-950/50 p-10 rounded-[2rem] border border-white/5 relative group/key">
-                                        <div className="flex items-center justify-between mb-6">
-                                            <span className="text-[10px] font-bold text-slate-700 uppercase tracking-widest italic">Secret B2B API Key</span>
-                                            {copied && <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest animate-pulse">Copied to Clipboard</span>}
+                                    <div className="bg-black/60 p-12 rounded-[2.5rem] border border-white/10 relative group/key overflow-hidden">
+                                        <div className="absolute top-0 right-0 p-8">
+                                            {copied ? <CheckCircle2 className="w-6 h-6 text-emerald-500 animate-bounce" /> : <ShieldCheck className="w-6 h-6 text-slate-800" />}
                                         </div>
-                                        <div className="flex items-center gap-6">
-                                            <div className="flex-1 px-5 py-4 bg-black/40 border border-white/5 rounded-xl font-mono text-[11px] text-blue-400 break-all overflow-hidden overflow-ellipsis h-12 leading-[1.2rem]">
+                                        <div className="flex items-center justify-between mb-8">
+                                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em]">Secret Merchant Key</span>
+                                            {copied && <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Saved to clipboard</span>}
+                                        </div>
+                                        <div className="flex items-center gap-8">
+                                            <div className="flex-1 px-8 py-5 bg-black border border-white/5 rounded-2xl font-mono text-sm text-cyan-400 break-all leading-relaxed shadow-inner">
                                                 {provisionResult.apiKey}
                                             </div>
                                             <button
                                                 onClick={() => copyToClipboard(provisionResult.apiKey)}
-                                                className="p-4 bg-white/5 hover:bg-white text-slate-600 hover:text-slate-950 rounded-xl border border-white/5 transition-all active:scale-90"
+                                                className="p-6 bg-white hover:bg-cyan-500 text-black hover:text-white rounded-2xl transition-all active:scale-90 shadow-xl"
                                             >
-                                                <Copy className="w-4 h-4" />
+                                                <Copy className="w-6 h-6" />
                                             </button>
                                         </div>
-                                        <div className="mt-8 p-4 bg-blue-500/5 border border-blue-500/10 rounded-xl text-blue-400 text-[10px] italic leading-relaxed">
-                                            <Info className="w-3.5 h-3.5 inline mr-2 align-text-bottom opacity-60" />
-                                            Note: This key grants full access to the "{provisionResult.orgName}" clinical sandbox. Store this securely in your environment variables.
+                                        <div className="mt-10 p-6 bg-cyan-500/5 border border-cyan-500/10 rounded-2xl text-cyan-500/70 text-[11px] font-bold uppercase tracking-widest leading-relaxed flex items-center gap-4">
+                                            <Info className="w-5 h-5 flex-shrink-0" />
+                                            Warning: This key is valid for the demo sandbox only. Do not use in production environments.
                                         </div>
                                     </div>
                                 </div>
                             )}
                         </div>
-
                     </section>
 
-                    {/* I. Service Discovery */}
-                    <section id="discovery" className="mb-24 scroll-mt-24">
-                        <div className="flex items-center gap-4 mb-14">
-                            <span className="text-[10px] font-bold text-slate-800 uppercase tracking-[0.4em]">Section 02</span>
+                    {/* I. Discovery */}
+                    <section id="discovery" className="mb-32 scroll-mt-24">
+                        <div className="flex items-center gap-4 mb-20">
+                            <span className="text-[10px] font-black text-slate-800 uppercase tracking-[0.5em]">Phase I: Discovery</span>
                             <div className="flex-1 h-px bg-white/5" />
                         </div>
 
-                        <div className="flex items-center gap-6 mb-10">
-                            <div className="w-16 h-16 bg-slate-900 border border-white/5 rounded-[1.5rem] flex items-center justify-center text-slate-500">
-                                <Search className="w-7 h-7" />
+                        <div className="flex items-center gap-8 mb-12">
+                            <div className="w-20 h-20 bg-black border border-white/10 rounded-[2rem] flex items-center justify-center text-cyan-500 shadow-2xl shadow-cyan-500/10">
+                                <Search className="w-10 h-10" />
                             </div>
-                            <h2 className="text-4xl font-medium text-white tracking-tight">I. Service Discovery</h2>
+                            <h2 className="text-5xl font-black text-white tracking-tighter">Inventory Discovery</h2>
                         </div>
 
-                        <p className="text-lg text-slate-300 mb-12 leading-relaxed max-w-3xl">
-                            Before managing patient flow, your system must discover the clinical landscape. These endpoints provide real-time service counts, department statuses, and scheduling windows.
+                        <p className="text-xl text-slate-400 mb-16 leading-relaxed max-w-3xl">
+                            Before managing customer ingress, your system must map the merchant landscape. These endpoints provide real-time availability of service desks, staff statuses, and bookable time windows.
                         </p>
 
-                        <div className="space-y-24">
+                        <div className="space-y-32">
                             {/* GET /services */}
                             <div id="get-services" className="scroll-mt-40 group">
-                                <div className="flex items-center gap-4 mb-6">
-                                    <div className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded text-emerald-500 text-[10px] font-bold uppercase tracking-widest">GET</div>
-                                    <code className="text-lg font-mono text-white tracking-tight">/services</code>
+                                <div className="flex items-center gap-6 mb-8">
+                                    <div className="px-4 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-400 text-[11px] font-black uppercase tracking-[0.2em]">GET</div>
+                                    <code className="text-2xl font-mono text-white tracking-tighter">/services</code>
                                 </div>
-                                <p className="text-sm text-slate-500 mb-10 italic max-w-2xl leading-relaxed">
-                                    Retrieves all active clinical services for your organization. This is typically used to populate your booking dropdowns or availability boards.
+                                <p className="text-base text-slate-500 mb-10 italic max-w-2xl leading-relaxed">
+                                    Retrieves the full catalog of merchant services. Use this to populate booking menus, price lists, or kiosk selection screens.
                                 </p>
 
-                                <div className="bg-slate-900/40 border border-white/5 rounded-3xl overflow-hidden grayscale hover:grayscale-0 transition-all duration-700">
-                                    <div className="bg-slate-950 p-4 border-b border-white/5 flex items-center justify-between">
-                                        <span className="text-[10px] font-bold uppercase text-slate-700 tracking-widest italic">Response Payload (JSON)</span>
-                                        <div className="flex gap-1.5 opacity-20">
-                                            <div className="w-2 h-2 rounded-full bg-slate-500" />
-                                            <div className="w-2 h-2 rounded-full bg-slate-500" />
+                                <div className="bg-black border border-white/10 rounded-[2.5rem] overflow-hidden group/code transition-all duration-700">
+                                    <div className="bg-white/5 p-6 border-b border-white/5 flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <FileJson className="w-4 h-4 text-cyan-500" />
+                                            <span className="text-[10px] font-black uppercase text-slate-500 tracking-[0.3em]">Response Schema</span>
                                         </div>
                                     </div>
-                                    <pre className="p-8 text-[11px] font-mono whitespace-pre-wrap leading-relaxed text-blue-200/70">
+                                    <pre className="p-10 text-xs font-mono whitespace-pre-wrap leading-relaxed text-cyan-200/60 selection:bg-cyan-500/30">
                                         {`{
   "success": true,
   "data": [
     {
-      "id": "svc_72x9k",
-      "name": "General Wellness Check",
-      "description": "Routine diagnostic assessment.",
-      "durationMins": 15,
-      "estimatedWaitMins": 18,
-      "activeWaiters": 4
+      "id": "svc_81v92",
+      "name": "Standard Consultation",
+      "durationMins": 30,
+      "estimatedWaitMins": 12,
+      "activeCustomers": 3,
+      "status": "active"
     }
   ]
 }`}
@@ -309,101 +365,167 @@ export default function DocsPage() {
                                 </div>
                             </div>
 
-                            {/* GET /services/:id/slots */}
-                            <div id="get-slots" className="scroll-mt-40 group">
-                                <div className="flex items-center gap-4 mb-6">
-                                    <div className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded text-emerald-500 text-[10px] font-bold uppercase tracking-widest">GET</div>
-                                    <code className="text-lg font-mono text-white tracking-tight">/services/:id/slots</code>
+                            {/* GET /agents */}
+                            <div id="get-agents" className="scroll-mt-40 group">
+                                <div className="flex items-center gap-6 mb-8">
+                                    <div className="px-4 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-400 text-[11px] font-black uppercase tracking-[0.2em]">GET</div>
+                                    <code className="text-2xl font-mono text-white tracking-tighter">/agents</code>
                                 </div>
-                                <p className="text-sm text-slate-500 mb-10 italic max-w-2xl leading-relaxed">
-                                    Retrieves 15-minute appointment windows for a specific service and date. Use this to construct your time-picker UI components.
+                                <p className="text-base text-slate-500 mb-10 italic max-w-2xl leading-relaxed">
+                                    Lists all active service agents (staff members) currently on the floor. Crucial for systems that allow customers to "Prefer a Specific Merchant."
                                 </p>
-                                <div className="grid md:grid-cols-2 gap-8">
-                                    <div className="p-6 bg-slate-900/20 border border-white/5 rounded-2xl">
-                                        <h5 className="text-[10px] font-bold text-slate-700 uppercase tracking-[0.2em] mb-4 italic">Query Parameters</h5>
-                                        <div className="space-y-4">
-                                            <div>
-                                                <code className="text-[11px] font-mono text-blue-400">date</code>
-                                                <p className="text-[11px] text-slate-600 mt-1">Required. Format: YYYY-MM-DD</p>
-                                            </div>
-                                        </div>
+                                <div className="grid md:grid-cols-2 gap-10 p-10 bg-white/[0.01] border border-white/5 rounded-[2.5rem]">
+                                    <div>
+                                        <h5 className="text-[10px] font-black text-slate-700 uppercase tracking-[0.3em] mb-4">Real-time Props</h5>
+                                        <ul className="space-y-3 text-[11px] font-bold text-slate-500 uppercase tracking-widest italic">
+                                            <li className="flex items-center gap-3"><CheckCircle2 className="w-3 h-3 text-cyan-500" /> Current Service Load</li>
+                                            <li className="flex items-center gap-3"><CheckCircle2 className="w-3 h-3 text-cyan-500" /> Presence Status</li>
+                                        </ul>
                                     </div>
-                                    <div className="p-6 bg-slate-900/20 border border-white/5 rounded-2xl">
-                                        <h5 className="text-[10px] font-bold text-slate-700 uppercase tracking-[0.2em] mb-4 italic">Metadata</h5>
-                                        <p className="text-[11px] text-slate-600 leading-relaxed uppercase tracking-widest font-bold">Latency: ~45ms <br /> Multi-Agent Awareness: ACTIVE</p>
+                                    <div className="flex items-center justify-center p-8 bg-black/40 border border-white/5 rounded-2xl">
+                                        <Activity className="w-10 h-10 text-cyan-500/20 animate-pulse" />
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </section>
 
-                    {/* II. Live Orchestration */}
-                    <section id="orchestration" className="mb-24 scroll-mt-24">
-                        <div className="flex items-center gap-4 mb-14">
-                            <span className="text-[10px] font-bold text-slate-800 uppercase tracking-[0.4em]">Section 03</span>
+                    {/* II. Scheduling */}
+                    <section id="scheduling" className="mb-32 scroll-mt-24">
+                        <div className="flex items-center gap-4 mb-20">
+                            <span className="text-[10px] font-black text-slate-800 uppercase tracking-[0.5em]">Phase II: Scheduling</span>
                             <div className="flex-1 h-px bg-white/5" />
                         </div>
 
-                        <div className="flex items-center gap-6 mb-10">
-                            <div className="w-16 h-16 bg-slate-900 border border-white/5 rounded-[1.5rem] flex items-center justify-center text-slate-500">
-                                <Cpu className="w-7 h-7" />
+                        <div className="flex items-center gap-8 mb-12">
+                            <div className="w-20 h-20 bg-black border border-white/10 rounded-[2rem] flex items-center justify-center text-cyan-500 shadow-2xl shadow-cyan-500/10">
+                                <Zap className="w-10 h-10" />
                             </div>
-                            <h2 className="text-4xl font-medium text-white tracking-tight">II. Orchestration</h2>
+                            <h2 className="text-5xl font-black text-white tracking-tighter">Scheduling Core</h2>
                         </div>
 
-                        <p className="text-lg text-slate-500 mb-20 leading-relaxed max-w-3xl italic font-medium">
-                            The core actuators for managing real-time patient flow. These endpoints power the "Live Board" and staff dashboards.
+                        <p className="text-xl text-slate-400 mb-16 leading-relaxed max-w-3xl">
+                            Bridge the gap between digital intent and physical presence. Use these endpoints to manage appointments, discover open windows, and handle pre-arrival logic.
                         </p>
 
                         <div className="space-y-32">
-
-                            {/* POST /queue/check-in */}
-                            <div id="post-checkin" className="scroll-mt-40 group">
-                                <div className="flex items-center gap-4 mb-6">
-                                    <div className="px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded text-amber-500 text-[10px] font-bold uppercase tracking-widest">POST</div>
-                                    <code className="text-lg font-mono text-white tracking-tight">/queue/check-in</code>
+                            {/* GET /services/:id/slots */}
+                            <div className="scroll-mt-40 group">
+                                <div className="flex items-center gap-6 mb-8">
+                                    <div className="px-4 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-400 text-[11px] font-black uppercase tracking-[0.2em]">GET</div>
+                                    <code className="text-2xl font-mono text-white tracking-tighter">/services/:id/slots</code>
                                 </div>
-                                <div className="p-8 bg-slate-900/30 border-l-2 border-amber-500/50 rounded-r-[2rem] mb-12">
-                                    <h4 className="text-xs font-bold text-white uppercase tracking-widest mb-3">Direct Ingress (Walk-ins)</h4>
-                                    <p className="text-sm text-slate-500 italic max-w-xl leading-relaxed">
-                                        Use this to bypass appointments and add a participant directly to the waiting mesh. Perfect for front-desk tablets or manual lobby check-ins.
-                                    </p>
-                                </div>
+                                <p className="text-base text-slate-500 mb-10 italic max-w-2xl leading-relaxed">
+                                    Retrieves 15-minute appointment windows for a specific service and date. Essential for populating time-picker UI components.
+                                </p>
+                            </div>
 
-                                <div className="bg-slate-950 border border-white/5 rounded-3xl p-10 grayscale hover:grayscale-0 transition-grayscale duration-700">
-                                    <h5 className="text-[10px] font-bold text-slate-700 uppercase tracking-widest italic mb-6">Request Schema</h5>
-                                    <pre className="text-[11px] font-mono leading-relaxed text-blue-300/80">
+                            {/* POST /appointments/book */}
+                            <div className="scroll-mt-40 group">
+                                <div className="flex items-center gap-6 mb-8">
+                                    <div className="px-4 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-500 text-[11px] font-black uppercase tracking-[0.2em]">POST</div>
+                                    <code className="text-2xl font-mono text-white tracking-tighter">/appointments/book</code>
+                                </div>
+                                <div className="bg-black border border-white/10 rounded-[2.5rem] overflow-hidden">
+                                     <div className="bg-white/5 p-6 border-b border-white/5 flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <FileJson className="w-4 h-4 text-cyan-500" />
+                                            <span className="text-[10px] font-black uppercase text-slate-500 tracking-[0.3em]">Booking Payload</span>
+                                        </div>
+                                    </div>
+                                    <pre className="p-10 text-xs font-mono whitespace-pre-wrap leading-relaxed text-cyan-200/60 selection:bg-cyan-500/30">
                                         {`{
-  "clientName": "Jane Doe",
-  "clientPhone": "+1234567890",
-  "serviceId": "svc_72x9k",
-  "notes": "Emergency walk-in"
+  "serviceId": "svc_81v92",
+  "name": "Julian Mars",
+  "number": "+1555000111",
+  "appointmentDate": "2026-12-01",
+  "appointmentTime": "14:30"
 }`}
                                     </pre>
                                 </div>
                             </div>
+                        </div>
+                    </section>
+
+                    {/* III. Live Orchestration */}
+                    <section id="orchestration" className="mb-32 scroll-mt-24">
+                        <div className="flex items-center gap-4 mb-20">
+                            <span className="text-[10px] font-black text-slate-800 uppercase tracking-[0.5em]">Phase III: Orchestration</span>
+                            <div className="flex-1 h-px bg-white/5" />
+                        </div>
+
+                        <div className="flex items-center gap-8 mb-12">
+                            <div className="w-20 h-20 bg-black border border-white/10 rounded-[2rem] flex items-center justify-center text-cyan-500 shadow-2xl shadow-cyan-500/10">
+                                <Cpu className="w-10 h-10" />
+                            </div>
+                            <h2 className="text-5xl font-black text-white tracking-tighter">Actuator Core</h2>
+                        </div>
+
+                        <p className="text-xl text-slate-400 mb-20 leading-relaxed max-w-3xl font-medium italic">
+                            The mission-critical logic for managing live customer flow. These endpoints power the Storefront Dashboard and Customer Ingress tablets.
+                        </p>
+
+                        <div className="space-y-32">
+
+                            {/* POST /queue */}
+                            <div id="post-queue" className="scroll-mt-40 group">
+                                <div className="flex items-center gap-6 mb-8">
+                                    <div className="px-4 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-500 text-[11px] font-black uppercase tracking-[0.2em]">POST</div>
+                                    <code className="text-2xl font-mono text-white tracking-tighter">/queue</code>
+                                </div>
+                                <div className="p-10 bg-black border border-white/10 rounded-[3rem] mb-12 relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 p-8 opacity-10"><Zap className="w-24 h-24 text-cyan-500" /></div>
+                                    <h4 className="text-lg font-black text-white uppercase tracking-tight mb-4 italic">Instant Ingress (Walk-ins)</h4>
+                                    <p className="text-sm text-slate-500 italic max-w-xl leading-relaxed mb-10">
+                                        Adds a customer directly to the waiting mesh. Perfect for front-desk iPads or self-service lobby kiosks.
+                                    </p>
+                                    <div className="bg-black/80 p-8 border border-white/5 rounded-2xl">
+                                        <h5 className="text-[10px] font-black text-slate-700 uppercase tracking-[0.3em] mb-6">Request Payload</h5>
+                                        <pre className="text-xs font-mono leading-relaxed text-cyan-300/70">
+                                            {`{
+  "name": "Alex Riviera",
+  "number": "+1888444222",
+  "serviceId": "svc_81v92",
+  "priority": "NORMAL",
+  "notes": "Premium member walk-in"
+}`}
+                                        </pre>
+                                    </div>
+                                </div>
+                            </div>
+
+                             {/* PUT /priority */}
+                             <div className="scroll-mt-40 group mb-24">
+                                <div className="flex items-center gap-6 mb-8">
+                                    <div className="px-4 py-1.5 bg-sky-500/10 border border-sky-500/20 rounded-lg text-sky-400 text-[11px] font-black uppercase tracking-[0.2em]">PUT</div>
+                                    <code className="text-2xl font-mono text-white tracking-tighter">/priority</code>
+                                </div>
+                                <p className="text-base text-slate-500 mb-10 italic max-w-2xl leading-relaxed">
+                                    Escalate or de-escalate a customer's position in the live mesh. Supports <code className="text-cyan-400">NORMAL</code>, <code className="text-cyan-400">URGENT</code>, and <code className="text-cyan-400">EMERGENCY</code> tiers.
+                                </p>
+                             </div>
 
                             {/* PATCH /queue/:uniqueLinkId/action */}
                             <div id="patch-action" className="scroll-mt-40 group">
-                                <div className="flex items-center justify-between mb-8">
-                                    <div className="flex items-center gap-4">
-                                        <div className="px-3 py-1 bg-sky-500/10 border border-sky-500/20 rounded text-sky-500 text-[10px] font-bold uppercase tracking-widest">PATCH</div>
-                                        <code className="text-lg font-mono text-white tracking-tight">/queue/:id/action</code>
+                                <div className="flex items-center justify-between mb-10">
+                                    <div className="flex items-center gap-6">
+                                        <div className="px-4 py-1.5 bg-sky-500/10 border border-sky-500/20 rounded-lg text-sky-400 text-[11px] font-black uppercase tracking-[0.2em]">PATCH</div>
+                                        <code className="text-2xl font-mono text-white tracking-tighter">/action</code>
                                     </div>
-                                    <div className="px-3 py-1 bg-blue-500/5 border border-blue-500/10 rounded-full text-blue-400 text-[9px] font-bold uppercase tracking-widest">Primary Actuator</div>
+                                    <div className="px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 rounded-full text-cyan-400 text-[9px] font-black uppercase tracking-[0.3em]">Lifecycle Actuator</div>
                                 </div>
-                                <p className="text-sm text-slate-500 mb-12 italic max-w-2xl leading-relaxed">
-                                    This endpoint mutation triggers state changes across the entire B2B clinical board. It is the core of the staff-participant handshake.
+                                <p className="text-lg text-slate-500 mb-12 italic max-w-2xl leading-relaxed">
+                                    Triggers state transitions for a customer in the queue. This is the heartbeat of your agent dashboard.
                                 </p>
-                                <div className="grid md:grid-cols-3 gap-6">
+                                <div className="grid md:grid-cols-3 gap-8">
                                     {[
-                                        { action: 'call', desc: 'Moves patient into "Serving" state. Notifies participant.' },
-                                        { action: 'complete', desc: 'Finalizes visit. Purges from live board.' },
-                                        { action: 'cancel', desc: 'Terminates visit. Logged as incomplete.' }
+                                        { action: 'call', desc: 'Starts the service. Notifies the customer via SMS/Push.' },
+                                        { action: 'complete', desc: 'Ends the session. Moves record to historical archives.' },
+                                        { action: 'cancel', desc: 'Voids the session. Logged as administrative termination.' }
                                     ].map(act => (
-                                        <div key={act.action} className="p-6 bg-slate-900/10 border border-white/5 rounded-2xl hover:bg-slate-900/20 transition-all">
-                                            <code className="text-[10px] font-bold text-blue-400 uppercase tracking-widest block mb-3">"{act.action}"</code>
-                                            <p className="text-[10px] text-slate-600 leading-relaxed font-bold uppercase tracking-widest">{act.desc}</p>
+                                        <div key={act.action} className="p-8 bg-white/[0.02] border border-white/10 rounded-[2.5rem] hover:bg-white/[0.04] transition-all group/card">
+                                            <code className="text-xs font-black text-cyan-400 uppercase tracking-[0.2em] block mb-4 italic group-hover/card:text-white transition-colors">"{act.action}"</code>
+                                            <p className="text-[11px] text-slate-500 leading-relaxed font-black uppercase tracking-widest italic">{act.desc}</p>
                                         </div>
                                     ))}
                                 </div>
@@ -412,142 +534,147 @@ export default function DocsPage() {
                         </div>
                     </section>
 
-                    {/* III. Lifecycle */}
-                    <section id="lifecycle" className="mb-24 scroll-mt-24">
-                        <div className="flex items-center gap-4 mb-14">
-                            <span className="text-[10px] font-bold text-slate-800 uppercase tracking-[0.4em]">Section 04</span>
+                    {/* IV. Lifecycle */}
+                    <section id="lifecycle" className="mb-32 scroll-mt-24">
+                        <div className="flex items-center gap-4 mb-20">
+                            <span className="text-[10px] font-black text-slate-800 uppercase tracking-[0.5em]">Phase IV: Lifecycle</span>
                             <div className="flex-1 h-px bg-white/5" />
                         </div>
 
-                        <div className="flex items-center gap-6 mb-10">
-                            <div className="w-16 h-16 bg-slate-900 border border-white/5 rounded-[1.5rem] flex items-center justify-center text-slate-500">
-                                <RefreshCw className="w-7 h-7" />
+                        <div className="flex items-center gap-8 mb-12">
+                            <div className="w-20 h-20 bg-black border border-white/10 rounded-[2rem] flex items-center justify-center text-cyan-500 shadow-2xl shadow-cyan-500/10">
+                                <RefreshCw className="w-10 h-10" />
                             </div>
-                            <h2 className="text-4xl font-medium text-white tracking-tight">III. Lifecycle & Timing</h2>
+                            <h2 className="text-5xl font-black text-white tracking-tighter">Identity Pipeline</h2>
                         </div>
 
-                        <div className="p-12 bg-white/5 border border-white/5 rounded-[3rem] mb-20 relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
-                                <Activity className="w-48 h-48 text-white" />
+                        <div className="p-16 bg-gradient-to-br from-white/[0.03] to-transparent border border-white/5 rounded-[4rem] mb-20 relative overflow-hidden shadow-2xl">
+                            <div className="absolute top-0 right-0 p-16 opacity-5 pointer-events-none">
+                                <ShieldCheck className="w-64 h-64 text-white" />
                             </div>
-                            <h4 className="text-lg font-medium text-white mb-6">The "Scheduled to Live" Handshake</h4>
-                            <p className="text-sm text-slate-500 italic leading-relaxed max-w-xl mb-12">
-                                When a participant books via <code className="bg-slate-900 px-1.5 rounded text-blue-400">/book</code>, they exist in the <b>"Reservation State."</b> They only enter the live board when they actuate the <b>"Arrival Handshake."</b>
+                            <h4 className="text-2xl font-black text-white mb-8">The "Arrived" State Lock</h4>
+                            <p className="text-lg text-slate-400 italic leading-relaxed max-w-2xl mb-16">
+                                Customers booked via the <code className="bg-black/40 px-3 py-1 rounded text-cyan-400">/book</code> endpoint remain in a <b>Tentative State</b>. They only enter the live merchant board upon a successful <code className="bg-black/40 px-3 py-1 rounded text-cyan-400">/arrive</code> handshake.
                             </p>
-                            <div className="flex items-center gap-8 text-[10px] font-bold text-slate-600 uppercase tracking-widest italic">
-                                <div>Step 1: Reservation</div>
-                                <div className="w-10 h-px bg-slate-800" />
-                                <div>Step 2: Actuation (PATCH /arrive)</div>
-                                <div className="w-10 h-px bg-slate-800" />
-                                <div className="text-emerald-500">Step 3: Live Ingress</div>
+                            <div className="flex flex-col md:flex-row items-start md:items-center gap-8 text-[11px] font-black text-slate-600 uppercase tracking-[0.2em] italic">
+                                <div className="flex items-center gap-3"><div className="w-2 h-2 rounded-full bg-slate-800" /> Reservation (API Hook)</div>
+                                <ChevronRight className="w-4 h-4 text-slate-800 hidden md:block" />
+                                <div className="flex items-center gap-3"><div className="w-2 h-2 rounded-full bg-slate-800" /> Arrival (Physical Check-in)</div>
+                                <ChevronRight className="w-4 h-4 text-slate-800 hidden md:block" />
+                                <div className="flex items-center gap-3 text-cyan-500 animate-pulse"><div className="w-2 h-2 rounded-full bg-cyan-500" /> Ingress (Live Board)</div>
                             </div>
                         </div>
                     </section>
 
-                    {/* IV. Intelligence */}
-                    <section id="intelligence" className="mb-24 scroll-mt-24">
-                        <div className="flex items-center gap-4 mb-14">
-                            <span className="text-[10px] font-bold text-slate-800 uppercase tracking-[0.4em]">Section 05</span>
+                    {/* V. Intelligence */}
+                    <section id="intelligence" className="mb-32 scroll-mt-24">
+                        <div className="flex items-center gap-4 mb-20">
+                            <span className="text-[10px] font-black text-slate-800 uppercase tracking-[0.5em]">Phase V: Intelligence</span>
                             <div className="flex-1 h-px bg-white/5" />
                         </div>
 
-                        <h2 className="text-4xl font-medium text-white mb-10 tracking-tight flex items-center gap-6">
-                            <span className="w-14 h-14 bg-slate-900 rounded-2xl flex items-center justify-center text-slate-500"><Activity className="w-6 h-6" /></span>
-                            IV. Intelligence & Analytics
+                        <h2 className="text-5xl font-black text-white mb-16 tracking-tighter flex items-center gap-8">
+                            <span className="w-16 h-16 bg-black border border-white/10 rounded-2xl flex items-center justify-center text-cyan-500"><Activity className="w-8 h-8" /></span>
+                            Operational Insight
                         </h2>
 
                         <div className="grid md:grid-cols-2 gap-10">
-                            <div className="p-10 bg-slate-900/10 border border-white/5 rounded-[2.5rem]">
-                                <h4 className="text-xs font-bold uppercase tracking-widest text-white mb-4">Wait-Time Vectors</h4>
-                                <p className="text-xs text-slate-600 leading-relaxed italic font-bold uppercase tracking-widest">Flow-Q automatically calculates projected wait times based on historical throughput and active staff indices.</p>
+                            <div className="p-12 bg-white/[0.01] border border-white/5 rounded-[3rem] hover:border-cyan-500/10 transition-colors">
+                                <h4 className="text-xs font-black uppercase tracking-[0.3em] text-white mb-6">Throughput Vectors</h4>
+                                <p className="text-[11px] text-slate-500 leading-[1.8] italic font-black uppercase tracking-widest">Flow-Q automatically synthesizes average service times and agent efficiency indices to provide millisecond-accurate wait time projections.</p>
                             </div>
-                            <div className="p-10 bg-slate-900/10 border border-white/5 rounded-[2.5rem]">
-                                <h4 className="text-xs font-bold uppercase tracking-widest text-white mb-4">Throughput Summaries</h4>
-                                <p className="text-xs text-slate-600 leading-relaxed italic font-bold uppercase tracking-widest">Fetch the <code className="bg-slate-950 px-1 rounded text-blue-400 lowercase italic">/analytics/summary</code> endpoint for end-of-day operational audits.</p>
+                            <div className="p-12 bg-white/[0.01] border border-white/5 rounded-[3rem] hover:border-cyan-500/10 transition-colors">
+                                <h4 className="text-xs font-black uppercase tracking-[0.3em] text-white mb-6">Aggregate Audits</h4>
+                                <p className="text-[11px] text-slate-500 leading-[1.8] italic font-black uppercase tracking-widest">Utilize the <code className="bg-black px-2 py-0.5 rounded text-cyan-400 lowercase italic font-mono">/analytics/summary</code> endpoint for periodic business performance reviews.</p>
                             </div>
                         </div>
                     </section>
 
-                    {/* V. Error Matrix */}
-                    <section id="errors" className="mb-24 scroll-mt-24">
-                        <div className="flex items-center gap-4 mb-14">
-                            <span className="text-[10px] font-bold text-slate-800 uppercase tracking-[0.4em]">Section 06</span>
+                    {/* VI. Error Matrix */}
+                    <section id="errors" className="mb-32 scroll-mt-24">
+                        <div className="flex items-center gap-4 mb-20">
+                            <span className="text-[10px] font-black text-slate-800 uppercase tracking-[0.5em]">Phase VI: Fault Matrix</span>
                             <div className="flex-1 h-px bg-white/5" />
                         </div>
 
-                        <h2 className="text-4xl font-medium text-white mb-12 tracking-tight">System Error Matrix</h2>
+                        <h2 className="text-5xl font-black text-white mb-16 tracking-tighter">System Error Index</h2>
 
-                        <div className="border border-white/5 rounded-[2rem] overflow-hidden bg-slate-950/40">
+                        <div className="border border-white/10 rounded-[3rem] overflow-hidden bg-black/40 shadow-2xl">
                             <table className="w-full text-left border-collapse">
-                                <thead className="bg-slate-900/40 border-b border-white/5">
+                                <thead className="bg-white/5 border-b border-white/5">
                                     <tr>
-                                        <th className="px-10 py-6 text-[10px] font-bold text-slate-700 uppercase tracking-widest italic">Protocol Code</th>
-                                        <th className="px-10 py-6 text-[10px] font-bold text-slate-700 uppercase tracking-widest italic">HTTP</th>
-                                        <th className="px-10 py-6 text-[10px] font-bold text-slate-700 uppercase tracking-widest italic">Resolution</th>
+                                        <th className="px-12 py-8 text-[11px] font-black text-slate-600 uppercase tracking-[0.3em] italic">Fault Code</th>
+                                        <th className="px-12 py-8 text-[11px] font-black text-slate-600 uppercase tracking-[0.3em] italic">Status</th>
+                                        <th className="px-12 py-8 text-[11px] font-black text-slate-600 uppercase tracking-[0.3em] italic">Resolution Path</th>
                                     </tr>
                                 </thead>
-                                <tbody className="text-[11px] text-slate-500 font-medium">
+                                <tbody className="text-[11px] text-slate-500 font-bold tracking-tight">
                                     <tr className="border-b border-white/5 hover:bg-white/[0.01] transition-colors">
-                                        <td className="px-10 py-6 font-mono text-rose-500/90 whitespace-nowrap">AUTH_INVALID_KEY</td>
-                                        <td className="px-10 py-6">401</td>
-                                        <td className="px-10 py-6 italic text-slate-600">The provisioned x-api-key was not recognized by the Org Model.</td>
+                                        <td className="px-12 py-8 font-mono text-rose-500/90 whitespace-nowrap">AUTH_KEY_REJECTED</td>
+                                        <td className="px-12 py-8">401</td>
+                                        <td className="px-12 py-8 italic text-slate-600">The X-API-KEY provided is either expired or not registered in this Org Context.</td>
                                     </tr>
                                     <tr className="border-b border-white/5 hover:bg-white/[0.01] transition-colors">
-                                        <td className="px-10 py-6 font-mono text-rose-500/90 whitespace-nowrap">HANDSHAKE_EXPIRED</td>
-                                        <td className="px-10 py-6">410</td>
-                                        <td className="px-10 py-6 italic text-slate-600">The reservation window of the appointment has closed.</td>
+                                        <td className="px-12 py-8 font-mono text-rose-500/90 whitespace-nowrap">RESOURCE_NOT_FOUND</td>
+                                        <td className="px-12 py-8">404</td>
+                                        <td className="px-12 py-8 italic text-slate-600">The requested Merchant ID, Service ID, or Ticket ID does not exist.</td>
                                     </tr>
                                     <tr className="border-b border-white/5 hover:bg-white/[0.01] transition-colors">
-                                        <td className="px-10 py-6 font-mono text-rose-500/90 whitespace-nowrap">ACTUATOR_STATE_CONFLICT</td>
-                                        <td className="px-10 py-6">409</td>
-                                        <td className="px-10 py-6 italic text-slate-600">Attempted a state mutation that is illegal from the current state.</td>
+                                        <td className="px-12 py-8 font-mono text-rose-500/90 whitespace-nowrap">LIFECYCLE_CONFLICT</td>
+                                        <td className="px-12 py-8">409</td>
+                                        <td className="px-12 py-8 italic text-slate-600">Attempted a state transition (e.g., Calling a customer who is already serving).</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
                     </section>
 
-                    {/* Interactive Playground (Swagger) */}
-                    <section id="playground" className="mb-24 scroll-mt-24">
-                        <div className="flex items-center gap-4 mb-14">
-                            <span className="text-[10px] font-bold text-slate-800 uppercase tracking-[0.4em]">Section 07</span>
+                    {/* VII. Interactive Playground (Swagger) */}
+                    <section id="playground" className="mb-32 scroll-mt-24">
+                        <div className="flex items-center gap-4 mb-20">
+                            <span className="text-[10px] font-black text-slate-800 uppercase tracking-[0.5em]">Phase VII: Actuation Playground</span>
                             <div className="flex-1 h-px bg-white/5" />
                         </div>
 
-                        <h2 className="text-4xl font-medium text-white mb-10 tracking-tight italic">Swagger API Engine</h2>
+                        <h2 className="text-5xl font-black text-white mb-12 tracking-tighter italic">API Execution Port</h2>
 
-                        <p className="text-lg text-slate-500 mb-16 leading-relaxed max-w-3xl font-medium italic">
-                            Interact with the live clinical endpoints directly in the browser using the authenticated Swagger sandbox. This connects to your local medical deployment.
+                        <p className="text-xl text-slate-500 mb-20 leading-relaxed max-w-3xl font-medium italic">
+                            Execute live hubal commands directly against the engine using the authenticated Swagger environment. This bridge connects to your currently provisioned sandbox.
                         </p>
 
-                        <div className="relative bg-slate-950 border border-white/5 rounded-[3rem] shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden min-h-[900px] grayscale hover:grayscale-0 transition-all duration-[2s]">
-                            <div className="h-16 bg-slate-900 border-b border-white/5 flex items-center justify-between px-12">
-                                <div className="flex items-center gap-4">
-                                    <Terminal className="w-4 h-4 text-emerald-500/60" />
-                                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-600">Live API Actuation Core</span>
+                        <div className="relative bg-black border border-white/10 rounded-[4rem] shadow-[0_0_120px_rgba(8,145,178,0.05)] overflow-hidden min-h-[900px] group/swagger transition-all duration-700">
+                            <div className="h-20 bg-white/5 border-b border-white/5 flex items-center justify-between px-16">
+                                <div className="flex items-center gap-6">
+                                    <Terminal className="w-5 h-5 text-cyan-500" />
+                                    <span className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-600">Merchant Protocol Actuator</span>
+                                </div>
+                                <div className="flex gap-2">
+                                    <div className="w-3 h-3 rounded-full bg-rose-500/20" />
+                                    <div className="w-3 h-3 rounded-full bg-amber-500/20" />
+                                    <div className="w-3 h-3 rounded-full bg-emerald-500/20" />
                                 </div>
                             </div>
                             <iframe
                                 src={`${(process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api').replace('/api', '')}/api-docs/swagger`}
-                                className="w-full h-[830px] border-none opacity-80 invert-[0.88] hue-rotate-180 brightness-110 contrast-90"
+                                className="w-full h-[820px] border-none opacity-90 invert-[0.85] hue-rotate-180 brightness-110 contrast-100 mix-blend-screen grayscale-[0.2]"
                                 title="Swagger Documentation"
                             />
                         </div>
                     </section>
 
                     {/* Footer / Conclusion */}
-                    <footer className="mt-64 pt-32 border-t border-white/5 text-center">
-                        <div className="flex justify-center gap-16 mb-20 opacity-30 grayscale hover:grayscale-0 transition-all cursor-default">
-                            <Database className="w-6 h-6" />
-                            <Lock className="w-6 h-6" />
-                            <Globe className="w-6 h-6" />
+                    <footer className="mt-64 pt-32 border-t border-white/5 text-center px-10">
+                        <div className="flex justify-center gap-20 mb-24 opacity-10 grayscale hover:grayscale-0 transition-grayscale duration-700 cursor-default">
+                            <Database className="w-8 h-8" />
+                            <Lock className="w-8 h-8" />
+                            <Globe className="w-8 h-8" />
                         </div>
-                        <h4 className="text-3xl font-medium text-white tracking-tight mb-8">Ready for Production Handshake.</h4>
-                        <p className="text-slate-600 font-normal max-w-md mx-auto mb-20 leading-relaxed text-sm italic">
-                            For premium SLA support, rate-limit increases, or custom clinical integrations, please contact our implementation board.
+                        <h4 className="text-4xl font-black text-white tracking-tighter mb-10 italic">Ready for Enterprise Integration.</h4>
+                        <p className="text-slate-500 font-medium max-w-lg mx-auto mb-24 leading-[1.8] text-base italic uppercase tracking-widest">
+                            For custom B2B logic, infrastructure scaling, or white-label portal solutions, please contact our Merchant Operations Board.
                         </p>
-                        <div className="text-[10px] font-bold text-slate-800 uppercase tracking-[0.5em]">
-                            PROTOCOL_CORE_SPEC_2026
+                        <div className="text-[11px] font-black text-slate-800 uppercase tracking-[1em] mb-20">
+                            FLOW-Q_MERCHANT_SPEC_2026
                         </div>
                     </footer>
 
@@ -566,21 +693,24 @@ const globalStyles = `
   background: #020617;
 }
 ::-webkit-scrollbar-thumb {
-  background: #0f172a;
+  background: #334155;
+  border-radius: 10px;
 }
 ::selection {
-    background: rgba(59, 130, 246, 0.2);
-    color: #eff6ff;
+    background: rgba(6, 182, 212, 0.3);
+    color: #fff;
 }
 body {
     -webkit-font-smoothing: antialiased;
     scroll-behavior: smooth;
+    overflow-x: hidden;
 }
-@keyframes slideUp {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.98); }
+    to { opacity: 1; transform: scale(1); }
 }
-.animate-slide-up {
-    animation: slideUp 0.8s ease-out forwards;
+.animate-in {
+    animation: fadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 `;
+

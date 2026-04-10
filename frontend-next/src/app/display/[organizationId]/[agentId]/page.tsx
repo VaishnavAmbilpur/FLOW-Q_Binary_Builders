@@ -5,12 +5,12 @@ import api from "@/services/api";
 import { MonitorPlay, Stethoscope, ArrowRight, User, Maximize, Minimize } from "lucide-react";
 import io from 'socket.io-client';
 
-export default function DoctorDisplayBoard() {
+export default function AgentDisplayBoard() {
     const params = useParams();
-    const hospitalId = params.hospitalId;
-    const doctorId = params.doctorId;
+    const organizationId = params.organizationId;
+    const agentId = params.agentId;
 
-    const [doctorData, setDoctorData] = useState<any>(null);
+    const [agentData, setAgentData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -30,19 +30,19 @@ export default function DoctorDisplayBoard() {
 
     const loadDisplayData = async () => {
         try {
-            const res = await api.get(`/kiosk/${hospitalId}/display/${doctorId}`);
+            const res = await api.get(`/kiosk/${organizationId}/display/${agentId}`);
             if (res.data.success) {
-                setDoctorData(res.data.data);
+                setAgentData(res.data.data);
             }
         } catch (err) {
-            console.error("Failed to load doctor display data", err);
+            console.error("Failed to load agent display data", err);
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        if (!hospitalId || !doctorId) return;
+        if (!organizationId || !agentId) return;
 
         loadDisplayData();
 
@@ -52,8 +52,8 @@ export default function DoctorDisplayBoard() {
         });
 
         socket.on('connect', () => {
-            console.log("Connected to doctor display socket");
-            socket.emit('joinHospitalPublicRoom', hospitalId);
+            console.log("Connected to agent display socket");
+            socket.emit('joinOrganizationPublicRoom', organizationId);
         });
 
         socket.on('queueUpdated', () => {
@@ -61,8 +61,8 @@ export default function DoctorDisplayBoard() {
             loadDisplayData();
         });
 
-        socket.on('doctorAvailabilityChanged', () => {
-            console.log("Doctor Availability Changed via Socket, Reloading Display Data...");
+        socket.on('agentAvailabilityChanged', () => {
+            console.log("Agent Availability Changed via Socket, Reloading Display Data...");
             loadDisplayData();
         });
 
@@ -73,11 +73,11 @@ export default function DoctorDisplayBoard() {
 
         return () => {
             socket.off('queueUpdated');
-            socket.off('doctorAvailabilityChanged');
+            socket.off('agentAvailabilityChanged');
             socket.disconnect();
             clearInterval(interval);
         };
-    }, [hospitalId, doctorId]);
+    }, [organizationId, agentId]);
 
     if (loading) {
         return (
@@ -87,10 +87,10 @@ export default function DoctorDisplayBoard() {
         );
     }
 
-    if (!doctorData) {
+    if (!agentData) {
         return (
             <div className="min-h-screen bg-gray-50 dark:bg-[#0c0516] flex items-center justify-center transition-colors">
-                <p className="text-4xl text-gray-500 font-medium">Doctor display not found.</p>
+                <p className="text-4xl text-gray-500 font-medium">Agent display not found.</p>
             </div>
         );
     }
@@ -111,7 +111,7 @@ export default function DoctorDisplayBoard() {
                     </div>
                     <div>
                         <h1 className="text-3xl sm:text-5xl font-black tracking-tighter text-white mb-1 uppercase italic underline decoration-brand-500/20 underline-offset-4">Live Queue Stream</h1>
-                        <p className="text-[9px] font-black text-neutral-500 uppercase tracking-[0.4em]">Department Display <span className="mx-3 text-neutral-800">/</span> {doctorData.hospitalName}</p>
+                        <p className="text-[9px] font-black text-neutral-500 uppercase tracking-[0.4em]">Department Display <span className="mx-3 text-neutral-800">/</span> {agentData.organizationName}</p>
                     </div>
                 </div>
 
@@ -143,10 +143,10 @@ export default function DoctorDisplayBoard() {
                             <Stethoscope className="w-16 h-16" />
                         </div>
                         <div>
-                            <p className="text-[9px] font-black text-brand-400 uppercase tracking-[0.4em] mb-2">Operating Clinician</p>
-                            <h2 className="text-5xl sm:text-6xl font-black tracking-tighter uppercase mb-3 italic">{doctorData.doctorName}</h2>
+                            <p className="text-[9px] font-black text-brand-400 uppercase tracking-[0.4em] mb-2">Operating Hubian</p>
+                            <h2 className="text-5xl sm:text-6xl font-black tracking-tighter uppercase mb-3 italic">{agentData.agentName}</h2>
                             <div className="flex items-center gap-4">
-                                <span className="px-6 py-2 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-widest text-neutral-400">{doctorData.specialization}</span>
+                                <span className="px-6 py-2 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-widest text-neutral-400">{agentData.serviceCategory}</span>
                                 <span className="px-6 py-2 bg-success-500/10 border border-success-500/20 rounded-full text-[10px] font-black uppercase tracking-widest text-success-400 flex items-center gap-2">
                                     <div className="w-2 h-2 rounded-full bg-success-500 animate-ping" /> Online
                                 </span>
@@ -158,12 +158,12 @@ export default function DoctorDisplayBoard() {
                         <div className="absolute -inset-20 bg-brand-500/5 blur-[120px] rounded-full pointer-events-none group-hover:bg-brand-500/10 transition-all duration-1000" />
                         <div className="relative bg-white/[0.02] border border-white/5 rounded-[5rem] p-24 text-center backdrop-blur-3xl shadow-[0_0_100px_rgba(0,0,0,0.4)]">
                             <p className="text-[10px] font-black uppercase tracking-[0.6em] text-neutral-700 mb-6">Currently Serving</p>
-                            <span className={`text-[14rem] md:text-[18rem] lg:text-[20rem] leading-none font-black tracking-tighter font-mono drop-shadow-[0_0_50px_rgba(255,255,255,0.1)] transition-all duration-1000 ${doctorData.servingToken !== '---' ? 'text-white' : 'text-neutral-900'}`}>
-                                {doctorData.servingToken}
+                            <span className={`text-[14rem] md:text-[18rem] lg:text-[20rem] leading-none font-black tracking-tighter font-mono drop-shadow-[0_0_50px_rgba(255,255,255,0.1)] transition-all duration-1000 ${agentData.servingToken !== '---' ? 'text-white' : 'text-neutral-900'}`}>
+                                {agentData.servingToken}
                             </span>
-                            {doctorData.servingToken !== '---' && (
+                            {agentData.servingToken !== '---' && (
                                 <div className="mt-12 flex items-center justify-center gap-4 text-brand-400 font-black text-[12px] uppercase tracking-[0.4em] animate-pulse">
-                                    <Activity className="w-6 h-6" /> Please proceed to consultation
+                                    <Activity className="w-6 h-6" /> Please proceed to session
                                 </div>
                             )}
                         </div>
@@ -183,8 +183,8 @@ export default function DoctorDisplayBoard() {
                     </div>
 
                     <div className="flex-1 space-y-6 overflow-y-auto custom-scrollbar pr-2">
-                        {doctorData.nextTokens && doctorData.nextTokens.length > 0 ? (
-                            doctorData.nextTokens.map((token: number, idx: number) => (
+                        {agentData.nextTokens && agentData.nextTokens.length > 0 ? (
+                            agentData.nextTokens.map((token: number, idx: number) => (
                                 <div key={idx} className="group bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-8 hover:bg-white/[0.05] hover:border-white/20 transition-all duration-500 flex items-center justify-between">
                                     <div>
                                         <p className="text-[8px] font-black text-neutral-600 uppercase tracking-widest mb-1">Queue Position {idx + 1}</p>
@@ -196,7 +196,7 @@ export default function DoctorDisplayBoard() {
                         ) : (
                             <div className="h-full flex flex-col items-center justify-center opacity-20 py-20 grayscale">
                                 <Activity className="w-20 h-20 text-neutral-600 mb-8 animate-pulse" />
-                                <p className="text-xl font-black uppercase tracking-widest">No patients in queue</p>
+                                <p className="text-xl font-black uppercase tracking-widest">No customers in queue</p>
                             </div>
                         )}
                     </div>

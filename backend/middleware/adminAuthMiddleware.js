@@ -12,16 +12,16 @@ const adminAuth = async (req, res, next) => {
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        // We expect { adminId: ... } in the token based on backwards compatibility
-        const adminId = decoded.adminId || decoded.userId;
-        const admin = await User.findOne({ _id: adminId, role: "HOSPITAL_ADMIN" });
+        // We expect { adminId: ... } or { userId: ... } in the token based on backwards compatibility
+        const orgAdminId = decoded.adminId || decoded.userId;
+        const orgAdmin = await User.findOne({ _id: orgAdminId, role: "ORG_ADMIN" });
 
-        if (!admin) {
+        if (!orgAdmin) {
             return res.status(401).json({ message: "Invalid token or admin not found" });
         }
 
-        req.adminId = admin._id;
-        req.user = admin;
+        req.orgAdminId = orgAdmin._id;
+        req.user = orgAdmin;
         next();
     } catch (err) {
         res.status(401).json({ message: "Invalid or expired token" });

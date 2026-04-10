@@ -4,15 +4,16 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import api from "@/services/api";
-import { ArrowLeft, MonitorSmartphone, Activity, Shield, Users } from "lucide-react";
+import { ArrowLeft, MonitorSmartphone, Activity, Shield, Users, ChevronDown } from "lucide-react";
 
 export default function Signup() {
     const router = useRouter();
     const [form, setForm] = useState({
         name: "",
-        hospitalName: "",
+        orgName: "",
         email: "",
-        password: ""
+        password: "",
+        industry: "other"
     });
 
     const [msg, setMsg] = useState("");
@@ -64,7 +65,7 @@ export default function Signup() {
                                 Register <span className="text-brand-500">Hub.</span>
                             </h2>
                             <p className="text-neutral-500 text-[10px] font-bold uppercase tracking-widest">
-                                Global Hospital Onboarding
+                                Global Organization Onboarding
                             </p>
                         </div>
 
@@ -82,7 +83,7 @@ export default function Signup() {
                                 <div className="relative group">
                                     <input
                                         name="name"
-                                        placeholder="e.g. Dr. Arthur Ledger"
+                                        placeholder="e.g. Alex Ledger"
                                         value={form.name}
                                         onChange={handleChange}
                                         className="w-full bg-white/[0.03] border border-white/5 p-3 rounded-xl text-[11px] text-white placeholder-neutral-700 outline-none transition-all group-hover:border-white/10 group-focus:bg-white/[0.05]"
@@ -95,13 +96,37 @@ export default function Signup() {
                                 <label className="text-[8px] font-black text-neutral-600 uppercase tracking-[0.3em] ml-4">Facility Name</label>
                                 <div className="relative group">
                                     <input
-                                        name="hospitalName"
-                                        placeholder="e.g. Ledger Clinical Research Center"
-                                        value={form.hospitalName}
+                                        name="orgName"
+                                        placeholder="e.g. Ledger Business Research Center"
+                                        value={form.orgName}
                                         onChange={handleChange}
                                         className="w-full bg-white/[0.03] border border-white/5 p-3 rounded-xl text-[11px] text-white placeholder-neutral-700 outline-none transition-all group-hover:border-white/10 group-focus:bg-white/[0.05]"
                                         required
                                     />
+                                </div>
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-[8px] font-black text-neutral-600 uppercase tracking-[0.3em] ml-4">Industry Vertical</label>
+                                <div className="relative group">
+                                    <select
+                                        name="industry"
+                                        value={form.industry}
+                                        onChange={handleChange}
+                                        className="w-full bg-white/[0.03] border border-white/5 p-3 px-4 rounded-xl text-[11px] text-white outline-none transition-all group-hover:border-white/10 group-focus:bg-white/[0.05] cursor-pointer appearance-none"
+                                        required
+                                    >
+                                        <option value="healthcare" className="bg-neutral-900">Healthcare</option>
+                                        <option value="banking" className="bg-neutral-900">Banking</option>
+                                        <option value="government" className="bg-neutral-900">Government</option>
+                                        <option value="education" className="bg-neutral-900">Education</option>
+                                        <option value="salon" className="bg-neutral-900">Salon</option>
+                                        <option value="retail" className="bg-neutral-900">Retail</option>
+                                        <option value="other" className="bg-neutral-900">Other</option>
+                                    </select>
+                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-50">
+                                        <ChevronDown className="w-3 h-3 text-white" />
+                                    </div>
                                 </div>
                             </div>
 
@@ -111,7 +136,7 @@ export default function Signup() {
                                     <input
                                         name="email"
                                         type="email"
-                                        placeholder="admin@ledger-clinic.com"
+                                        placeholder="admin@ledger-hub.com"
                                         value={form.email}
                                         onChange={handleChange}
                                         className="w-full bg-white/[0.03] border border-white/5 p-3 rounded-xl text-[11px] text-white placeholder-neutral-700 outline-none transition-all group-hover:border-white/10 group-focus:bg-white/[0.05]"
@@ -145,7 +170,7 @@ export default function Signup() {
                                         <Activity className="w-3.5 h-3.5 animate-spin" /> Provisioning...
                                     </>
                                 ) : (
-                                    "Create Clinical Hub"
+                                    "Create Business Hub"
                                 )}
                             </button>
                         </form>
@@ -186,24 +211,24 @@ export default function Signup() {
                     <div className="relative z-10 max-w-sm space-y-8 animate-fade-right">
                         <div className="space-y-4">
                             <h3 className="text-2xl md:text-3xl font-black text-white leading-tight underline decoration-info-500/50 underline-offset-8 italic">
-                                Elevate your hospital's digital flow.
+                                Elevate your organization's digital flow.
                             </h3>
                             <p className="text-neutral-500 text-sm font-medium leading-relaxed">
-                                Join thousands of healthcare providers leveraging the Architect Ledger system to eliminate congestion and maximize patient satisfaction.
+                                Join thousands of service providers leveraging the Architect Ledger system to eliminate congestion and maximize customer satisfaction.
                             </p>
                         </div>
 
                         {/* Testimonial / Statistic */}
                         <div className="bg-white/[0.03] border-l-4 border-brand-500 p-5 md:p-6 rounded-r-2xl backdrop-blur-md shadow-2xl">
                             <p className="text-white font-bold italic text-sm leading-relaxed mb-4">
-                                "The precision of wait-time tracking transformed our clinic's reputation overnight. Simply world-class."
+                                "The precision of wait-time tracking transformed our hub's reputation overnight. Simply world-class."
                             </p>
                             <div className="flex items-center gap-4">
                                 <div className="w-9 h-9 rounded-xl bg-brand-500 flex items-center justify-center text-white font-black text-[10px] shadow-lg shadow-brand-500/20">
                                     SM
                                 </div>
                                 <div>
-                                    <h4 className="font-black text-white text-[8px] uppercase tracking-widest">Dr. Sarah Mitchell</h4>
+                                    <h4 className="font-black text-white text-[8px] uppercase tracking-widest">Professional Sarah Mitchell</h4>
                                     <p className="text-neutral-500 text-[7px] font-black uppercase tracking-widest mt-0.5">CMO, Nexa Global Health</p>
                                 </div>
                             </div>
@@ -214,7 +239,7 @@ export default function Signup() {
                                99.9% Uptime
                            </div>
                            <div className="px-5 py-2.5 rounded-full bg-white/5 border border-white/10 text-[9px] font-black text-neutral-500 uppercase tracking-[0.2em]">
-                               HIPAA Compliant
+                               GDPR Compliant
                            </div>
                         </div>
                     </div>

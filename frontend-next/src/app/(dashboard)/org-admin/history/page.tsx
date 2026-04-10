@@ -4,20 +4,20 @@ import React, { useEffect, useState, useCallback } from "react";
 import api from "@/services/api";
 import Loader from "@/components/Loader";
 import { 
-    Search, Calendar, Filter, User, Stethoscope, 
+    Search, Calendar, Filter, User, Briefcase, 
     CheckCircle, XCircle, Clock, ChevronDown, 
     ArrowUpDown, FileText, Download, Activity, History as HistoryIcon
 } from "lucide-react";
 
-export default function PatientHistory() {
+export default function CustomerHistory() {
     const [history, setHistory] = useState<any[]>([]);
-    const [doctors, setDoctors] = useState<any[]>([]);
+    const [agents, setAgents] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     
     // Filter states
     const [search, setSearch] = useState("");
     const [status, setStatus] = useState("");
-    const [doctorId, setDoctorId] = useState("");
+    const [agentId, setAgentId] = useState("");
     const [date, setDate] = useState("");
 
     const loadHistory = useCallback(async () => {
@@ -26,7 +26,7 @@ export default function PatientHistory() {
             const params: any = {};
             if (search) params.search = search;
             if (status) params.status = status;
-            if (doctorId) params.doctorId = doctorId;
+            if (agentId) params.agentId = agentId;
             if (date) params.date = date;
 
             const res = await api.get("/queue/history/", { params });
@@ -36,19 +36,19 @@ export default function PatientHistory() {
         } finally {
             setLoading(false);
         }
-    }, [search, status, doctorId, date]);
+    }, [search, status, agentId, date]);
 
-    const loadDoctors = async () => {
+    const loadAgents = async () => {
         try {
-            const res = await api.get("/admin/staff");
-            setDoctors(res.data.filter((s:any) => s.role === "DOCTOR"));
+            const res = await api.get("/organizations/staff");
+            setAgents(res.data.filter((s:any) => s.role === "AGENT"));
         } catch (err) {
-            console.error("Failed to load doctors", err);
+            console.error("Failed to load agents", err);
         }
     };
 
     useEffect(() => {
-        loadDoctors();
+        loadAgents();
     }, []);
 
     useEffect(() => {
@@ -78,7 +78,7 @@ export default function PatientHistory() {
                             <HistoryIcon className="w-6 h-6 text-brand-400" />
                         </div>
                         <div>
-                            <h1 className="text-xl sm:text-3xl font-black tracking-tight text-white mb-1 uppercase tracking-tighter italic underline decoration-brand-500/20 underline-offset-4">Patient History</h1>
+                            <h1 className="text-xl sm:text-3xl font-black tracking-tight text-white mb-1 uppercase tracking-tighter italic underline decoration-brand-500/20 underline-offset-4">Customer History</h1>
                             <p className="text-neutral-500 text-[10px] font-black uppercase tracking-[0.4em]">Visit Logs <span className="mx-2 text-neutral-800">/</span> Records</p>
                         </div>
                     </div>
@@ -98,11 +98,11 @@ export default function PatientHistory() {
                     <div className="relative group">
                         <select 
                             className="w-full bg-white/[0.03] border border-white/5 p-4 rounded-2xl text-[9px] font-black uppercase tracking-widest outline-none transition-all focus:border-brand-500/50 appearance-none cursor-pointer text-neutral-400"
-                            value={doctorId}
-                            onChange={(e) => setDoctorId(e.target.value)}
+                            value={agentId}
+                            onChange={(e) => setAgentId(e.target.value)}
                         >
-                            <option value="">ALL DOCTORS</option>
-                            {doctors.map(d => <option key={d._id} value={d._id}>{d.name.toUpperCase()}</option>)}
+                            <option value="">ALL AGENTS</option>
+                            {agents.map(d => <option key={d._id} value={d._id}>{d.name.toUpperCase()}</option>)}
                         </select>
                         <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-600 pointer-events-none group-hover:text-white transition-colors" />
                     </div>
@@ -148,30 +148,30 @@ export default function PatientHistory() {
                             <table className="w-full text-left border-separate border-spacing-y-4 px-6 md:px-10">
                                 <thead className="text-[10px] font-black text-neutral-700 uppercase tracking-[0.4em]">
                                     <tr>
-                                        <th className="pb-6 pl-10">PATIENT</th>
+                                        <th className="pb-6 pl-10">CUSTOMER</th>
                                         <th className="pb-6">STATUS</th>
-                                        <th className="pb-6">DOCTOR</th>
+                                        <th className="pb-6">AGENT</th>
                                         <th className="pb-6">DATE & TIME</th>
                                         <th className="pb-6 text-right pr-10">TOKEN</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {history.map((patient) => (
-                                        <tr key={patient._id} className="group transition-all duration-500 hover:z-20 relative">
+                                    {history.map((customer) => (
+                                        <tr key={customer._id} className="group transition-all duration-500 hover:z-20 relative">
                                             <td className="bg-white/[0.02] border-y border-l border-white/5 p-5 rounded-l-2xl group-hover:bg-white/[0.06] group-hover:border-white/20 transition-all duration-500">
                                                 <div className="flex items-center gap-4 text-neutral-300">
                                                     <div className="w-10 h-10 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center group-hover:bg-brand-500 group-hover:text-white transition-all transform group-hover:rotate-6">
                                                         <User className="w-5 h-5" />
                                                     </div>
                                                     <div>
-                                                        <h4 className="text-base font-black tracking-tight group-hover:text-brand-400 transition-colors uppercase">{patient.name}</h4>
-                                                        <p className="text-[9px] font-black text-neutral-600 uppercase tracking-widest mt-0.5">Visit ID {patient._id.slice(-6).toUpperCase()}</p>
+                                                        <h4 className="text-base font-black tracking-tight group-hover:text-brand-400 transition-colors uppercase">{customer.name}</h4>
+                                                        <p className="text-[9px] font-black text-neutral-600 uppercase tracking-widest mt-0.5">Visit ID {customer._id.slice(-6).toUpperCase()}</p>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="bg-white/[0.02] border-y border-white/5 p-5 group-hover:bg-white/[0.06] group-hover:border-white/20 transition-all duration-500">
                                                 <div className="flex items-center gap-3">
-                                                    {patient.status === 'completed' ? (
+                                                    {customer.status === 'completed' ? (
                                                         <div className="flex items-center gap-2 px-4 py-1.5 bg-success-500/10 border border-success-500/20 text-success-400 rounded-full text-[8px] font-black uppercase tracking-widest">
                                                             <CheckCircle className="w-3 h-3" /> COMPLETED
                                                         </div>
@@ -184,10 +184,10 @@ export default function PatientHistory() {
                                             </td>
                                             <td className="bg-white/[0.02] border-y border-white/5 p-5 group-hover:bg-white/[0.06] group-hover:border-white/20 transition-all duration-500">
                                                 <div className="flex items-center gap-2 group-hover:gap-4 text-neutral-400 group-hover:text-white transition-all duration-300">
-                                                    <Stethoscope className="w-3.5 h-3.5 text-brand-500/50" />
+                                                    <Briefcase className="w-3.5 h-3.5 text-brand-500/50" />
                                                     <div>
-                                                        <p className="text-[9px] font-black uppercase tracking-tight italic">{patient.doctorId?.name}</p>
-                                                        <p className="text-[7px] font-black text-neutral-800 uppercase tracking-widest">{patient.doctorId?.specialization}</p>
+                                                        <p className="text-[9px] font-black uppercase tracking-tight italic">{customer.agentId?.name}</p>
+                                                        <p className="text-[7px] font-black text-neutral-800 uppercase tracking-widest">{customer.agentId?.serviceCategory}</p>
                                                     </div>
                                                 </div>
                                             </td>
@@ -195,16 +195,16 @@ export default function PatientHistory() {
                                                 <div className="flex flex-col gap-1">
                                                     <div className="flex items-center gap-2">
                                                         <Calendar className="w-3 h-3" />
-                                                        <span className="text-[10px] font-black uppercase tabular-nums">{new Date(patient.completedAt || patient.updatedAt).toLocaleDateString()}</span>
+                                                        <span className="text-[10px] font-black uppercase tabular-nums">{new Date(customer.completedAt || customer.updatedAt).toLocaleDateString()}</span>
                                                     </div>
                                                     <div className="flex items-center gap-2">
                                                         <Clock className="w-3 h-3" />
-                                                        <span className="text-[10px] font-black uppercase tabular-nums">{new Date(patient.completedAt || patient.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                        <span className="text-[10px] font-black uppercase tabular-nums">{new Date(customer.completedAt || customer.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="bg-white/[0.02] border-y border-r border-white/5 p-8 rounded-r-[2rem] group-hover:bg-white/[0.06] group-hover:border-white/20 transition-all duration-500 text-right pr-10">
-                                                <span className="text-4xl font-black font-mono tracking-tighter text-white/20 group-hover:text-brand-500 transition-colors">{patient.tokenNumber.toString().padStart(2, '0')}</span>
+                                                <span className="text-4xl font-black font-mono tracking-tighter text-white/20 group-hover:text-brand-500 transition-colors">{customer.tokenNumber.toString().padStart(2, '0')}</span>
                                             </td>
                                         </tr>
                                     ))}

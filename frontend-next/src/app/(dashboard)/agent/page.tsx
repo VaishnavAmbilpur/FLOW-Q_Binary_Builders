@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Loader from "@/components/Loader";
 import { io } from "socket.io-client";
 import {
-    Activity, ArrowLeft, ArrowUp, Calendar, CheckCircle, Clock, FileText, Mail, MonitorSmartphone, Power, RefreshCw, Settings, Shield, Stethoscope, TrendingUp, User, Users, X, AlertCircle, AlertTriangle, Smartphone
+    Activity, ArrowLeft, ArrowUp, Calendar, CheckCircle, Clock, FileText, Mail, MonitorSmartphone, Power, RefreshCw, Settings, Shield, Briefcase, TrendingUp, User, Users, X, AlertCircle, AlertTriangle, Smartphone
 } from "lucide-react";
 
 export default function AgentDashboard() {
@@ -16,8 +16,8 @@ export default function AgentDashboard() {
     const [summary, setSummary] = useState<any>(null);
 
     // Completion state
-    const [completingClient, setCompletingClient] = useState<any>(null);
-    const [nextVisitDate, setNextVisitDate] = useState("");
+    const [completingCustomer, setCompletingCustomer] = useState<any>(null);
+    const [nextSessionDate, setNextSessionDate] = useState("");
     const [msg, setMsg] = useState("");
     const [avgTime, setAvgTime] = useState("");
     const [statusMessage, setStatusMessage] = useState("");
@@ -28,15 +28,14 @@ export default function AgentDashboard() {
             const meRes = await api.get("/auth/me");
             const userData = meRes.data;
 
-            if (userData.role !== "AGENT" && userData.role !== "DOCTOR" &&
-                userData.role !== "ORG_ADMIN" && userData.role !== "HOSPITAL_ADMIN") {
+            if (userData.role !== "AGENT" && userData.role !== "ORG_ADMIN") {
                 router.push("/operator");
                 return;
             }
 
             const res = await api.get("/agents/info");
             setAgent(res.data);
-            setAvgTime((res.data.avgSessionDuration || res.data.avgConsultationTime || 5).toString());
+            setAvgTime((res.data.avgSessionTime || res.data.avgSessionDuration || 5).toString());
         } catch (err: any) {
             if (err.response?.status === 401) router.push("/login");
         }
@@ -91,8 +90,8 @@ export default function AgentDashboard() {
 
     async function updateAvgTime() {
         try {
-            await api.put("/agents/update-session-duration", { avgSessionDuration: Number(avgTime) });
-            setAgent((prev: any) => ({ ...prev, avgSessionDuration: Number(avgTime) }));
+            await api.put("/agents/update-session-duration", { avgSessionTime: Number(avgTime) });
+            setAgent((prev: any) => ({ ...prev, avgSessionTime: Number(avgTime) }));
             showMsg("Average Session Duration Updated!");
         } catch (err) { console.error(err); }
     }
@@ -113,35 +112,35 @@ export default function AgentDashboard() {
         } catch (err) { console.error(err); }
     }
 
-    async function prioritiseClient(clientId: string) {
+    async function prioritiseCustomer(customerId: string) {
         try {
-            await api.put(`/queue/prioritise/${clientId}`);
-            showMsg("Client moved to top of queue");
+            await api.put(`/queue/prioritise/${customerId}`);
+            showMsg("Customer moved to top of queue");
             loadQueue();
         } catch (err) {
-            showMsg("Error prioritising client");
+            showMsg("Error prioritising customer");
         }
     }
 
-    async function handleCompleteClient() {
-        if (!completingClient) return;
+    async function handleCompleteCustomer() {
+        if (!completingCustomer) return;
         try {
-            await api.put(`/queue/complete/${completingClient._id}`, {
-                nextVisitDate: nextVisitDate || null
+            await api.put(`/queue/complete/${completingCustomer._id}`, {
+                nextSessionDate: nextSessionDate || null
             });
-            setCompletingClient(null);
-            setNextVisitDate("");
+            setCompletingCustomer(null);
+            setNextSessionDate("");
             loadQueue();
             loadSummary();
-            showMsg("Client visit completed!");
+            showMsg("Customer visit completed!");
         } catch (err) { console.error(err); }
     }
 
-    async function cancelClient(clientId: string) {
-        if (!confirm("Are you sure you want to cancel this client's visit? This action is irreversible.")) return;
+    async function cancelCustomer(customerId: string) {
+        if (!confirm("Are you sure you want to cancel this customer's visit? This action is irreversible.")) return;
         try {
-            await api.put(`/queue/cancel/${clientId}`);
-            showMsg("Client Visit Cancelled");
+            await api.put(`/queue/cancel/${customerId}`);
+            showMsg("Customer Visit Cancelled");
             loadQueue();
             loadSummary();
         } catch (err) {
@@ -184,7 +183,7 @@ export default function AgentDashboard() {
                                     {agent.availability}
                                 </span>
                             </div>
-                            <p className="text-neutral-500 text-[11px] sm:text-sm font-bold uppercase tracking-wider">{agent.name} <span className="mx-2 text-neutral-800">/</span> {agent.serviceCategory || agent.specialization}</p>
+                            <p className="text-neutral-500 text-[11px] sm:text-sm font-bold uppercase tracking-wider">{agent.name} <span className="mx-2 text-neutral-800">/</span> {agent.serviceCategory || agent.serviceCategory}</p>
                         </div>
                     </div>
                     
@@ -305,7 +304,7 @@ export default function AgentDashboard() {
                             </div>
                             <div className="bg-black/20 rounded-3xl p-6 border border-white/5 flex flex-col items-center text-center">
                                 <div className="flex items-baseline gap-2 mb-6">
-                                    <span className="text-5xl font-black font-mono text-brand-400">{agent.avgSessionDuration || "05"}</span>
+                                    <span className="text-5xl font-black font-mono text-brand-400">{agent.avgSessionTime || agent.avgSessionDuration || "05"}</span>
                                     <span className="text-[10px] font-black uppercase tracking-widest text-neutral-600">min avg</span>
                                 </div>
                                 <div className="flex flex-col sm:flex-row gap-3 w-full">
@@ -360,7 +359,7 @@ export default function AgentDashboard() {
                                         <Users className="w-6 h-6 animate-pulse" />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-black tracking-tight text-white uppercase italic">Live Client Queue</h3>
+                                        <h3 className="text-xl font-black tracking-tight text-white uppercase italic">Live Customer Queue</h3>
                                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-500">{queue.length} Waiting</p>
                                     </div>
                                 </div>
@@ -400,7 +399,7 @@ export default function AgentDashboard() {
                                                 <div className="flex flex-wrap items-center gap-2 sm:gap-4">
                                                     <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-neutral-400 bg-black/20 px-3 py-1 rounded-full outline outline-1 outline-white/5">
                                                         <Clock className="w-3 h-3" />
-                                                        ~{p.estimatedWait ?? (idx * (agent.avgSessionDuration || 5))}m Wait
+                                                        ~{p.estimatedWait ?? (idx * (agent.avgSessionTime || agent.avgSessionDuration || 5))}m Wait
                                                     </div>
                                                     {p.notes && (
                                                         <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-info-400 bg-info-500/10 px-3 py-1 rounded-full outline outline-1 outline-info-500/20 max-w-[200px] truncate">
@@ -411,13 +410,13 @@ export default function AgentDashboard() {
                                                 </div>
                                             </div>
 
-                                            {/* Precision Actions */}
+                                             {/* Precision Actions */}
                                             <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-                                                {idx > 0 && (
+                                                {idx > 0 && idx < 3 && (
                                                     <button
-                                                        onClick={() => prioritiseClient(p._id)}
+                                                        onClick={() => prioritiseCustomer(p._id)}
                                                         className="p-3.5 rounded-2xl border border-warning-500/30 bg-warning-500/10 text-warning-400 hover:bg-warning-500/20 transition-all active:scale-90"
-                                                        title="Prioritise Client"
+                                                        title="Prioritise Customer"
                                                     >
                                                         <ArrowUp className="w-5 h-5" />
                                                     </button>
@@ -425,8 +424,8 @@ export default function AgentDashboard() {
                                                 {idx === 0 && (
                                                     <button
                                                         onClick={() => {
-                                                            setCompletingClient(p);
-                                                            setNextVisitDate("");
+                                                            setCompletingCustomer(p);
+                                                            setNextSessionDate("");
                                                         }}
                                                         className="flex items-center gap-2.5 px-3.5 sm:px-6 py-2.5 sm:py-3.5 rounded-xl sm:rounded-[1.5rem] bg-success-600 hover:bg-success-500 text-white font-black text-[10px] sm:text-xs uppercase tracking-widest shadow-2xl shadow-success-600/30 transition-all active:scale-95 group/btn"
                                                     >
@@ -436,7 +435,7 @@ export default function AgentDashboard() {
                                                     </button>
                                                 )}
                                                 <button
-                                                    onClick={() => cancelClient(p._id)}
+                                                    onClick={() => cancelCustomer(p._id)}
                                                     className="p-3.5 rounded-2xl border border-danger-500/30 bg-danger-500/10 text-danger-400 hover:bg-danger-500/20 transition-all active:scale-90"
                                                     title="Cancel Visit"
                                                 >
@@ -505,7 +504,7 @@ export default function AgentDashboard() {
                                                     </span>
                                                 </td>
                                                 <td className="p-4">
-                                                    <p className="font-black text-white text-sm tracking-tight uppercase group-hover:text-brand-400 transition-colors italic">{appt.clientName || appt.patientName}</p>
+                                                    <p className="font-black text-white text-sm tracking-tight uppercase group-hover:text-brand-400 transition-colors italic">{appt.clientName || appt.customerName}</p>
                                                 </td>
                                                 <td className="p-4 hidden sm:table-cell">
                                                     <div className="flex items-center gap-2 text-neutral-500 text-[10px] font-black uppercase tracking-widest">
@@ -541,7 +540,7 @@ export default function AgentDashboard() {
             </div>
 
             {/* Commit Visit Overlay */}
-            {completingClient && (
+            {completingCustomer && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-neutral-950/80 backdrop-blur-3xl animate-fadeIn">
                     <div className="bg-neutral-900 w-full max-w-lg rounded-[4rem] shadow-[0_0_100px_rgba(0,0,0,0.5)] border border-white/10 overflow-hidden relative">
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-brand-500 to-transparent" />
@@ -552,16 +551,16 @@ export default function AgentDashboard() {
                             </div>
                             
                             <h2 className="text-3xl font-black text-white mb-2 tracking-tight uppercase italic">Complete Visit</h2>
-                            <p className="text-neutral-400 font-black uppercase tracking-widest text-[10px] mb-10">Client: <span className="text-brand-400 italic">{completingClient.clientName || completingClient.name}</span></p>
-
+                            <p className="text-neutral-400 font-black uppercase tracking-widest text-[10px] mb-10">Customer: <span className="text-brand-400 italic">{completingCustomer.clientName || completingCustomer.name}</span></p>
+ 
                             <div className="w-full space-y-6 text-left">
                                 <div className="space-y-3">
                                     <label className="text-[10px] font-black uppercase tracking-[0.3em] text-neutral-500 ml-5 block italic">Scheduled Return</label>
                                     <input
                                         type="date"
                                         min={new Date().toISOString().split('T')[0]}
-                                        value={nextVisitDate}
-                                        onChange={(e) => setNextVisitDate(e.target.value)}
+                                        value={nextSessionDate}
+                                        onChange={(e) => setNextSessionDate(e.target.value)}
                                         className="w-full px-6 py-4 rounded-[1.5rem] bg-white/5 border border-white/10 text-white font-bold focus:border-brand-500/50 outline-none transition-all"
                                     />
                                     <p className="text-[10px] font-black italic text-neutral-500 px-5 text-center">
@@ -569,16 +568,16 @@ export default function AgentDashboard() {
                                     </p>
                                 </div>
                             </div>
-
+ 
                             <div className="grid grid-cols-2 gap-4 w-full mt-12">
                                 <button
-                                    onClick={() => setCompletingClient(null)}
+                                    onClick={() => setCompletingCustomer(null)}
                                     className="px-8 py-4 rounded-2xl bg-white/5 border border-white/5 text-neutral-500 font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all font-mono"
                                 >
                                     Cancel
                                 </button>
                                 <button
-                                    onClick={handleCompleteClient}
+                                    onClick={handleCompleteCustomer}
                                     className="px-8 py-4 rounded-2xl bg-success-600 hover:bg-success-500 text-white font-black text-[10px] uppercase tracking-widest shadow-2xl shadow-success-600/20 transition-all flex items-center justify-center gap-3"
                                 >
                                     <CheckCircle className="w-4 h-4" /> Finalize

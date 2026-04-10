@@ -3,7 +3,7 @@ const mongooseFieldEncryption = require("mongoose-field-encryption").fieldEncryp
 
 const communicationConsentSchema = new mongoose.Schema({
     phoneNumber: { type: String, required: true }, // Encrypted primary contact
-    organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Hospital', index: true, required: true },
+    organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', index: true, required: true },
     optInStatus: { type: Boolean, default: false },
     consentTimestamp: { type: Date, default: Date.now },
     purpose: { type: String, enum: ["queue_updates", "marketing", "appointments"], default: "queue_updates" },

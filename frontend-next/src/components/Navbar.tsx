@@ -12,9 +12,9 @@ import {
   ChevronDown,
   MonitorSmartphone,
   LayoutDashboard,
-  Activity,
+  BarChart3,
   ClipboardList,
-  Stethoscope,
+  Users,
   History,
   Shield,
   UserCircle,
@@ -54,7 +54,6 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     try {
-      await api.post("/admin/logout").catch(() => { });
       await api.post("/auth/logout").catch(() => { });
     } catch (err) {
       console.error("Logout error:", err);
@@ -66,11 +65,11 @@ export default function Navbar() {
 
   // Role-based navigation links
   const allNavLinks: NavLink[] = [
-    { name: "Admin Dashboard", path: "/admin/dashboard", icon: LayoutDashboard, bgClass: "bg-blue-100 dark:bg-blue-900/30", borderClass: "border-blue-200 dark:border-blue-800", textClass: "text-blue-600 dark:text-blue-400", roles: ["HOSPITAL_ADMIN"] },
-    { name: "Analytics", path: "/admin/analytics", icon: Activity, bgClass: "bg-fuchsia-100 dark:bg-fuchsia-900/30", borderClass: "border-fuchsia-200 dark:border-fuchsia-800", textClass: "text-fuchsia-600 dark:text-fuchsia-400", roles: ["HOSPITAL_ADMIN"] },
-    { name: "Reception Desk", path: "/reception", icon: ClipboardList, bgClass: "bg-amber-100 dark:bg-amber-900/30", borderClass: "border-amber-200 dark:border-amber-800", textClass: "text-amber-600 dark:text-amber-400", roles: ["RECEPTIONIST"] },
-    { name: "Doctor Panel", path: "/doctor", icon: Stethoscope, bgClass: "bg-emerald-100 dark:bg-emerald-900/30", borderClass: "border-emerald-200 dark:border-emerald-800", textClass: "text-emerald-600 dark:text-emerald-400", roles: ["DOCTOR"] },
-    { name: "History", path: user?.role === "HOSPITAL_ADMIN" ? "/admin/history" : "/history", icon: History, bgClass: "bg-violet-100 dark:bg-violet-900/30", borderClass: "border-violet-200 dark:border-violet-800", textClass: "text-violet-600 dark:text-violet-400", roles: ["HOSPITAL_ADMIN", "DOCTOR", "RECEPTIONIST"] },
+    { name: "Organization Dashboard", path: "/org-admin/dashboard", icon: LayoutDashboard, bgClass: "bg-blue-100 dark:bg-blue-900/30", borderClass: "border-blue-200 dark:border-blue-800", textClass: "text-blue-600 dark:text-blue-400", roles: ["ORG_ADMIN"] },
+    { name: "Analytics", path: "/org-admin/analytics", icon: BarChart3, bgClass: "bg-fuchsia-100 dark:bg-fuchsia-900/30", borderClass: "border-fuchsia-200 dark:border-fuchsia-800", textClass: "text-fuchsia-600 dark:text-fuchsia-400", roles: ["ORG_ADMIN"] },
+    { name: "Operator Desk", path: "/operator", icon: ClipboardList, bgClass: "bg-amber-100 dark:bg-amber-900/30", borderClass: "border-amber-200 dark:border-amber-800", textClass: "text-amber-600 dark:text-amber-400", roles: ["OPERATOR"] },
+    { name: "Agent Panel", path: "/agent", icon: Users, bgClass: "bg-emerald-100 dark:bg-emerald-900/30", borderClass: "border-emerald-200 dark:border-emerald-800", textClass: "text-emerald-600 dark:text-emerald-400", roles: ["AGENT"] },
+    { name: "History", path: user?.role === "ORG_ADMIN" ? "/org-admin/history" : "/history", icon: History, bgClass: "bg-violet-100 dark:bg-violet-900/30", borderClass: "border-violet-200 dark:border-violet-800", textClass: "text-violet-600 dark:text-violet-400", roles: ["ORG_ADMIN", "AGENT", "OPERATOR"] },
   ];
 
   // Filter links based on user role
@@ -80,25 +79,25 @@ export default function Navbar() {
 
   const getRoleColor = () => {
     switch (user?.role) {
-      case "HOSPITAL_ADMIN":
+      case "ORG_ADMIN":
         return {
           gradient: "from-blue-500 to-brand-500",
           badge: "bg-indigo-100 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400",
           icon: Shield,
           hover: "hover:text-brand-400"
         };
-      case "DOCTOR":
+      case "AGENT":
         return {
           gradient: "from-emerald-500 to-teal-500",
           badge: "bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400",
-          icon: Stethoscope,
+          icon: Users,
           hover: "hover:text-emerald-500"
         };
-      case "RECEPTIONIST":
+      case "OPERATOR":
         return {
           gradient: "from-orange-400 to-rose-400",
           badge: "bg-amber-100 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400",
-          icon: Activity,
+          icon: ClipboardList,
           hover: "hover:text-amber-500"
         };
       default:

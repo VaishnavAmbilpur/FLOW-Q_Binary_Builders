@@ -7,26 +7,26 @@ import { Users, Activity, Stethoscope } from "lucide-react";
 
 const NEXT_PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
 
-type DoctorDisplay = {
-    doctorId: string;
-    doctorName: string;
-    specialization: string;
+type AgentDisplay = {
+    agentId: string;
+    agentName: string;
+    serviceCategory: string;
     servingToken: number | string;
     nextTokens: number[];
 };
 
 export default function KioskDisplayMode() {
-    const { hospitalId } = useParams();
-    const [doctors, setDoctors] = useState<DoctorDisplay[]>([]);
+    const { organizationId } = useParams();
+    const [agents, setAgents] = useState<AgentDisplay[]>([]);
     const [loading, setLoading] = useState(true);
     const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
     const fetchDisplayData = async () => {
         try {
-            const res = await fetch(`${NEXT_PUBLIC_API_URL}/kiosk/${hospitalId}/display`);
+            const res = await fetch(`${NEXT_PUBLIC_API_URL}/kiosk/${organizationId}/display`);
             const data = await res.json();
             if (data.success) {
-                setDoctors(data.data);
+                setAgents(data.data);
                 setLastUpdated(new Date());
             }
         } catch (err) {
@@ -38,7 +38,7 @@ export default function KioskDisplayMode() {
     };
 
     useEffect(() => {
-        if (!hospitalId) return;
+        if (!organizationId) return;
 
         // Fetch immediately
         fetchDisplayData();
@@ -47,7 +47,7 @@ export default function KioskDisplayMode() {
         const intervalId = setInterval(fetchDisplayData, 10000);
 
         return () => clearInterval(intervalId);
-    }, [hospitalId]);
+    }, [organizationId]);
 
     // Setup full screen toggle
     const toggleFullScreen = () => {
@@ -98,23 +98,23 @@ export default function KioskDisplayMode() {
 
             {/* Grid */}
             <main className="flex-1 relative z-10">
-                {doctors.length === 0 ? (
+                {agents.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full text-center">
                         <Stethoscope className="w-24 h-24 text-neutral-600 mb-6" />
                         <h2 className="text-4xl font-bold text-neutral-400">No active lists right now</h2>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 h-full auto-rows-max">
-                        {doctors.map((doc) => (
+                        {agents.map((doc) => (
                             <div
-                                key={doc.doctorId}
+                                key={doc.agentId}
                                 className="bg-white/90 dark:bg-gradient-to-br dark:from-neutral-900/90 dark:to-black/90 backdrop-blur-xl border-2 border-gray-200 dark:border-white/5 rounded-[2.5rem] p-8 shadow-sm dark:shadow-2xl flex flex-col transition-all duration-500"
                             >
                                 <div className="border-b border-gray-200 dark:border-white/10 pb-6 mb-6">
                                     <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-2 truncate">
-                                        Dr. {doc.doctorName}
+                                        Professional {doc.agentName}
                                     </h2>
-                                    <p className="text-xl text-gray-700 dark:text-neutral-300 font-semibold">{doc.specialization}</p>
+                                    <p className="text-xl text-gray-700 dark:text-neutral-300 font-semibold">{doc.serviceCategory}</p>
                                 </div>
 
                                 <div className="flex-1 flex flex-col justify-center items-center py-6 bg-gray-50 dark:bg-black/40 rounded-3xl mb-8 border border-gray-200 dark:border-white/5 relative overflow-hidden">

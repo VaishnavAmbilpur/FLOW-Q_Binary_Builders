@@ -1,83 +1,81 @@
-const Patient = require('../models/Patient');
-const Doctor = require('../models/Doctor');
+const Customer = require('../models/Customer');
+const User = require('../models/User');
 const Appointment = require('../models/Appointment');
 const { Types } = require('mongoose');
-// Removed invalid import
 const { dispatchWebhook } = require('../utils/webhookDispatcher');
 
 exports.createQueueEntry = async (req, res) => {
     try {
-        const { doctorId, externalPatientId, name, description, number } = req.body;
-        const hospitalId = req.hospital._id;
+        const { agentId, externalCustomerId, name, description, number } = req.body;
+        const organizationId = req.organization?._id || req.hospital?._id; // Compatibility
 
-        if (!Types.ObjectId.isValid(doctorId)) {
-            return res.status(400).json({ success: false, error: 'Invalid doctorId' });
+        if (!Types.ObjectId.isValid(agentId)) {
+            return res.status(400).json({ success: false, error: 'Invalid agentId' });
         }
 
-        const doctor = await Doctor.findOne({ _id: doctorId, hospitalId });
-        if (!doctor) {
-            return res.status(404).json({ success: false, error: 'Doctor not found for your API key context' });
+        const agent = await User.findOne({ _id: agentId, organizationId, role: "AGENT" });
+        if (!agent) {
+            return res.status(404).json({ success: false, error: 'Agent not found for your API key context' });
         }
 
         // Get max token number
-        const lastPatient = await Patient.findOne({ doctorId }).sort({ tokenNumber: -1 });
-        const tokenNumber = lastPatient ? lastPatient.tokenNumber + 1 : 1;
+        const lastCustomer = await Customer.findOne({ agentId }).sort({ tokenNumber: -1 });
+        const tokenNumber = lastCustomer ? lastCustomer.tokenNumber + 1 : 1;
         const uniqueLinkId = require('crypto').randomUUID();
 
-        // Resolve branch ID
-        let branchId = doctor?.branchId;
-        if (!branchId && req.hospital) {
-            if (req.hospital.branches && req.hospital.branches.length > 0) {
-                branchId = req.hospital.branches[0]._id;
+        // Resolve location ID
+        let locationId = agent?.locationId;
+        const organization = req.organization || req.hospital;
+        if (!locationId && organization) {
+            if (organization.locations && organization.locations.length > 0) {
+                locationId = organization.locations[0]._id;
+            } else if (organization.branches && organization.branches.length > 0) {
+                locationId = organization.branches[0]._id;
             } else {
-                // Auto-create default branch for legacy hospitals
-                req.hospital.branches = [{ name: "Main Branch", address: "Legacy Auto-Created" }];
-                await req.hospital.save();
-                branchId = req.hospital.branches[0]._id;
+                // Auto-create default location
+                organization.locations = [{ name: "Main Location", address: "Legacy Auto-Created" }];
+                await organization.save();
+                locationId = organization.locations[0]._id;
             }
         }
 
-        const newPatient = new Patient({
-            hospitalId,
-            branchId,
-            doctorId,
-            externalPatientId, // Zero PII mapping
-            name,  // Optional
-            description, // Optional
-            number, // Optional
+        const newCustomer = new Customer({
+            organizationId,
+            locationId,
+            agentId,
+            externalCustomerId,
+            name,
+            description,
+            number,
             tokenNumber,
             uniqueLinkId,
             status: "waiting"
         });
 
-        await newPatient.save();
+        await newCustomer.save();
 
-        // Broadcast UI Socket to both doctor and the centralized hospital dashboard
         const io = global.io;
         if (io) {
-            io.to(`doctor_${doctorId}`).emit("queueUpdated");
-            // Note: internal legacy UI binds to doctorId string, let's keep it safe
-            io.to(doctorId.toString()).emit("queueUpdated");
-            // New QaaS B2B Multi-tenancy Emission
-            io.to(`hospital_${hospitalId}`).emit("queueUpdated");
+            io.to(`agent_${agentId}`).emit("queueUpdated");
+            io.to(agentId.toString()).emit("queueUpdated");
+            io.to(`organization_${organizationId}`).emit("queueUpdated");
         }
 
-        // Fire B2B Webhook
-        await dispatchWebhook(hospitalId, 'queue.created', {
-            id: newPatient._id,
-            externalPatientId: newPatient.externalPatientId,
-            doctorId: newPatient.doctorId,
-            tokenNumber: newPatient.tokenNumber,
-            status: newPatient.status
+        await dispatchWebhook(organizationId, 'queue.created', {
+            id: newCustomer._id,
+            externalCustomerId: newCustomer.externalCustomerId,
+            agentId: newCustomer.agentId,
+            tokenNumber: newCustomer.tokenNumber,
+            status: newCustomer.status
         });
 
         res.status(201).json({
             success: true,
             data: {
-                id: newPatient._id,
-                externalPatientId: newPatient.externalPatientId,
-                tokenNumber: newPatient.tokenNumber,
-                trackingUrl: `${process.env.FRONTEND_URL}/status/${newPatient.uniqueLinkId}`
+                id: newCustomer._id,
+                externalCustomerId: newCustomer.externalCustomerId,
+                tokenNumber: newCustomer.tokenNumber,
+                trackingUrl: `${process.env.FRONTEND_URL}/status/${newCustomer.uniqueLinkId}`
             }
         });
 
@@ -87,17 +85,18 @@ exports.createQueueEntry = async (req, res) => {
     }
 };
 
-exports.getDoctorStatus = async (req, res) => {
+exports.getAgentStatus = async (req, res) => {
     try {
-        const { doctorId } = req.params;
-        const hospitalId = req.hospital._id;
+        const { agentId } = req.params;
+        const organizationId = req.organization?._id || req.hospital?._id;
 
-        const doctor = await Doctor.findOne({ _id: doctorId, hospitalId, role: "DOCTOR" }).select('availability avgConsultationTime');
-        if (!doctor) return res.status(404).json({ success: false, error: 'Doctor not found' });
+        const agent = await User.findOne({ _id: agentId, organizationId, role: "AGENT" })
+            .select('availability avgSessionTime expertise');
+        if (!agent) return res.status(404).json({ success: false, error: 'Agent not found' });
 
         res.status(200).json({
             success: true,
-            data: doctor
+            data: agent
         });
     } catch (err) {
         res.status(500).json({ success: false, error: 'Server error' });
@@ -106,23 +105,24 @@ exports.getDoctorStatus = async (req, res) => {
 
 exports.getQueueStatus = async (req, res) => {
     try {
-        const patient = await Patient.findOne({ uniqueLinkId: req.params.uniqueLinkId, hospitalId: req.hospital._id });
-        if (!patient) return res.status(404).json({ success: false, error: 'Queue entry not found' });
+        const organizationId = req.organization?._id || req.hospital?._id;
+        const customer = await Customer.findOne({ uniqueLinkId: req.params.uniqueLinkId, organizationId });
+        if (!customer) return res.status(404).json({ success: false, error: 'Queue entry not found' });
 
-        if (patient.status === 'completed' || patient.status === 'cancelled') {
-            return res.json({ success: true, data: { status: patient.status } });
+        if (customer.status === 'completed' || customer.status === 'cancelled') {
+            return res.json({ success: true, data: { status: customer.status } });
         }
 
-        const queue = await Patient.find({ doctorId: patient.doctorId, status: 'waiting' }).sort({ tokenNumber: 1 });
-        const position = queue.findIndex(p => p._id.toString() === patient._id.toString()) + 1;
+        const queue = await Customer.find({ agentId: customer.agentId, status: 'waiting' }).sort({ tokenNumber: 1 });
+        const position = queue.findIndex(p => p._id.toString() === customer._id.toString()) + 1;
 
         res.json({
             success: true,
             data: {
-                status: patient.status,
-                tokenNumber: patient.tokenNumber,
+                status: customer.status,
+                tokenNumber: customer.tokenNumber,
                 position: position > 0 ? position : null,
-                estimatedWaitTimeMinutes: position > 0 ? position * 5 : null // Using default 5 mins for API brevity
+                estimatedWaitTimeMinutes: position > 0 ? position * (customer.avgSessionTime || 5) : null
             }
         });
     } catch (err) {
@@ -132,25 +132,24 @@ exports.getQueueStatus = async (req, res) => {
 
 exports.deleteQueueEntry = async (req, res) => {
     try {
-        const patient = await Patient.findOneAndUpdate(
-            { uniqueLinkId: req.params.uniqueLinkId, hospitalId: req.hospital._id },
+        const organizationId = req.organization?._id || req.hospital?._id;
+        const customer = await Customer.findOneAndUpdate(
+            { uniqueLinkId: req.params.uniqueLinkId, organizationId },
             { status: 'cancelled' },
             { new: true }
         );
 
-        if (!patient) return res.status(404).json({ success: false, error: 'Queue entry not found' });
+        if (!customer) return res.status(404).json({ success: false, error: 'Queue entry not found' });
 
-        // Broadcast UI Socket
         const io = global.io;
-        if (io) io.to(patient.doctorId.toString()).emit("queueUpdated");
+        if (io) io.to(customer.agentId.toString()).emit("queueUpdated");
 
-        // Fire B2B Webhook
-        await dispatchWebhook(req.hospital._id, 'queue.cancelled', {
-            id: patient._id,
-            externalPatientId: patient.externalPatientId,
-            doctorId: patient.doctorId,
-            tokenNumber: patient.tokenNumber,
-            status: patient.status
+        await dispatchWebhook(organizationId, 'queue.cancelled', {
+            id: customer._id,
+            externalCustomerId: customer.externalCustomerId,
+            agentId: customer.agentId,
+            tokenNumber: customer.tokenNumber,
+            status: customer.status
         });
 
         res.json({ success: true, message: "Queue entry cancelled" });
@@ -159,11 +158,12 @@ exports.deleteQueueEntry = async (req, res) => {
     }
 };
 
-exports.getDoctorQueue = async (req, res) => {
+exports.getAgentQueue = async (req, res) => {
     try {
-        const queue = await Patient.find({ doctorId: req.params.doctorId, hospitalId: req.hospital._id, status: 'waiting' })
+        const organizationId = req.organization?._id || req.hospital?._id;
+        const queue = await Customer.find({ agentId: req.params.agentId, organizationId, status: 'waiting' })
             .sort({ tokenNumber: 1 })
-            .select('externalPatientId tokenNumber status createdAt');
+            .select('externalCustomerId tokenNumber status createdAt');
 
         res.json({ success: true, data: queue });
     } catch (err) {
@@ -173,36 +173,34 @@ exports.getDoctorQueue = async (req, res) => {
 
 exports.bookApiAppointment = async (req, res) => {
     try {
-        const { doctorId, patientName, phone, scheduledAt, notes } = req.body;
-        const hospitalId = req.hospital._id;
+        const { agentId, customerName, phone, scheduledAt, notes } = req.body;
+        const organizationId = req.organization?._id || req.hospital?._id;
 
-        if (!Types.ObjectId.isValid(doctorId)) {
-            return res.status(400).json({ success: false, error: 'Invalid doctorId' });
+        if (!Types.ObjectId.isValid(agentId)) {
+            return res.status(400).json({ success: false, error: 'Invalid agentId' });
         }
 
-        const doctor = await Doctor.findOne({ _id: doctorId, hospitalId, role: "DOCTOR" });
-        if (!doctor) {
-            return res.status(404).json({ success: false, error: 'Doctor not found for your API key context' });
+        const agent = await User.findOne({ _id: agentId, organizationId, role: "AGENT" });
+        if (!agent) {
+            return res.status(404).json({ success: false, error: 'Agent not found for your API key context' });
         }
 
-        // Resolve branch ID
-        let branchId = doctor?.branchId;
-        if (!branchId && req.hospital) {
-            if (req.hospital.branches && req.hospital.branches.length > 0) {
-                branchId = req.hospital.branches[0]._id;
-            } else {
-                // Auto-create default branch for legacy hospitals
-                req.hospital.branches = [{ name: "Main Branch", address: "Legacy Auto-Created" }];
-                await req.hospital.save();
-                branchId = req.hospital.branches[0]._id;
+        // Resolve location ID
+        let locationId = agent?.locationId;
+        const organization = req.organization || req.hospital;
+        if (!locationId && organization) {
+            if (organization.locations && organization.locations.length > 0) {
+                locationId = organization.locations[0]._id;
+            } else if (organization.branches && organization.branches.length > 0) {
+                locationId = organization.branches[0]._id;
             }
         }
 
         const appointment = new Appointment({
-            hospitalId,
-            branchId,
-            doctorId,
-            patientName,
+            organizationId,
+            locationId,
+            agentId,
+            customerName,
             phone,
             scheduledAt,
             notes,

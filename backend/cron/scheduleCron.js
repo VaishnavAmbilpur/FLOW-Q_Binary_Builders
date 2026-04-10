@@ -4,11 +4,11 @@ const logger = require('../utils/logger');
 
 // Run every 15 minutes
 const initScheduleCron = () => {
-    logger.info("Initializing Doctor Schedule Cron Job (Runs every 15m)");
+    logger.info("Initializing Agent Schedule Cron Job (Runs every 15m)");
 
     cron.schedule('*/15 * * * *', async () => {
         try {
-            const doctors = await User.find({ role: 'DOCTOR', "schedule.0": { $exists: true } });
+            const agents = await User.find({ role: 'AGENT', "schedule.0": { $exists: true } });
 
             const now = new Date();
             const currentDayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -19,9 +19,9 @@ const initScheduleCron = () => {
             const currentMin = now.getMinutes().toString().padStart(2, '0');
             const currentTime = `${currentHour}:${currentMin}`;
 
-            for (const doc of doctors) {
+            for (const agent of agents) {
                 // Find today's schedule
-                const todaySchedule = doc.schedule.find(s => s.day === currentDay);
+                const todaySchedule = agent.schedule.find(s => s.day === currentDay);
 
                 let shouldBeAvailable = false;
 
@@ -33,14 +33,10 @@ const initScheduleCron = () => {
 
                 const desiredStatus = shouldBeAvailable ? "Available" : "Not Available";
 
-                if (doc.availability !== desiredStatus && doc.availability !== "On Break") {
-                    doc.availability = desiredStatus;
-                    await doc.save();
-                    logger.info(`Cron: Updated Dr. ${doc.name} availability to ${desiredStatus}`);
-
-                    // Fire socket event if available
-                    // This is optional since they will see it when they log in 
-                    // and patients will naturally just be blocked if Not Available
+                if (agent.availability !== desiredStatus && agent.availability !== "On Break") {
+                    agent.availability = desiredStatus;
+                    await agent.save();
+                    logger.info(`Cron: Updated Agent ${agent.name} availability to ${desiredStatus}`);
                 }
             }
         } catch (err) {

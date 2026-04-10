@@ -9,11 +9,10 @@
  * Changelog from v1:
  *  - Organization replaces Hospital (terminolgy + model)
  *  - Services replaces Doctors
- *  - Agents replaces Doctors (personnel)
- *  - Locations replaces Branches
- *  - QueueEntry replaces Patient model
+ *  - Agents replaces Specialist (personnel)
+ *  - QueueEntry replaces Customer model
  *  - clientName/clientPhone replaces name/number
- *  - agent.status_changed replaces doctor.status_changed (webhook event)
+ *  - agent.status_changed replaces specialist.status_changed (webhook event)
  */
 
 const express = require("express");
@@ -22,7 +21,7 @@ const mongoose = require("mongoose");
 const Organization = require("../models/Organization");
 const Service = require("../models/Service");
 const User = require("../models/User");
-const QueueEntry = require("../models/QueueEntry");
+const QueueEntry = require("../models/Customer");
 const Appointment = require("../models/Appointment");
 const { v4: uuidv4 } = require("uuid");
 const { requireApiKey } = require("../middleware/apiAuth");
@@ -70,18 +69,18 @@ router.use((req, res, next) => {
 router.post("/demo/provision", async (req, res) => {
     try {
         const uniqueId = Date.now().toString().slice(-4);
-        const orgName = `Sandbox Clinic #${uniqueId}`;
-        const slug = `sandbox-clinic-${uniqueId}`;
+        const orgName = `Sandbox Organization #${uniqueId}`;
+        const slug = `sandbox-org-${uniqueId}`;
 
         // 1. Create a demo organization
         const org = new Organization({
             name: orgName,
             slug: slug,
-            industry: "healthcare",
+            industry: "service",
             email: `demo${uniqueId}@smartqueue.com`,
             status: "Active",
             subscriptionPlan: "Growth",
-            locations: [{ name: "Main Wing", timezone: "UTC" }],
+            locations: [{ name: "Main Office", timezone: "UTC" }],
             settings: {
                 allowAppointments: true,
                 allowWalkIn: true
@@ -92,7 +91,7 @@ router.post("/demo/provision", async (req, res) => {
         // 2. Add some demo services
         const services = [
             { name: "General Consultation", avgSessionDuration: 15, category: "General" },
-            { name: "Dental Screening", avgSessionDuration: 25, category: "Dental" }
+            { name: "Business Strategy", avgSessionDuration: 25, category: "Consulting" }
         ];
 
         for (const s of services) {
@@ -142,7 +141,7 @@ router.use(requireApiKey);
 /** Resolve agent by ID, scoped to the caller's organization */
 async function resolveAgent(agentId, organizationId) {
     if (!mongoose.isValidObjectId(agentId)) return null;
-    return User.findOne({ _id: agentId, organizationId, role: { $in: ["AGENT", "DOCTOR"] } });
+    return User.findOne({ _id: agentId, organizationId, role: "AGENT" });
 }
 
 /** Resolve service by ID, scoped to the caller's organization */
@@ -257,7 +256,7 @@ router.get("/services", async (req, res) => {
 
         const data = await Promise.all(services.map(async (svc) => {
             const waiting = await QueueEntry.countDocuments({ serviceId: svc._id, status: "waiting" });
-            const agents = await User.countDocuments({ serviceId: svc._id, organizationId: req.organizationId, role: { $in: ["AGENT", "DOCTOR"] } });
+            const agents = await User.countDocuments({ serviceId: svc._id, organizationId: req.organizationId, role: "AGENT" });
             return {
                 id: svc._id,
                 name: svc.name,
@@ -314,7 +313,7 @@ router.get("/services/:serviceId/slots", async (req, res) => {
         if (!date) return res.status(400).json({ success: false, message: "date query param is required (YYYY-MM-DD)" });
 
         // Use the first available agent for this service to generate slots
-        const agent = await User.findOne({ serviceId: service._id, organizationId: req.organizationId, role: { $in: ["AGENT", "DOCTOR"] }, availability: "Available" });
+        const agent = await User.findOne({ serviceId: service._id, organizationId: req.organizationId, role: "AGENT", availability: "Available" });
 
         const existingAppts = await Appointment.find({
             organizationId: req.organizationId,
@@ -455,7 +454,7 @@ router.get("/queue", async (req, res) => {
  * @swagger
  * /v2/queue:
  *   post:
- *     summary: Add a single client to the queue
+ *     summary: Add a single customer to the queue
  *     tags: [B2B v2]
  *     security:
  *       - ApiKeyAuth: []
@@ -521,7 +520,9 @@ router.post("/queue", async (req, res) => {
             serviceId: service._id,
             agentId: agentId || null,
             clientName: clientName.trim(),
+            name: clientName.trim(), // Sync for internal dashboards
             clientPhone: (clientPhone || "").trim(),
+            number: (clientPhone || "").trim(), // Sync for internal dashboards
             notes: notes || "",
             tokenNumber,
             sortOrder: tokenNumber,
@@ -529,6 +530,7 @@ router.post("/queue", async (req, res) => {
             status: "waiting",
             priority: priority || "NORMAL",
             externalClientId: externalClientId || undefined,
+            source: "api"
         });
 
         const io = req.app.get("io") || global.io;
@@ -565,7 +567,7 @@ router.post("/queue", async (req, res) => {
  * @swagger
  * /v2/queue/bulk:
  *   post:
- *     summary: Add up to 50 clients to the queue at once
+ *     summary: Add up to 50 customers to the queue at once
  *     tags: [B2B v2]
  *     security:
  *       - ApiKeyAuth: []
@@ -634,7 +636,9 @@ router.post("/queue/bulk", async (req, res) => {
                 serviceId: service._id,
                 agentId: agentId || null,
                 clientName: c.clientName.trim(),
+                name: c.clientName.trim(), // Sync for internal dashboards
                 clientPhone: (c.clientPhone || "").trim(),
+                number: (c.clientPhone || "").trim(), // Sync for internal dashboards
                 notes: c.notes || "",
                 tokenNumber,
                 sortOrder: tokenNumber,
@@ -642,6 +646,7 @@ router.post("/queue/bulk", async (req, res) => {
                 status: "waiting",
                 priority: c.priority || "NORMAL",
                 externalClientId: c.externalClientId || undefined,
+                source: "api"
             });
         }
 
@@ -668,7 +673,7 @@ router.post("/queue/bulk", async (req, res) => {
  * @swagger
  * /v2/queue/{uniqueLinkId}:
  *   get:
- *     summary: Get live status, position, and wait time for a client
+ *     summary: Get live status, position, and wait time for a customer
  *     tags: [B2B v2]
  *     security:
  *       - ApiKeyAuth: []
@@ -683,7 +688,7 @@ router.get("/queue/:uniqueLinkId", async (req, res) => {
     try {
         const entry = await QueueEntry.findOne({ uniqueLinkId: req.params.uniqueLinkId, organizationId: req.organizationId })
             .populate("serviceId", "name avgSessionDuration category")
-            .populate("agentId", "name role specialization availability avatarUrl")
+            .populate("agentId", "name role serviceCategory availability avatarUrl")
             .select("-__v");
 
         if (!entry) return res.status(404).json({ success: false, message: "Queue entry not found" });
@@ -937,7 +942,7 @@ router.post("/queue/check-in", async (req, res) => {
  * @swagger
  * /v2/queue/{uniqueLinkId}:
  *   get:
- *     summary: Get a client's queue status and position
+ *     summary: Get a customer's queue status and position
  *     tags: [B2B v2]
  *     security:
  *       - ApiKeyAuth: []
@@ -992,7 +997,7 @@ router.get("/queue/:uniqueLinkId", async (req, res) => {
  * @swagger
  * /v2/queue/{uniqueLinkId}/priority:
  *   put:
- *     summary: Move a client to the front of their service queue
+ *     summary: Move a customer to the front of their service queue
  *     tags: [B2B v2]
  *     security:
  *       - ApiKeyAuth: []
@@ -1093,7 +1098,7 @@ router.patch("/queue/:uniqueLinkId/action", async (req, res) => {
         if (!entry) return res.status(404).json({ success: false, message: "Queue entry not found" });
 
         if (action === "call") {
-            if (entry.status !== "waiting") return res.status(400).json({ success: false, message: "Can only call patients who are waiting" });
+            if (entry.status !== "waiting") return res.status(400).json({ success: false, message: "Can only call customers who are waiting" });
             entry.status = "serving";
         } else if (action === "complete") {
             if (entry.status !== "serving" && entry.status !== "waiting") {
@@ -1314,7 +1319,7 @@ router.post("/appointments/book", async (req, res) => {
  * @swagger
  * /v2/appointments/{id}/arrive:
  *   patch:
- *     summary: Mark a client as arrived and add to the live queue
+ *     summary: Mark a customer as arrived and add to the live queue
  *     tags: [B2B v2]
  *     security:
  *       - ApiKeyAuth: []
@@ -1512,7 +1517,7 @@ router.get("/analytics/service/:serviceId", async (req, res) => {
  * @swagger
  * /v2/analytics/wait-times:
  *   get:
- *     summary: Hourly client volume breakdown for a date
+ *     summary: Hourly customer volume breakdown for a date
  *     tags: [B2B v2]
  *     security:
  *       - ApiKeyAuth: []

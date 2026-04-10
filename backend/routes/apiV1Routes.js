@@ -3,7 +3,7 @@ const router = express.Router();
 const { requireApiKey } = require('../middleware/apiAuth');
 const { apiLimiter } = require('../middleware/apiRateLimiter');
 const idempotencyMiddleware = require('../middleware/idempotency');
-const { createQueueEntry, getDoctorStatus, getQueueStatus, deleteQueueEntry, getDoctorQueue, bookApiAppointment } = require('../controllers/apiV1Controller');
+const { createQueueEntry, getAgentStatus, getQueueStatus, deleteQueueEntry, getAgentQueue, bookApiAppointment } = require('../controllers/apiV1Controller');
 
 // All v1 B2B routes require an API Key and are rate-limited
 router.use(requireApiKey);
@@ -17,7 +17,7 @@ router.use(apiLimiter);
  * @swagger
  * /v1/queue:
  *   post:
- *     summary: Add a new patient to the queue
+ *     summary: Add a new customer to the queue
  *     tags: [B2B API]
  *     security:
  *       - ApiKeyAuth: []
@@ -35,23 +35,23 @@ router.use(apiLimiter);
  *         application/json:
  *           schema:
  *             type: object
- *             required: [doctorId]
+ *             required: [agentId]
  *             properties:
- *               doctorId:
+ *               agentId:
  *                 type: string
- *                 description: ID of the doctor to queue for
- *               externalPatientId:
+ *                 description: ID of the agent to queue for
+ *               externalCustomerId:
  *                 type: string
- *                 description: Optional External Patient ID for Zero-PII masking
+ *                 description: Optional External Customer ID for Zero-PII masking
  *               name:
  *                 type: string
- *                 description: Optional patient name
+ *                 description: Optional customer name
  *               description:
  *                 type: string
  *                 description: Reason for visit
  *     responses:
  *       201:
- *         description: Patient successfully added to the queue
+ *         description: Customer successfully added to the queue
  *       400:
  *         description: Validation error
  *       401:
@@ -59,15 +59,15 @@ router.use(apiLimiter);
  *       429:
  *         description: Rate limit exceeded
  */
-// Add patient to queue
-// Expects: doctorId, externalPatientId (optional), name (optional), description (optional), Header: Idempotency-Key (optional)
+// Add customer to queue
+// Expects: agentId, externalCustomerId (optional), name (optional), description (optional), Header: Idempotency-Key (optional)
 router.post('/queue', idempotencyMiddleware, createQueueEntry);
 
 /**
  * @swagger
  * /v1/queue/{uniqueLinkId}:
  *   delete:
- *     summary: Cancel a patient's queue entry
+ *     summary: Cancel a customer's queue entry
  *     tags: [B2B API]
  *     security:
  *       - ApiKeyAuth: []
@@ -91,7 +91,7 @@ router.delete('/queue/:uniqueLinkId', deleteQueueEntry);
  * @swagger
  * /v1/queue/{uniqueLinkId}:
  *   get:
- *     summary: Get live queue status and estimated wait time for a patient
+ *     summary: Get live queue status and estimated wait time for a customer
  *     tags: [B2B API]
  *     security:
  *       - ApiKeyAuth: []
@@ -112,56 +112,56 @@ router.delete('/queue/:uniqueLinkId', deleteQueueEntry);
 router.get('/queue/:uniqueLinkId', getQueueStatus);
 
 // ----------------------------------------------------------------------
-// B2B Doctor Management Endpoints
+// B2B Agent Management Endpoints
 // ----------------------------------------------------------------------
 
 /**
  * @swagger
- * /v1/doctor/{doctorId}/queue:
+ * /v1/agent/{agentId}/queue:
  *   get:
- *     summary: Get all actively queued patients for a doctor
+ *     summary: Get all actively queued customers for an agent
  *     tags: [B2B API]
  *     security:
  *       - ApiKeyAuth: []
  *     parameters:
  *       - in: path
- *         name: doctorId
+ *         name: agentId
  *         required: true
  *         schema:
  *           type: string
- *         description: ID of the doctor
+ *         description: ID of the agent
  *     responses:
  *       200:
- *         description: List of patients retrieved successfully
+ *         description: List of customers retrieved successfully
  *       404:
- *         description: Doctor not found
+ *         description: Agent not found
  */
-// Get Doctor live queue list
-router.get('/doctor/:doctorId/queue', getDoctorQueue);
+// Get Agent live queue list
+router.get('/agent/:agentId/queue', getAgentQueue);
 
 /**
  * @swagger
- * /v1/doctor/{doctorId}/status:
+ * /v1/agent/{agentId}/status:
  *   get:
- *     summary: Get current availability status of a doctor
+ *     summary: Get current availability status of an agent
  *     tags: [B2B API]
  *     security:
  *       - ApiKeyAuth: []
  *     parameters:
  *       - in: path
- *         name: doctorId
+ *         name: agentId
  *         required: true
  *         schema:
  *           type: string
- *         description: ID of the doctor
+ *         description: ID of the agent
  *     responses:
  *       200:
  *         description: Status retrieved successfully
  *       404:
- *         description: Doctor not found
+ *         description: Agent not found
  */
-// Get Doctor status (availability)
-router.get('/doctor/:doctorId/status', getDoctorStatus);
+// Get Agent status (availability)
+router.get('/agent/:agentId/status', getAgentStatus);
 
 // ----------------------------------------------------------------------
 // B2B Appointment Endpoints
@@ -171,7 +171,7 @@ router.get('/doctor/:doctorId/status', getDoctorStatus);
  * @swagger
  * /v1/appointments/book:
  *   post:
- *     summary: Book an appointment for a patient
+ *     summary: Book an appointment for a customer
  *     tags: [B2B API]
  *     security:
  *       - ApiKeyAuth: []
@@ -181,11 +181,11 @@ router.get('/doctor/:doctorId/status', getDoctorStatus);
  *         application/json:
  *           schema:
  *             type: object
- *             required: [doctorId, patientName, phone, scheduledAt]
+ *             required: [agentId, customerName, phone, scheduledAt]
  *             properties:
- *               doctorId:
+ *               agentId:
  *                 type: string
- *               patientName:
+ *               customerName:
  *                 type: string
  *               phone:
  *                 type: string

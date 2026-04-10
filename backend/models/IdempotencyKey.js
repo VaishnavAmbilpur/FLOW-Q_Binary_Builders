@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const idempotencyKeySchema = new mongoose.Schema({
-    hospitalId: { type: mongoose.Schema.Types.ObjectId, ref: "Hospital", required: true, index: true },
+    organizationId: { type: mongoose.Schema.Types.ObjectId, ref: "Organization", required: true, index: true },
     key: { type: String, required: true }, // The Idempotency-Key header passed by external API
     requestPath: { type: String, required: true },
     requestMethod: { type: String, required: true },
@@ -11,6 +11,6 @@ const idempotencyKeySchema = new mongoose.Schema({
 });
 
 // Compound index to look up idempotency rapidly
-idempotencyKeySchema.index({ hospitalId: 1, key: 1 }, { unique: true });
+idempotencyKeySchema.index({ organizationId: 1, key: 1 }, { unique: true });
 
 module.exports = mongoose.model("IdempotencyKey", idempotencyKeySchema);

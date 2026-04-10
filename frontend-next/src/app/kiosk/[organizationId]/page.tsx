@@ -5,17 +5,17 @@ import { useParams, useRouter } from "next/navigation";
 import api from "@/services/api";
 import {
     AlertCircle, CheckCircle2, User, Phone, FileText, ArrowRight,
-    UserPlus, Clock, Stethoscope, X, Activity, ChevronRight
+    UserPlus, Clock, Briefcase, X, Activity, ChevronRight
 } from "lucide-react";
 
 export default function KioskPage() {
     const params = useParams();
     const router = useRouter();
-    const hospitalId = params.hospitalId;
+    const organizationId = params.organizationId;
 
-    const [doctors, setDoctors] = useState([]);
-    const [selectedDoc, setSelectedDoc] = useState(null);
-    const [loadingDocs, setLoadingDocs] = useState(true);
+    const [agents, setAgents] = useState([]);
+    const [selectedAgent, setSelectedAgent] = useState(null);
+    const [loadingAgents, setLoadingAgents] = useState(true);
 
     // Form state
     const [formData, setFormData] = useState({ name: "", phone: "", description: "" });
@@ -25,34 +25,34 @@ export default function KioskPage() {
     const [tokenResult, setTokenResult] = useState(null);
     const [error, setError] = useState("");
 
-    const loadDoctors = async () => {
+    const loadAgents = async () => {
         try {
-            setLoadingDocs(true);
-            const res = await api.get(`/kiosk/${hospitalId}/doctors`);
+            setLoadingAgents(true);
+            const res = await api.get(`/kiosk/${organizationId}/agents`);
             if (res.data.success) {
-                setDoctors(res.data.data);
+                setAgents(res.data.data);
             }
         } catch (err) {
             console.error(err);
         } finally {
-            setLoadingDocs(false);
+            setLoadingAgents(false);
         }
     };
 
     useEffect(() => {
-        if (!hospitalId) return;
-        loadDoctors();
+        if (!organizationId) return;
+        loadAgents();
 
         // Poll every 30 seconds for wait time updates
         const interval = setInterval(() => {
-            loadDoctors();
+            loadAgents();
         }, 30000);
 
         return () => clearInterval(interval);
-    }, [hospitalId]);
+    }, [organizationId]);
 
-    const handleSelectDoctor = (doc: any) => {
-        setSelectedDoc(doc);
+    const handleSelectAgent = (agent: any) => {
+        setSelectedAgent(agent);
         setTokenResult(null);
         setError("");
         setFormData({ name: "", phone: "", description: "" });
@@ -65,15 +65,15 @@ export default function KioskPage() {
         setSubmitLoading(true);
         setError("");
         try {
-            const res = await api.post(`/kiosk/${hospitalId}/enqueue`, {
+            const res = await api.post(`/kiosk/${organizationId}/enqueue`, {
                 ...formData,
-                doctorId: selectedDoc._id
+                agentId: selectedAgent._id
             });
 
             if (res.data.success) {
                 const { uniqueLinkId, tokenNumber } = res.data;
                 setTokenResult(tokenNumber);
-                loadDoctors(); // Refresh queues
+                loadAgents(); // Refresh queues
 
                 // Copy tracking link to clipboard
                 const trackingLink = `${window.location.origin}/status/${uniqueLinkId}`;
@@ -114,7 +114,7 @@ export default function KioskPage() {
                         <MonitorSmartphone className="w-10 h-10 text-brand-400" />
                     </div>
                     <h1 className="text-4xl sm:text-6xl font-black tracking-tighter text-white mb-4">Express Check-In</h1>
-                    <p className="text-neutral-100 text-[11px] font-bold uppercase tracking-[0.4em]">Simple Self Check-In <span className="mx-2 text-neutral-800">/</span> {hospitalId ? "Clinic Access" : "Hospital"}</p>
+                    <p className="text-neutral-100 text-[11px] font-bold uppercase tracking-[0.4em]">Simple Self Check-In <span className="mx-2 text-neutral-800">/</span> {organizationId ? "Hub Access" : "Organization"}</p>
                 </div>
 
                 {tokenResult ? (
@@ -135,32 +135,32 @@ export default function KioskPage() {
                         </div>
 
                         <div className="flex items-center justify-center gap-4 text-white font-bold text-[11px] uppercase tracking-widest bg-white/5 py-4 rounded-2xl border border-white/5">
-                            <Stethoscope className="w-4 h-4 text-brand-400" /> Doctor: <span className="text-brand-300">{selectedDoc?.name}</span>
+                            <Briefcase className="w-4 h-4 text-brand-400" /> Agent: <span className="text-brand-300">{selectedAgent?.name}</span>
                         </div>
 
                         <p className="mt-12 text-[9px] font-black uppercase tracking-[0.5em] text-neutral-600 animate-pulse">Screen will reset in 10s</p>
                     </div>
-                ) : selectedDoc ? (
+                ) : selectedAgent ? (
                     /* FORM SCREEN */
                     <div className="w-full max-w-3xl bg-white/5 border border-white/10 rounded-[4rem] p-12 backdrop-blur-3xl shadow-2xl animate-fade-up relative overflow-hidden">
                         <div className="absolute top-0 left-0 w-[40%] h-[40%] bg-brand-600/10 blur-[100px] rounded-full pointer-events-none" />
 
                         <button
-                            onClick={() => setSelectedDoc(null)}
+                            onClick={() => setSelectedAgent(null)}
                             className="mb-10 text-[10px] font-black uppercase tracking-[0.3em] text-white hover:text-brand-300 transition-all flex items-center gap-3"
                         >
-                            <X className="w-4 h-4" /> Back to Doctors
+                            <X className="w-4 h-4" /> Back to Agents
                         </button>
 
                         <div className="flex items-center gap-8 mb-12 p-8 bg-white/5 border border-white/5 rounded-[3rem] backdrop-blur-md">
                             <div className="w-20 h-20 bg-brand-500/10 border border-brand-500/20 rounded-[2rem] flex items-center justify-center flex-shrink-0">
-                                <Stethoscope className="w-10 h-10 text-brand-400" />
+                                <Briefcase className="w-10 h-10 text-brand-400" />
                             </div>
                             <div>
-                                <h2 className="text-3xl font-black text-white mb-2">{selectedDoc.name}</h2>
-                                <p className="text-neutral-100 font-bold uppercase tracking-wider text-[11px] mb-3">{selectedDoc.specialization}</p>
+                                <h2 className="text-3xl font-black text-white mb-2">{selectedAgent.name}</h2>
+                                <p className="text-neutral-100 font-bold uppercase tracking-wider text-[11px] mb-3">{selectedAgent.serviceCategory}</p>
                                 <div className="flex items-center gap-3 text-success-400 font-bold text-[11px] uppercase tracking-widest bg-success-500/10 px-4 py-2 rounded-xl border border-success-500/20 w-fit">
-                                    <Clock className="w-4 h-4" /> {selectedDoc.estimatedWaitMins} min estimated wait
+                                    <Clock className="w-4 h-4" /> {selectedAgent.estimatedWaitMins} min estimated wait
                                 </div>
                             </div>
                         </div>
@@ -203,39 +203,39 @@ export default function KioskPage() {
                         </form>
                     </div>
                 ) : (
-                    /* DOCTOR SELECTION SCREEN */
+                    /* AGENT SELECTION SCREEN */
                     <div className="w-full flex flex-col items-center">
                         <div className="flex items-center gap-3 mb-12 text-white animate-fade-up">
                             <UserPlus className="w-6 h-6 text-brand-400" />
-                            <span className="text-[10px] font-black uppercase tracking-[0.5em]">Select a Doctor</span>
+                            <span className="text-[10px] font-black uppercase tracking-[0.5em]">Select an Agent</span>
                         </div>
 
-                        {doctors.length === 0 ? (
+                        {agents.length === 0 ? (
                             <div className="p-20 text-center bg-white/5 border border-white/5 rounded-[4rem] backdrop-blur-3xl">
-                                <p className="text-xl text-neutral-100 font-bold uppercase tracking-widest">No active doctors found</p>
+                                <p className="text-xl text-neutral-100 font-bold uppercase tracking-widest">No active agents found</p>
                             </div>
                         ) : (
                             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10 w-full animate-fade-up delay-100">
-                                {doctors.map((doc: any) => (
+                                {agents.map((agent: any) => (
                                     <button
-                                        key={doc._id}
-                                        onClick={() => handleSelectDoctor(doc)}
+                                        key={agent._id}
+                                        onClick={() => handleSelectAgent(agent)}
                                         className="group bg-white/[0.03] border border-white/5 hover:bg-white/[0.07] hover:border-brand-500/40 rounded-[3.5rem] p-10 transition-all duration-500 backdrop-blur-xl flex flex-col items-center text-center shadow-2xl hover:-translate-y-4"
                                     >
                                         <div className="w-24 h-24 bg-brand-500 text-white rounded-[2rem] flex items-center justify-center mb-8 shadow-2xl shadow-brand-500/30 group-hover:scale-110 transition-all duration-500">
-                                            <span className="text-4xl font-black">{doc.name.charAt(0).toUpperCase()}</span>
+                                            <span className="text-4xl font-black">{agent.name.charAt(0).toUpperCase()}</span>
                                         </div>
-                                        <h3 className="text-2xl font-black text-white mb-2 uppercase tracking-tighter">{doc.name}</h3>
-                                        <p className="text-[11px] font-bold text-brand-400 group-hover:text-brand-300 transition-colors uppercase tracking-wider mb-10">{doc.specialization}</p>
+                                        <h3 className="text-2xl font-black text-white mb-2 uppercase tracking-tighter">{agent.name}</h3>
+                                        <p className="text-[11px] font-bold text-brand-400 group-hover:text-brand-300 transition-colors uppercase tracking-wider mb-10">{agent.serviceCategory}</p>
 
                                         <div className="w-full flex items-center justify-between border-t border-white/5 pt-8">
                                             <div className="text-left">
                                                 <p className="text-[10px] font-bold text-neutral-100 uppercase tracking-wider mb-1">Queue Size</p>
-                                                <p className="font-mono text-xl font-black text-white">{doc.currentQueueLength} People</p>
+                                                <p className="font-mono text-xl font-black text-white">{agent.currentQueueLength} People</p>
                                             </div>
                                             <div className="text-right">
                                                 <p className="text-[10px] font-bold text-neutral-100 uppercase tracking-wider mb-1">Wait Time</p>
-                                                <p className="font-mono text-xl font-black text-success-400">{doc.estimatedWaitMins} Min</p>
+                                                <p className="font-mono text-xl font-black text-success-400">{agent.estimatedWaitMins} Min</p>
                                             </div>
                                         </div>
                                     </button>

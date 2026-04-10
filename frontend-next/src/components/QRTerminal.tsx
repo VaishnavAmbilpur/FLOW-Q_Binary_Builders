@@ -7,36 +7,36 @@ import { QRCodeCanvas } from "qrcode.react";
 
 export default function QRTerminal() {
     const [isOpen, setIsOpen] = useState(false);
-    const [hospitalId, setHospitalId] = useState<string | null>(null);
+    const [organizationId, setOrganizationId] = useState<string | null>(null);
     const [origin, setOrigin] = useState("");
 
     useEffect(() => {
         setOrigin(window.location.origin);
-        fetchHospitalId();
+        fetchOrganizationId();
     }, []);
 
-    const fetchHospitalId = async () => {
+    const fetchOrganizationId = async () => {
         try {
-            // Check admin info first, then standard me info
-            let res = await api.get("/admin/info").catch(() => null);
+            // Check organization info first, then standard me info
+            let res = await api.get("/organizations/info").catch(() => null);
             if (!res || !res.data?._id) {
                 res = await api.get("/auth/me").catch(() => null);
             }
 
             if (res && res.data) {
-                // For hospital admins, their _id is the hospitalId
-                // For staff, they might have a hospitalId field or it might be in the profile
-                const id = res.data.hospitalId || res.data._id;
-                setHospitalId(id);
+                // For organization admins, their _id is the organizationId
+                // For staff, they might have a organizationId field or it might be in the profile
+                const id = res.data.organizationId || res.data._id;
+                setOrganizationId(id);
             }
         } catch (err) {
-            console.error("Failed to fetch hospital context for QR:", err);
+            console.error("Failed to fetch organization context for QR:", err);
         }
     };
 
-    if (!hospitalId) return null;
+    if (!organizationId) return null;
 
-    const qrUrl = `${origin}/kiosk/${hospitalId}`;
+    const qrUrl = `${origin}/kiosk/${organizationId}`;
 
     return (
         <>
@@ -85,8 +85,8 @@ export default function QRTerminal() {
                             <div className="w-10 h-10 sm:w-12 sm:h-12 bg-brand-600/10 border border-brand-500/20 rounded-xl sm:rounded-2xl flex items-center justify-center mb-4 sm:mb-6 mx-auto">
                                 <MonitorSmartphone className="w-5 h-5 sm:w-6 sm:h-6 text-brand-400" />
                             </div>
-                            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white uppercase tracking-tight mb-2">Patient Terminal</h2>
-                            <p className="text-neutral-500 text-[8px] sm:text-[10px] md:text-xs font-black uppercase tracking-[0.4em] mb-8 sm:mb-12 italic">Scan to Join Clinical Queue</p>
+                            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white uppercase tracking-tight mb-2">Customer Terminal</h2>
+                            <p className="text-neutral-500 text-[8px] sm:text-[10px] md:text-xs font-black uppercase tracking-[0.4em] mb-8 sm:mb-12 italic">Scan to Join Business Queue</p>
                         </div>
 
                         {/* Responsive High-Fidelity QR */}
@@ -104,7 +104,7 @@ export default function QRTerminal() {
 
                         <div className="mt-8 sm:mt-12 text-center max-w-sm px-4">
                             <p className="text-neutral-400 text-[10px] sm:text-xs font-medium leading-relaxed">
-                                Patients can scan this code to access the self-service registration hub and track their live queue status in real-time.
+                                Customers can scan this code to access the self-service registration hub and track their live queue status in real-time.
                             </p>
                         </div>
 

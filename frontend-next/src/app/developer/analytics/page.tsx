@@ -11,7 +11,7 @@ export default function AnalyticsDashboard() {
     useEffect(() => {
         const fetchAnalytics = async () => {
             try {
-                const res = await api.get("/hospitals/analytics");
+                const res = await api.get("/organizations/analytics");
                 if (res.data.success) {
                     setStats(res.data.data);
                 }
@@ -40,7 +40,7 @@ export default function AnalyticsDashboard() {
                 <h2 className="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-fuchsia-500 to-pink-500 bg-clip-text text-transparent flex items-center gap-3">
                     <BarChart3 className="w-8 h-8 text-fuchsia-500" /> Executive Analytics
                 </h2>
-                <p className="text-gray-500 dark:text-gray-400 mt-2 font-medium">30-Day performance overview for your hospital.</p>
+                <p className="text-gray-500 dark:text-gray-400 mt-2 font-medium">30-Day performance overview for your organization.</p>
             </div>
 
             {/* KPI Cards */}
@@ -88,23 +88,23 @@ export default function AnalyticsDashboard() {
                 <div className="border border-black/5 dark:border-white/10 bg-white/80 dark:bg-[#110c21] backdrop-blur-xl rounded-3xl p-8 shadow-xl relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-fuchsia-500/10 dark:bg-fuchsia-500/5 blur-[80px] rounded-full pointer-events-none" />
                     <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-8 flex items-center gap-3">
-                        <Stethoscope className="w-6 h-6 text-fuchsia-500" /> Patient Volume by Doctor
+                        <Stethoscope className="w-6 h-6 text-fuchsia-500" /> Customer Volume by Agent
                     </h3>
 
-                    {stats.volumeByDoctor.length === 0 ? (
+                    {stats.volumeByAgent.length === 0 ? (
                         <p className="text-gray-500">No data available for this period.</p>
                     ) : (
                         <div className="space-y-6 relative z-10 w-full">
-                            {stats.volumeByDoctor.map((item: any, i: number) => {
+                            {stats.volumeByAgent.map((item: any, i: number) => {
                                 // Find highest count for relative bar width
-                                const maxCount = Math.max(...stats.volumeByDoctor.map((v: any) => v.patientCount));
-                                const pct = (item.patientCount / maxCount) * 100;
+                                const maxCount = Math.max(...stats.volumeByAgent.map((v: any) => v.customerCount));
+                                const pct = (item.customerCount / maxCount) * 100;
 
                                 return (
                                     <div key={i}>
                                         <div className="flex justify-between text-sm mb-2 font-bold">
-                                            <span className="text-gray-700 dark:text-gray-300">{item.doctorName}</span>
-                                            <span className="text-fuchsia-600 dark:text-fuchsia-400">{item.patientCount} pts</span>
+                                            <span className="text-gray-700 dark:text-gray-300">{item.agentName}</span>
+                                            <span className="text-fuchsia-600 dark:text-fuchsia-400">{item.customerCount} pts</span>
                                         </div>
                                         <div className="h-3 w-full bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
                                             <div
@@ -124,7 +124,7 @@ export default function AnalyticsDashboard() {
                         <BarChart3 className="w-12 h-12 text-white" />
                     </div>
                     <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">More Insights Coming Soon</h3>
-                    <p className="text-gray-500 dark:text-gray-400 max-w-md">We are continuously aggregating your clinic data. Advanced visualizations like Wait Time Heatmaps and Queue Bottlenecks will appear here shortly.</p>
+                    <p className="text-gray-500 dark:text-gray-400 max-w-md">We are continuously aggregating your hub data. Advanced visualizations like Wait Time Heatmaps and Queue Bottlenecks will appear here shortly.</p>
                 </div>
 
             </div>

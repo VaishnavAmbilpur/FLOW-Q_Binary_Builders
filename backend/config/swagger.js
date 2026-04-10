@@ -6,7 +6,7 @@ const swaggerOptions = {
     info: {
       title: 'Smart Queue API',
       version: '1.0.0',
-      description: 'API documentation for Smart Queue - A smart hospital queue management system',
+      description: 'API documentation for Smart Queue - A professional B2B SaaS queue management system',
       contact: {
         name: 'Smart Queue Team',
         email: 'support@smartqueue.com'
@@ -42,30 +42,30 @@ const swaggerOptions = {
         }
       },
       schemas: {
-        Doctor: {
+        Agent: {
           type: 'object',
-          required: ['name', 'specialization', 'email', 'password'],
+          required: ['name', 'serviceCategory', 'email', 'password'],
           properties: {
             id: {
               type: 'string',
-              description: 'Doctor ID',
+              description: 'Agent ID',
               example: '507f1f77bcf86cd799439011'
             },
             name: {
               type: 'string',
-              description: 'Doctor full name',
-              example: 'Dr. John Smith'
+              description: 'Agent full name',
+              example: 'John Smith'
             },
-            specialization: {
+            serviceCategory: {
               type: 'string',
-              description: 'Medical specialization',
-              example: 'Cardiology'
+              description: 'Service category or expertise',
+              example: 'Technical Support'
             },
             email: {
               type: 'string',
               format: 'email',
-              description: 'Doctor email address',
-              example: 'doctor@hospital.com'
+              description: 'Agent email address',
+              example: 'agent@organization.com'
             },
             status: {
               type: 'string',
@@ -73,38 +73,30 @@ const swaggerOptions = {
               description: 'Current availability status',
               example: 'Available'
             },
-            avgConsultationTime: {
+            avgSessionTime: {
               type: 'number',
-              description: 'Average consultation time in minutes',
+              description: 'Average session time in minutes',
               example: 8
             }
           }
         },
-        Patient: {
+        Customer: {
           type: 'object',
-          required: ['name', 'age', 'phoneNumber', 'doctorId'],
+          required: ['name', 'number', 'agentId'],
           properties: {
             id: {
               type: 'string',
-              description: 'Patient record ID',
+              description: 'Customer record ID',
               example: '507f1f77bcf86cd799439011'
             },
             name: {
               type: 'string',
-              description: 'Patient full name',
+              description: 'Customer full name',
               example: 'Jane Doe'
             },
-            age: {
-              type: 'number',
-              minimum: 0,
-              maximum: 150,
-              description: 'Patient age',
-              example: 35
-            },
-            phoneNumber: {
+            number: {
               type: 'string',
-              pattern: '^[0-9]{10}$',
-              description: '10-digit phone number',
+              description: 'Phone number',
               example: '9876543210'
             },
             tokenNumber: {
@@ -118,26 +110,26 @@ const swaggerOptions = {
               description: 'Visit status',
               example: 'waiting'
             },
-            doctorId: {
+            agentId: {
               type: 'string',
-              description: 'Associated doctor ID',
+              description: 'Associated agent ID',
               example: '507f1f77bcf86cd799439011'
             },
             uniqueLinkId: {
               type: 'string',
-              description: 'Unique link for patient status tracking',
+              description: 'Unique link for customer status tracking',
               example: 'abc123def456'
             },
-            arrivalTime: {
+            createdAt: {
               type: 'string',
               format: 'date-time',
-              description: 'Patient arrival timestamp',
+              description: 'Arrival timestamp',
               example: '2024-01-15T10:30:00Z'
             },
-            completionTime: {
+            completedAt: {
               type: 'string',
               format: 'date-time',
-              description: 'Visit completion timestamp',
+              description: 'Completion timestamp',
               example: '2024-01-15T10:45:00Z'
             },
             estimatedWaitTime: {
@@ -147,7 +139,7 @@ const swaggerOptions = {
             },
             waitingAhead: {
               type: 'number',
-              description: 'Number of patients ahead in queue',
+              description: 'Number of customers ahead in queue',
               example: 3
             }
           }
@@ -183,15 +175,15 @@ const swaggerOptions = {
     tags: [
       {
         name: 'Authentication',
-        description: 'Doctor authentication endpoints'
+        description: 'Agent authentication endpoints'
       },
       {
         name: 'Queue Management',
-        description: 'Patient queue operations'
+        description: 'Customer queue operations'
       },
       {
-        name: 'Doctors',
-        description: 'Doctor profile management'
+        name: 'Agents',
+        description: 'Agent profile management'
       },
       {
         name: 'B2B API',

@@ -4,15 +4,15 @@ const Webhook = require('../models/Webhook');
 
 /**
  * Dispatches an outbound webhook event securely using HMAC SHA-256 signatures.
- * @param {ObjectId} hospitalId 
+ * @param {ObjectId} organizationId 
  * @param {String} event ("queue.created", "queue.updated", etc)
  * @param {Object} payload The JSON object to send
  */
-const dispatchWebhook = async (hospitalId, event, payload) => {
+const dispatchWebhook = async (organizationId, event, payload) => {
     try {
-        // Find all active subscriptions for this hospital to this event
+        // Find all active subscriptions for this organization to this event
         const endpoints = await Webhook.find({
-            hospitalId,
+            organizationId,
             isActive: true,
             events: { $in: [event] }
         });
@@ -47,7 +47,6 @@ const dispatchWebhook = async (hospitalId, event, payload) => {
                     },
                     timeout: 5000
                 }).catch(err => {
-                    // Log delivery failure to WebhookDeliveryLog model (Phase 3)
                     console.error(`[Webhook] Delivery failed to ${endpoint.url}:`, err.message);
                 });
 

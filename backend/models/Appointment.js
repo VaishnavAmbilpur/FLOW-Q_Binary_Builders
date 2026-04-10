@@ -1,21 +1,21 @@
 const mongoose = require('mongoose');
 
 const appointmentSchema = new mongoose.Schema({
-    hospitalId: {
+    organizationId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Hospital',
+        ref: 'Organization',
         required: true
     },
-    branchId: {
+    locationId: {
         type: mongoose.Schema.Types.ObjectId,
         required: true
     },
-    doctorId: {
+    agentId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
     },
-    patientName: {
+    customerName: {
         type: String,
         required: true
     },
@@ -40,20 +40,19 @@ const appointmentSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-appointmentSchema.pre('findOneAndUpdate', async function (next) {
+appointmentSchema.pre('findOneAndUpdate', async function () {
     const oldDoc = await this.model.findOne(this.getQuery()).lean();
     if (oldDoc) {
         this._oldState = oldDoc;
     }
-    next();
 });
 
-appointmentSchema.post('findOneAndUpdate', async function (doc, next) {
+appointmentSchema.post('findOneAndUpdate', async function (doc) {
     if (this._oldState && doc) {
         const DataChangeLog = require('./DataChangeLog');
         try {
             await DataChangeLog.create({
-                organizationId: doc.hospitalId,
+                organizationId: doc.organizationId,
                 collectionName: "Appointment",
                 documentId: doc._id,
                 action: "UPDATE",
@@ -64,7 +63,6 @@ appointmentSchema.post('findOneAndUpdate', async function (doc, next) {
             console.error("Failed to log Appointment diff:", err);
         }
     }
-    next();
 });
 
 module.exports = mongoose.model('Appointment', appointmentSchema);

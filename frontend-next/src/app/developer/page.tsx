@@ -17,9 +17,9 @@ export default function DeveloperPortal() {
     const loadData = async () => {
         try {
             const [keysRes, hooksRes, usageRes] = await Promise.all([
-                api.get("/hospitals/keys"),
-                api.get("/hospitals/webhooks"),
-                api.get("/hospitals/usage")
+                api.get("/organizations/keys"),
+                api.get("/organizations/webhooks"),
+                api.get("/organizations/usage")
             ]);
             setKeys(keysRes.data.data);
             setWebhooks(hooksRes.data.data);
@@ -43,7 +43,7 @@ export default function DeveloperPortal() {
     const generateKey = async () => {
         if (!keyName) return showMsg("Please enter a key name", "error");
         try {
-            const res = await api.post("/hospitals/keys", { name: keyName, isLive: true });
+            const res = await api.post("/organizations/keys", { name: keyName, isLive: true });
             setNewKey(res.data.key);
             setKeyName("");
             loadData();
@@ -55,7 +55,7 @@ export default function DeveloperPortal() {
 
     const revokeKey = async (id: string) => {
         try {
-            await api.delete(`/hospitals/keys/${id}`);
+            await api.delete(`/organizations/keys/${id}`);
             loadData();
             showMsg("API Key revoked", "success");
         } catch (err) {
@@ -66,9 +66,9 @@ export default function DeveloperPortal() {
     const addWebhook = async () => {
         if (!webhookUrl) return showMsg("Please enter a webhook URL", "error");
         try {
-            await api.post("/hospitals/webhooks", {
+            await api.post("/organizations/webhooks", {
                 url: webhookUrl,
-                events: ["queue.created", "queue.updated", "queue.completed", "doctor.status_changed"]
+                events: ["queue.created", "queue.updated", "queue.completed", "agent.status_changed"]
             });
             setWebhookUrl("");
             loadData();
@@ -80,7 +80,7 @@ export default function DeveloperPortal() {
 
     const deleteWebhook = async (id: string) => {
         try {
-            await api.delete(`/hospitals/webhooks/${id}`);
+            await api.delete(`/organizations/webhooks/${id}`);
             loadData();
             showMsg("Webhook endpoint removed");
         } catch (err) {

@@ -2,28 +2,27 @@ const CommunicationConsent = require('../models/CommunicationConsent');
 const logger = require('../utils/logger');
 
 /**
- * Middleware to act as a gatekeeper before dispatching any external messages (e.g., WhatsApp).
+ * Middleware to act as a gatekeeper before dispatching any external messages.
  * Intercepts outbound notification controllers to ensure the recipient has actively opted-in.
  */
 const communicationGatekeeper = async (req, res, next) => {
     try {
-        // Typically, the phone number and hospital ID are in the request body for an outbound message
         const phoneNumber = req.body.phoneNumber || req.body.number;
 
-        // We need organizationId from the authenticated user or the hospital token context
-        const hospitalId = (req.user && req.user.hospitalId) || req.body.hospitalId;
+        // Extract organization context from identity or request body
+        const organizationId = (req.user && req.user.organizationId) || req.organizationId || req.body.organizationId || req.body.hospitalId;
 
         const purpose = req.body.purpose || 'queue_updates';
 
-        if (!phoneNumber || !hospitalId) {
-            logger.warn('Gatekeeper bypass attempted: Missing phoneNumber or hospitalId');
+        if (!phoneNumber || !organizationId) {
+            logger.warn('Gatekeeper bypass attempted: Missing phoneNumber or organizationId');
             return res.status(400).json({ error: "Missing required fields for communication." });
         }
 
         // Database lookup for consent
         const consentRecord = await CommunicationConsent.findOne({
             phoneNumber: phoneNumber,
-            organizationId: hospitalId,
+            organizationId: organizationId,
             purpose: purpose
         });
 
@@ -31,7 +30,7 @@ const communicationGatekeeper = async (req, res, next) => {
             logger.info(`Message dropped by Gatekeeper. No consent for ${phoneNumber}`);
             return res.status(403).json({
                 error: "Consent Error",
-                message: "This patient has not opted in for notifications or has explicitly opted out."
+                message: "This customer has not opted in for notifications or has explicitly opted out."
             });
         }
 

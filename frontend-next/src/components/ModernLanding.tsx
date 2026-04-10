@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import anime from "animejs";
 import {
-    Activity, Shield, Lock, Smartphone, ChevronDown, CheckCircle2,
+    BarChart3, Shield, Lock, Smartphone, ChevronDown, CheckCircle2,
     ChevronRight, Wifi, Battery, Layers, MapPin, Search,
     Cpu, Globe, Zap, Target, Gauge, Database, User, ShieldCheck
 } from "lucide-react";
@@ -123,7 +123,7 @@ export default function ModernLanding() {
                     {/* Matrix Load Statistics */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
                         {[
-                            { label: "Active Clinics", val: "50+", icon: <Globe className="w-4 h-4" /> },
+                            { label: "Active Hubs", val: "50+", icon: <Globe className="w-4 h-4" /> },
                             { label: "Deployment", val: "3m", icon: <Zap className="w-4 h-4" /> },
                             { label: "Throughput", val: "+40%", icon: <Gauge className="w-4 h-4" /> },
                             { label: "Latency", val: "<5ms", icon: <Cpu className="w-4 h-4" /> }
@@ -180,9 +180,9 @@ export default function ModernLanding() {
                                     </div>
                                     <div className="grid grid-cols-2 gap-6">
                                         {[
-                                            { label: "Reception A", color: "bg-danger-500" },
-                                            { label: "Reception B", color: "bg-brand-500" },
-                                            { label: "Reception C", color: "bg-success-500" }
+                                            { label: "Operator A", color: "bg-danger-500" },
+                                            { label: "Operator B", color: "bg-brand-500" },
+                                            { label: "Operator C", color: "bg-success-500" }
                                         ].map((hub) => (
                                             <div key={hub.label} className="flex items-center gap-4 bg-white/5 border border-white/5 px-5 py-3 rounded-2xl">
                                                 <div className={`w-3 h-3 rounded-full ${hub.color} animate-pulse`} />
@@ -345,12 +345,12 @@ export default function ModernLanding() {
                     </div>
 
                     <div className="grid lg:grid-cols-2 gap-10">
-                        {/* Clinician Interface */}
+                        {/* Hubian Interface */}
                         <div className="bg-white/5 border border-white/10 rounded-[3rem] p-10 backdrop-blur-3xl relative overflow-hidden group">
                             <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-brand-500/5 blur-[80px] rounded-full pointer-events-none" />
                             <div className="flex items-center justify-between mb-12">
                                 <div className="flex items-center gap-4">
-                                    <Activity className="w-6 h-6 text-brand-400" />
+                                    <BarChart3 className="w-6 h-6 text-brand-400" />
                                     <h4 className="text-xl font-black uppercase italic tracking-tight">Staff Panel</h4>
                                 </div>
                                 <span className="px-5 py-2 bg-brand-500/10 border border-brand-500/20 text-brand-400 rounded-full text-[8px] font-black uppercase tracking-widest">Live Screen</span>
@@ -373,13 +373,13 @@ export default function ModernLanding() {
                             </div>
                         </div>
 
-                        {/* Reception Architecture */}
+                        {/* Operator Architecture */}
                         <div className="bg-[#111111] border border-white/10 rounded-[3rem] p-10 backdrop-blur-3xl relative overflow-hidden group">
                             <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-emerald-500/5 blur-[80px] rounded-full pointer-events-none" />
                             <div className="flex items-center justify-between mb-12">
                                 <div className="flex items-center gap-4">
                                     <Layers className="w-6 h-6 text-emerald-400" />
-                                    <h4 className="text-xl font-black uppercase italic tracking-tight">Front Desk</h4>
+                                    <h4 className="text-xl font-black uppercase italic tracking-tight">Operator Desk</h4>
                                 </div>
                                 <span className="px-5 py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full text-[8px] font-black uppercase tracking-widest">Check-in Hub</span>
                             </div>
@@ -404,7 +404,7 @@ export default function ModernLanding() {
                     <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-[3rem] p-10 md:p-14 text-center relative overflow-hidden">
                         <div className="absolute top-0 left-0 w-full h-full bg-grid-white/[0.02] pointer-events-none" />
                         <h2 className="text-3xl font-black uppercase italic tracking-tighter mb-4">Security</h2>
-                        <p className="text-[10px] font-black text-neutral-100 uppercase tracking-[0.6em] mb-12">HIPAA • GDPR • ISO 27001 Compliant</p>
+                        <p className="text-[10px] font-black text-neutral-100 uppercase tracking-[0.6em] mb-12">GDPR • GDPR • ISO 27001 Compliant</p>
                         
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                             {[
@@ -446,9 +446,9 @@ export default function ModernLanding() {
                             <div>
                                 <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-white mb-8">System Control</h4>
                                 <div className="flex flex-col gap-5 text-[10px] font-black uppercase tracking-widest text-neutral-100">
-                                    <Link href="/admin/dashboard" className="hover:text-brand-400 transition-colors">Admin Dashboard</Link>
-                                    <Link href="/doctor" className="hover:text-brand-400 transition-colors">Staff Portal</Link>
-                                    <Link href="/reception" className="hover:text-brand-400 transition-colors">Front Desk</Link>
+                                    <Link href="/org-admin/dashboard" className="hover:text-brand-400 transition-colors">Admin Dashboard</Link>
+                                    <Link href="/agent" className="hover:text-brand-400 transition-colors">Staff Portal</Link>
+                                    <Link href="/operator" className="hover:text-brand-400 transition-colors">Front Desk</Link>
                                     <Link href="/kiosk" className="hover:text-brand-400 transition-colors">Check-in Kiosk</Link>
                                 </div>
                             </div>                             

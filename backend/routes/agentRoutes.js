@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const User    = require("../models/User");
 const { auth } = require("../middleware/authMiddleware");
+const { emitSocketEvent } = require("../utils/socketUtils");
 
 /**
  * @swagger
@@ -19,8 +20,8 @@ const { auth } = require("../middleware/authMiddleware");
 router.get("/info", auth, async (req, res) => {
     try {
         const agent = await User.findOne({ _id: req.user.id, role: "AGENT" })
-            .select("-password -refreshToken")
-            .populate("serviceId", "name category");
+            .select("-password -refreshToken");
+            // .populate("serviceId", "name category"); // Service logic is secondary for now
         if (!agent) return res.status(404).json({ message: "Agent not found" });
         res.json(agent);
     } catch (err) {
@@ -47,9 +48,9 @@ router.get("/info", auth, async (req, res) => {
  *             properties:
  *               availability:
  *                 type: string
- *                 enum: [Available, Unavailable]
+ *                 enum: [Available, Not Available]
  *                 example: Available
- *               statusMessage:
+ *               pauseMessage:
  *                 type: string
  *                 description: Message shown when unavailable (e.g. "Back in 20 min")
  *                 example: Back after lunch
@@ -61,11 +62,11 @@ router.get("/info", auth, async (req, res) => {
  */
 router.put("/availability", auth, async (req, res) => {
     try {
-        const { availability, statusMessage } = req.body;
+        const { availability, pauseMessage } = req.body;
 
         const update = { availability };
-        update.statusMessage = (availability === "Unavailable" && statusMessage)
-            ? statusMessage.trim().slice(0, 200)
+        update.pauseMessage = (availability === "Not Available" && pauseMessage)
+            ? pauseMessage.trim().slice(0, 200)
             : "";
 
         const agent = await User.findOneAndUpdate(
@@ -75,16 +76,17 @@ router.put("/availability", auth, async (req, res) => {
         );
         if (!agent) return res.status(404).json({ message: "Agent not found" });
 
-        if (global.io) {
-            const agentRoom  = `agent_${req.user.id}`;
-            const serviceRoom = agent.serviceId ? `service_${agent.serviceId}` : null;
-            const orgRoom    = `org_${agent.organizationId}`;
-
-            const payload = { availability: agent.availability, statusMessage: agent.statusMessage };
-            global.io.to(agentRoom).emit("agent.status_changed", payload);
-            if (serviceRoom) global.io.to(serviceRoom).emit("agent.status_changed", payload);
-            global.io.to(orgRoom).emit("agent.status_changed", payload);
-            global.io.to(agentRoom).emit("queue.updated");
+        if (agent.organizationId) {
+            // Real-time updates
+            const payload = { 
+                agentId: agent._id,
+                availability: agent.availability, 
+                pauseMessage: agent.pauseMessage 
+            };
+            
+            // Standard socket utility
+            emitSocketEvent(agent._id.toString(), "agentAvailabilityChanged", payload, agent.organizationId.toString());
+            emitSocketEvent(agent._id.toString(), "queueUpdated", undefined, agent.organizationId.toString());
         }
 
         res.json(agent);
@@ -109,9 +111,9 @@ router.put("/availability", auth, async (req, res) => {
  *           schema:
  *             type: object
  *             required:
- *               - avgSessionDuration
+ *               - avgSessionTime
  *             properties:
- *               avgSessionDuration:
+ *               avgSessionTime:
  *                 type: number
  *                 description: Average session duration in minutes
  *                 example: 10
@@ -123,28 +125,81 @@ router.put("/availability", auth, async (req, res) => {
  */
 router.put("/update-session-duration", auth, async (req, res) => {
     try {
-        const { avgSessionDuration } = req.body;
+        const avgSessionTime = req.body.avgSessionTime || req.body.avgSessionDuration;
 
-        if (!avgSessionDuration || avgSessionDuration <= 0) {
+        if (!avgSessionTime || avgSessionTime <= 0) {
             return res.status(400).json({ message: "Invalid session duration" });
         }
 
         const agent = await User.findOneAndUpdate(
             { _id: req.user.id, role: "AGENT" },
-            { avgSessionDuration },
+            { avgSessionTime },
             { new: true }
         );
         if (!agent) return res.status(404).json({ message: "Agent not found" });
 
-        if (global.io) {
-            global.io.to(`agent_${req.user.id}`).emit("queue.updated");
-            if (agent.serviceId) global.io.to(`service_${agent.serviceId}`).emit("queue.updated");
-            global.io.to(`org_${agent.organizationId}`).emit("queue.updated");
+        if (agent.organizationId) {
+            emitSocketEvent(agent._id.toString(), "queueUpdated", undefined, agent.organizationId.toString());
         }
 
         res.json({ message: "Session duration updated", agent });
     } catch (err) {
         console.error("Update session duration error", err);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
+// Operator Management (Merged from legacy doctorRoutes)
+router.put("/operators/assign", auth, async (req, res) => {
+    try {
+        const { operatorId } = req.body;
+        if (req.user.role !== "AGENT") {
+            return res.status(403).json({ message: "Only agents can assign operators" });
+        }
+
+        const operator = await User.findOne({
+            _id: operatorId,
+            organizationId: req.user.organizationId,
+            role: "OPERATOR"
+        });
+
+        if (!operator) {
+            return res.status(404).json({ message: "Operator not found in your organization" });
+        }
+
+        const agentId = req.user.id.toString();
+        if (!operator.assignedAgents.map(id => id.toString()).includes(agentId)) {
+            operator.assignedAgents.push(req.user.id);
+            await operator.save();
+        }
+
+        res.json({
+            message: "Operator assigned successfully",
+            operator: {
+                id: operator._id,
+                name: operator.name,
+                assignedAgents: operator.assignedAgents
+            }
+        });
+    } catch (err) {
+        console.error("Assign Operator Error", err);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
+router.get("/operators", auth, async (req, res) => {
+    try {
+        if (req.user.role !== "AGENT") {
+            return res.status(403).json({ message: "Agents only" });
+        }
+
+        const operators = await User.find({
+            organizationId: req.user.organizationId,
+            role: "OPERATOR"
+        }).select("name email assignedAgents");
+
+        res.json(operators);
+    } catch (err) {
         res.status(500).json({ message: "Server error" });
     }
 });

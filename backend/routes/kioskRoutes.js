@@ -1,97 +1,101 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/User");
-const Patient = require("../models/Patient");
+const Customer = require("../models/Customer");
+const Organization = require("../models/Organization");
 const { v4: uuidv4 } = require("uuid");
 const { sendQueueConfirmation } = require("../utils/notificationService");
 const { emitSocketEvent } = require("../utils/socketUtils");
 
-router.get("/:hospitalId/doctors", async (req, res) => {
+/**
+ * @swagger
+ * /kiosk/{organizationId}/agents:
+ *   get:
+ *     summary: Get available agents for an organization (Kiosk)
+ *     tags: [Kiosk]
+ */
+router.get("/:organizationId/agents", async (req, res) => {
     try {
-        const { hospitalId } = req.params;
-        const doctors = await User.find({ hospitalId, role: "DOCTOR", availability: "Available" }).select('name specialization avgConsultationTime');
+        const { organizationId } = req.params;
+        const agents = await User.find({ organizationId, role: "AGENT", availability: "Available" })
+            .select('name expertise avgSessionTime');
 
-        const doctorsWithQueues = await Promise.all(doctors.map(async (doc) => {
-            const queueCount = await Patient.countDocuments({
-                doctorId: doc._id,
+        const agentsWithQueues = await Promise.all(agents.map(async (agent) => {
+            const queueCount = await Customer.countDocuments({
+                agentId: agent._id,
                 status: "waiting",
             });
             return {
-                _id: doc._id,
-                name: doc.name,
-                specialization: doc.specialization,
-                avgConsultationTime: doc.avgConsultationTime,
+                _id: agent._id,
+                name: agent.name,
+                expertise: agent.expertise,
                 currentQueueLength: queueCount,
-                estimatedWaitMins: queueCount * doc.avgConsultationTime
+                estimatedWaitMins: queueCount * (agent.avgSessionTime || 5)
             };
         }));
 
-        res.json({ success: true, data: doctorsWithQueues });
+        res.json({ success: true, data: agentsWithQueues });
     } catch (err) {
-        console.error("Kiosk Doctor fetch error:", err);
+        console.error("Kiosk Agent fetch error:", err);
         res.status(500).json({ success: false, message: "Server Error" });
     }
 });
 
-// Kiosk: Create a new queue entry (Self check-in)
-router.post("/:hospitalId/enqueue", async (req, res) => {
+/**
+ * @swagger
+ * /kiosk/{organizationId}/enqueue:
+ *   post:
+ *     summary: Create a new queue entry (Self check-in)
+ *     tags: [Kiosk]
+ */
+router.post("/:organizationId/enqueue", async (req, res) => {
     try {
-        const { hospitalId } = req.params;
-        const { doctorId, name, phone, description } = req.body;
+        const { organizationId } = req.params;
+        const { agentId, name, phone, description } = req.body;
 
-        if (!doctorId || !name) {
-            return res.status(400).json({ message: "Doctor and Name are required" });
+        if (!agentId || !name) {
+            return res.status(400).json({ message: "Agent and Name are required" });
         }
 
-        // Get today's start and end for token number calculation
         const startOfDay = new Date();
         startOfDay.setHours(0, 0, 0, 0);
         const endOfDay = new Date();
         endOfDay.setHours(23, 59, 59, 999);
 
-        // Calculate token number (All patients for this doctor today)
-        const totalCountToday = await Patient.countDocuments({
-            doctorId,
+        const totalCountToday = await Customer.countDocuments({
+            agentId,
             createdAt: { $gte: startOfDay, $lte: endOfDay }
         });
 
-        // Calculate sortOrder (Waiting patients only)
-        const currentWaitingCount = await Patient.countDocuments({
-            doctorId,
+        const currentWaitingCount = await Customer.countDocuments({
+            agentId,
             status: "waiting"
         });
 
         const tokenNumber = totalCountToday + 1;
         const sortOrder = currentWaitingCount + 1;
         const uniqueLinkId = uuidv4();
-        const doctor = await User.findById(doctorId);
+        const agent = await User.findById(agentId);
 
-        // Fetch hospital to fallback to default branch if doctor lacks one
-        const Hospital = require('../models/Hospital');
-        const hospital = await Hospital.findById(hospitalId);
+        const organization = await Organization.findById(organizationId);
+        if (!organization) {
+            return res.status(404).json({ message: "Organization not found" });
+        }
 
-        // Resolve branch ID
-        let branchId = doctor?.branchId;
-        if (!branchId && hospital) {
-            if (hospital.branches && hospital.branches.length > 0) {
-                branchId = hospital.branches[0]._id;
+        // Resolve location ID
+        let locationId = agent?.locationId;
+        if (!locationId) {
+            if (organization.locations && organization.locations.length > 0) {
+                locationId = organization.locations[0]._id;
             } else {
-                // Auto-create default branch for legacy hospitals
-                hospital.branches = [{ name: "Main Branch", address: "Legacy Auto-Created" }];
-                await hospital.save();
-                branchId = hospital.branches[0]._id;
+                return res.status(400).json({ message: "No location found for this organization" });
             }
         }
 
-        if (!branchId) {
-            return res.status(400).json({ message: "No branch found for this hospital" });
-        }
-
-        // Create Patient
-        const patient = new Patient({
-            hospitalId,
-            branchId,
-            doctorId,
+        const customer = new Customer({
+            organizationId,
+            locationId,
+            agentId,
             name,
             number: phone || "",
             description: description || "Self check-in via Kiosk",
@@ -102,15 +106,16 @@ router.post("/:hospitalId/enqueue", async (req, res) => {
             createdAt: new Date()
         });
 
-        await patient.save();
+        await customer.save();
 
-        emitSocketEvent(doctorId.toString(), "queueUpdated", undefined, hospitalId.toString());
+        emitSocketEvent(agentId.toString(), "queueUpdated", undefined, organizationId.toString());
 
         const trackingUrl = process.env.FRONTEND_URL
             ? `${process.env.FRONTEND_URL}/status/${uniqueLinkId}`
             : `http://localhost:3000/status/${uniqueLinkId}`;
+            
         if (phone) {
-            sendQueueConfirmation(phone, name, tokenNumber, trackingUrl, doctor?.name || "Doctor");
+            sendQueueConfirmation(phone, name, tokenNumber, trackingUrl, agent?.name || "Staff");
         }
 
         res.status(201).json({
@@ -126,31 +131,35 @@ router.post("/:hospitalId/enqueue", async (req, res) => {
     }
 });
 
-// Display Board: Fetch the currently serving token for every available doctor in the hospital
-router.get("/:hospitalId/display", async (req, res) => {
+/**
+ * @swagger
+ * /kiosk/{organizationId}/display:
+ *   get:
+ *     summary: Display board for all agents
+ *     tags: [Kiosk]
+ */
+router.get("/:organizationId/display", async (req, res) => {
     try {
-        const { hospitalId } = req.params;
-        const doctors = await User.find({ hospitalId, role: "DOCTOR", availability: { $in: ["Available", "Not Available"] } }).select('name specialization');
+        const { organizationId } = req.params;
+        const agents = await User.find({ 
+            organizationId, 
+            role: "AGENT", 
+            availability: { $in: ["Available", "Not Available"] } 
+        }).select('name expertise');
 
-        // Get today's start and end bounds
-        const startOfDay = new Date();
-        startOfDay.setHours(0, 0, 0, 0);
-        const endOfDay = new Date();
-        endOfDay.setHours(23, 59, 59, 999);
-
-        const displayData = await Promise.all(doctors.map(async (doc) => {
-            const upcomingPatients = await Patient.find({
-                doctorId: doc._id,
+        const displayData = await Promise.all(agents.map(async (agent) => {
+            const upcomingCustomers = await Customer.find({
+                agentId: agent._id,
                 status: "waiting",
             }).select('tokenNumber name').sort({ tokenNumber: 1 }).limit(4);
 
-            const currentlyServing = upcomingPatients.length > 0 ? upcomingPatients[0] : null;
-            const nextTokens = upcomingPatients.slice(1).map(p => p.tokenNumber);
+            const currentlyServing = upcomingCustomers.length > 0 ? upcomingCustomers[0] : null;
+            const nextTokens = upcomingCustomers.slice(1).map(c => c.tokenNumber);
 
             return {
-                doctorId: doc._id,
-                doctorName: doc.name,
-                specialization: doc.specialization,
+                agentId: agent._id,
+                agentName: agent.name,
+                expertise: agent.expertise,
                 servingToken: currentlyServing ? currentlyServing.tokenNumber : "---",
                 nextTokens: nextTokens
             };
@@ -163,41 +172,41 @@ router.get("/:hospitalId/display", async (req, res) => {
     }
 });
 
-// Display Board (Doctor Specific): Fetch the currently serving token for a specific doctor
-router.get("/:hospitalId/display/:doctorId", async (req, res) => {
+/**
+ * @swagger
+ * /kiosk/{organizationId}/display/{agentId}:
+ *   get:
+ *     summary: Display board for a specific agent
+ *     tags: [Kiosk]
+ */
+router.get("/:organizationId/display/:agentId", async (req, res) => {
     try {
-        const { hospitalId, doctorId } = req.params;
-        const doc = await User.findOne({ _id: doctorId, hospitalId, role: "DOCTOR" }).select('name specialization');
+        const { organizationId, agentId } = req.params;
+        const agent = await User.findOne({ _id: agentId, organizationId, role: "AGENT" }).select('name expertise');
 
-        if (!doc) {
-            return res.status(404).json({ success: false, message: "Doctor not found" });
+        if (!agent) {
+            return res.status(404).json({ success: false, message: "Agent not found" });
         }
 
-        // Get today's start and end bounds
-        const startOfDay = new Date();
-        startOfDay.setHours(0, 0, 0, 0);
-        const endOfDay = new Date();
-        endOfDay.setHours(23, 59, 59, 999);
-
-        const upcomingPatients = await Patient.find({
-            doctorId: doc._id,
+        const upcomingCustomers = await Customer.find({
+            agentId: agent._id,
             status: "waiting",
-        }).select('tokenNumber name').sort({ tokenNumber: 1 }).limit(10); // get more next tokens for a dedicated screen
+        }).select('tokenNumber name').sort({ tokenNumber: 1 }).limit(10);
 
-        const currentlyServing = upcomingPatients.length > 0 ? upcomingPatients[0] : null;
-        const nextTokens = upcomingPatients.slice(1).map(p => p.tokenNumber);
+        const currentlyServing = upcomingCustomers.length > 0 ? upcomingCustomers[0] : null;
+        const nextTokens = upcomingCustomers.slice(1).map(c => c.tokenNumber);
 
         const displayData = {
-            doctorId: doc._id,
-            doctorName: doc.name,
-            specialization: doc.specialization,
+            agentId: agent._id,
+            agentName: agent.name,
+            expertise: agent.expertise,
             servingToken: currentlyServing ? currentlyServing.tokenNumber : "---",
             nextTokens: nextTokens
         };
 
         res.json({ success: true, data: displayData });
     } catch (err) {
-        console.error("Doctor Specific Display fetch error:", err);
+        console.error("Agent Specific Display fetch error:", err);
         res.status(500).json({ success: false, message: "Server Error" });
     }
 });

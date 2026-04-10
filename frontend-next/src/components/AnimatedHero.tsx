@@ -54,20 +54,20 @@ export default function AnimatedHero() {
 
             <h1 ref={titleRef} className="hero-title text-5xl md:text-7xl font-extrabold text-center tracking-tight flex flex-wrap justify-center gap-x-4">
                 <span className="bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent inline-block opacity-0">Smart</span>
-                <span className="bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent inline-block opacity-0">Hospital</span>
+                <span className="bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent inline-block opacity-0">Organization</span>
                 <span className="bg-gradient-to-r from-primary-600 to-cyan-500 dark:from-primary-400 dark:to-cyan-300 bg-clip-text text-transparent inline-block opacity-0">Queue</span>
                 <span className="block w-full mt-2 text-xl md:text-3xl font-medium text-gray-600 dark:text-gray-300 opacity-0">Management System</span>
             </h1>
 
             <p className="hero-desc mt-6 text-xl text-gray-600 dark:text-gray-300 text-center leading-relaxed max-w-3xl mx-auto opacity-0 font-light">
-                Reduce crowding, improve patient trust, real‑time updates,
-                doctor control & transparent queue experience — all in one elegant system.
+                Reduce crowding, improve customer trust, real‑time updates,
+                agent control & transparent queue experience — all in one elegant system.
             </p>
 
             <div ref={cardsRef} className="mt-14 grid md:grid-cols-3 gap-6">
                 {[
                     { title: "Real‑time Queue", desc: "Live tracking, ETA & Top‑3 alerts", color: "text-cyan-600 dark:text-cyan-400", border: "border-cyan-500/30" },
-                    { title: "Doctor Control", desc: "Availability + Break + Pause system", color: "text-emerald-600 dark:text-emerald-400", border: "border-emerald-500/30" },
+                    { title: "Agent Control", desc: "Availability + Break + Pause system", color: "text-emerald-600 dark:text-emerald-400", border: "border-emerald-500/30" },
                     { title: "Secure History", desc: "Records + filters + secure logs", color: "text-purple-600 dark:text-purple-400", border: "border-purple-500/30" },
                 ].map((feat, idx) => (
                     <div key={idx} className={`feature-card bg-white/50 dark:bg-black/50 border ${feat.border} backdrop-blur-xl 
@@ -100,12 +100,12 @@ export default function AnimatedHero() {
           border-2 border-gray-300 dark:border-white/20 text-gray-800 dark:text-white
           hover:bg-gray-100 dark:hover:bg-white/10 hover:scale-[1.05]
           transition-all duration-300">
-                    Doctor Login
+                    Agent Login
                 </Link>
             </div>
 
             <p className="mt-10 text-center text-gray-500 dark:text-gray-400 text-sm font-medium tracking-wide">
-                Built for hospitals to be efficient, transparent & stress‑free.
+                Built for organizations to be efficient, transparent & stress‑free.
             </p>
         </div>
     );

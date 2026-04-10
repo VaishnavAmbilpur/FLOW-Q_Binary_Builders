@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "FLOW-Q - Intelligent Patient Flow",
+  title: "FLOW-Q - Intelligent Customer Flow",
   description: "Modern queue management system.",
 };
 

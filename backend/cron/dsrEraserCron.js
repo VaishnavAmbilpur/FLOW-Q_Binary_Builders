@@ -1,7 +1,7 @@
 const cron = require('node-cron');
 const crypto = require('crypto');
 const DsrRequest = require('../models/DsrRequest');
-const Patient = require('../models/Patient');
+const Customer = require('../models/Customer');
 const Appointment = require('../models/Appointment');
 const CommunicationConsent = require('../models/CommunicationConsent');
 const logger = require('../utils/logger');
@@ -18,15 +18,15 @@ const initDsrEraserCron = () => {
             });
 
             for (const request of pendingDeletes) {
-                const { patientPhone, organizationId } = request;
+                const { customerPhone, organizationId } = request;
 
-                // 1. Scrub Patient Queue Data
+                // 1. Scrub Customer Queue Data
                 // We overwrite name and number with hashed values so they can't be identified
                 // but we keep the row for aggregate analytical reports (e.g., footfall count)
-                const hashedPhone = crypto.createHash('sha256').update(patientPhone).digest('hex').substring(0, 16);
+                const hashedPhone = crypto.createHash('sha256').update(customerPhone).digest('hex').substring(0, 16);
 
-                await Patient.updateMany(
-                    { number: patientPhone, hospitalId: organizationId },
+                await Customer.updateMany(
+                    { number: customerPhone, organizationId: organizationId },
                     {
                         $set: {
                             name: `[DELETED_${crypto.randomBytes(4).toString('hex')}]`,
@@ -39,10 +39,10 @@ const initDsrEraserCron = () => {
 
                 // 2. Scrub Appointments
                 await Appointment.updateMany(
-                    { phone: patientPhone, hospitalId: organizationId },
+                    { phone: customerPhone, organizationId: organizationId },
                     {
                         $set: {
-                            patientName: `[DELETED_${crypto.randomBytes(4).toString('hex')}]`,
+                            customerName: `[DELETED_${crypto.randomBytes(4).toString('hex')}]`,
                             phone: hashedPhone,
                             notes: "[REDACTED]"
                         }
@@ -51,7 +51,7 @@ const initDsrEraserCron = () => {
 
                 // 3. Remove Communication Consent
                 await CommunicationConsent.deleteMany({
-                    phoneNumber: patientPhone,
+                    phoneNumber: customerPhone,
                     organizationId: organizationId
                 });
 
@@ -60,7 +60,7 @@ const initDsrEraserCron = () => {
                 request.completedAt = new Date();
 
                 // Re-encrypt/anonymize the request log itself for extreme compliance
-                request.patientPhone = hashedPhone;
+                request.customerPhone = hashedPhone;
                 await request.save();
 
                 logger.info(`DSR Erasure Completed for request ${request._id} at org ${organizationId}`);

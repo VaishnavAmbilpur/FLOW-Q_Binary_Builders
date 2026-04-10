@@ -5,16 +5,16 @@ import api from "@/services/api";
 import { Users, Plus, Trash2, CheckCircle2, AlertCircle, Stethoscope } from "lucide-react";
 
 export default function TeamManagement() {
-    const [doctors, setDoctors] = useState([]);
-    const [formData, setFormData] = useState({ name: "", email: "", specialization: "", password: "" });
+    const [agents, setAgents] = useState([]);
+    const [formData, setFormData] = useState({ name: "", email: "", serviceCategory: "", password: "" });
     const [msg, setMsg] = useState({ text: "", type: "success" });
     const [loading, setLoading] = useState(false);
 
-    const loadDoctors = async () => {
+    const loadAgents = async () => {
         try {
-            const res = await api.get("/hospitals/doctors");
+            const res = await api.get("/organizations/agents");
             if (res.data.success) {
-                setDoctors(res.data.data);
+                setAgents(res.data.data);
             }
         } catch (err) {
             console.error(err);
@@ -22,7 +22,7 @@ export default function TeamManagement() {
     };
 
     useEffect(() => {
-        loadDoctors();
+        loadAgents();
     }, []);
 
     const showMsg = (text: string, type = "success") => {
@@ -32,29 +32,29 @@ export default function TeamManagement() {
 
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-    const provisionDoctor = async (e) => {
+    const provisionAgent = async (e) => {
         e.preventDefault();
         setLoading(true);
         try {
-            await api.post("/hospitals/doctors", formData);
-            showMsg("Doctor provisioned successfully");
-            setFormData({ name: "", email: "", specialization: "", password: "" });
-            loadDoctors();
+            await api.post("/organizations/agents", formData);
+            showMsg("Agent provisioned successfully");
+            setFormData({ name: "", email: "", serviceCategory: "", password: "" });
+            loadAgents();
         } catch (err: any) {
-            showMsg(err.response?.data?.message || "Failed to provision doctor", "error");
+            showMsg(err.response?.data?.message || "Failed to provision agent", "error");
         } finally {
             setLoading(false);
         }
     };
 
-    const removeDoctor = async (id: string) => {
-        if (!window.confirm("Are you sure you want to remove this doctor? This cannot be undone.")) return;
+    const removeAgent = async (id: string) => {
+        if (!window.confirm("Are you sure you want to remove this agent? This cannot be undone.")) return;
         try {
-            await api.delete(`/hospitals/doctors/${id}`);
-            showMsg("Doctor removed successfully");
-            loadDoctors();
+            await api.delete(`/organizations/agents/${id}`);
+            showMsg("Agent removed successfully");
+            loadAgents();
         } catch (err) {
-            showMsg("Failed to remove doctor", "error");
+            showMsg("Failed to remove agent", "error");
         }
     };
 
@@ -65,7 +65,7 @@ export default function TeamManagement() {
                 <h2 className="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-cyan-400 dark:to-blue-500 bg-clip-text text-transparent flex items-center gap-3">
                     <Users className="w-8 h-8 text-cyan-500" /> Team Management
                 </h2>
-                <p className="text-gray-500 dark:text-gray-400 mt-2 font-medium">Provision and manage clinical accounts for your hospital</p>
+                <p className="text-gray-500 dark:text-gray-400 mt-2 font-medium">Provision and manage hubal accounts for your organization</p>
             </div>
 
             {msg.text && (
@@ -81,21 +81,21 @@ export default function TeamManagement() {
                     <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 dark:bg-cyan-500/5 blur-[50px] rounded-full pointer-events-none" />
 
                     <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
-                        <Plus className="w-6 h-6 text-cyan-500" /> Provision Doctor
+                        <Plus className="w-6 h-6 text-cyan-500" /> Provision Agent
                     </h3>
 
-                    <form onSubmit={provisionDoctor} className="space-y-4 relative z-10">
+                    <form onSubmit={provisionAgent} className="space-y-4 relative z-10">
                         <div>
                             <label className="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Full Name</label>
-                            <input required type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Dr. Sarah Connor" className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-cyan-500 outline-none text-gray-900 dark:text-white" />
+                            <input required type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Professional Sarah Connor" className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-cyan-500 outline-none text-gray-900 dark:text-white" />
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Email</label>
-                            <input required type="email" name="email" value={formData.email} onChange={handleChange} placeholder="sarah@hospital.com" className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-cyan-500 outline-none text-gray-900 dark:text-white" />
+                            <input required type="email" name="email" value={formData.email} onChange={handleChange} placeholder="sarah@organization.com" className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-cyan-500 outline-none text-gray-900 dark:text-white" />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Specialization</label>
-                            <input required type="text" name="specialization" value={formData.specialization} onChange={handleChange} placeholder="Pediatrics" className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-cyan-500 outline-none text-gray-900 dark:text-white" />
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Service Category</label>
+                            <input required type="text" name="serviceCategory" value={formData.serviceCategory} onChange={handleChange} placeholder="Pediatrics" className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-cyan-500 outline-none text-gray-900 dark:text-white" />
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Initial Password</label>
@@ -115,14 +115,14 @@ export default function TeamManagement() {
                         <Stethoscope className="w-6 h-6 text-purple-500" /> Active Roster
                     </h3>
 
-                    {doctors.length === 0 ? (
+                    {agents.length === 0 ? (
                         <div className="text-center py-10">
                             <Stethoscope className="w-16 h-16 text-gray-300 dark:text-gray-700 mx-auto mb-4" />
-                            <p className="text-gray-500 font-medium">No doctors provisioned yet.</p>
+                            <p className="text-gray-500 font-medium">No agents provisioned yet.</p>
                         </div>
                     ) : (
                         <div className="space-y-4 relative z-10">
-                            {doctors.map((doc: any) => (
+                            {agents.map((doc: any) => (
                                 <div key={doc._id} className="flex items-center justify-between p-5 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 hover:border-cyan-500/30 transition-colors">
                                     <div className="flex items-start gap-4">
                                         <div className="w-12 h-12 rounded-full bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center text-cyan-600 dark:text-cyan-400 font-bold text-lg flex-shrink-0">
@@ -132,14 +132,14 @@ export default function TeamManagement() {
                                             <h4 className="font-bold text-gray-900 dark:text-white text-lg">{doc.name}</h4>
                                             <p className="text-sm text-gray-500">{doc.email}</p>
                                             <div className="flex gap-2 mt-2">
-                                                <span className="text-xs px-2 py-0.5 bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400 rounded-full font-semibold">{doc.specialization}</span>
+                                                <span className="text-xs px-2 py-0.5 bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400 rounded-full font-semibold">{doc.serviceCategory}</span>
                                                 <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${doc.availability === 'Available' ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400' : 'bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400'}`}>
                                                     {doc.availability || 'Unknown'}
                                                 </span>
                                             </div>
                                         </div>
                                     </div>
-                                    <button onClick={() => removeDoctor(doc._id)} className="p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors" title="Revoke Access">
+                                    <button onClick={() => removeAgent(doc._id)} className="p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors" title="Revoke Access">
                                         <Trash2 className="w-5 h-5" />
                                     </button>
                                 </div>

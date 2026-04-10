@@ -26,6 +26,7 @@ export default function OperatorDashboard() {
     const [organization, setOrganization] = useState<any>(null);
     const [queue, setQueue] = useState<any[]>([]);
     const [appointments, setAppointments] = useState<any[]>([]);
+    const [availabilities, setAvailabilities] = useState<Record<string, any>>({});
     const [completedCount, setCompletedCount] = useState(0);
     const [msg, setMsg] = useState("");
     const [loading, setLoading] = useState(false);
@@ -63,20 +64,19 @@ export default function OperatorDashboard() {
             const meRes = await api.get("/auth/me");
             const userData = meRes.data;
 
-            if (userData.role !== "OPERATOR" && userData.role !== "RECEPTIONIST" && 
-                userData.role !== "ORG_ADMIN" && userData.role !== "HOSPITAL_ADMIN") {
+            if (userData.role !== "OPERATOR" && userData.role !== "ORG_ADMIN") {
                 router.push("/agent");
                 return;
             }
             
-            if (userData.role === 'ORG_ADMIN' || userData.role === 'HOSPITAL_ADMIN') {
-                const staffRes = await api.get("/org/staff");
+            if (userData.role === 'ORG_ADMIN') {
+                const staffRes = await api.get("/organizations/staff");
                 const allStaff = staffRes.data || [];
-                const operatorsList = allStaff.filter((s: any) => s.role === "OPERATOR" || s.role === "RECEPTIONIST");
+                const operatorsList = allStaff.filter((s: any) => s.role === "OPERATOR");
                 if (operatorsList.length > 0) {
                     setOperator(operatorsList[0]);
                 } else {
-                    router.push("/admin/dashboard");
+                    router.push("/org-admin/dashboard");
                 }
             } else {
                 setOperator(userData);
@@ -92,9 +92,17 @@ export default function OperatorDashboard() {
 
     useEffect(() => {
         if (!operator) return;
-        api.get("/auth/org").then((res) => {
-            setOrganization(res.data?.organization);
+        api.get("/organizations/info").then((res) => {
+            setOrganization(res.data?.organizationId);
         }).catch(() => {});
+
+        if (operator.assignedAgents) {
+            const initial: Record<string, any> = {};
+            operator.assignedAgents.forEach((a: any) => {
+                initial[a._id] = { availability: a.availability || 'Available', pauseMessage: a.pauseMessage || '' };
+            });
+            setAvailabilities(initial);
+        }
     }, [operator]);
 
     const appointmentsEnabled = organization
@@ -110,6 +118,13 @@ export default function OperatorDashboard() {
 
         socket.on("queue.updated", loadQueue);
         socket.on("queueUpdated", loadQueue);
+        
+        socket.on("agentAvailabilityChanged", (data: any) => {
+            setAvailabilities(prev => ({
+                ...prev,
+                [data.agentId]: { availability: data.availability, pauseMessage: data.pauseMessage }
+            }));
+        });
 
         return () => { socket.disconnect(); };
     }, [operator]);
@@ -127,7 +142,7 @@ export default function OperatorDashboard() {
             let totalCompleted = 0;
             const today = new Date().toISOString().split('T')[0];
 
-            const agents = operator.assignedAgents || operator.assignedDoctors || [];
+            const agents = operator.assignedAgents || operator.assignedAgents || [];
             for (let agent of agents) {
                 const res = await api.get(`/queue/${agent._id}`);
                 allQueues = [...allQueues, ...res.data];
@@ -152,7 +167,7 @@ export default function OperatorDashboard() {
     async function loadAppointments() {
         try {
             let allApps: any[] = [];
-            const agents = operator.assignedAgents || operator.assignedDoctors || [];
+            const agents = operator.assignedAgents || operator.assignedAgents || [];
             for (let agent of agents) {
                 const res = await api.get(`/appointments/agent/${agent._id}/upcoming`);
                 allApps = [...allApps, ...res.data];
@@ -164,7 +179,7 @@ export default function OperatorDashboard() {
         }
     }
 
-    async function handleAddClient(e: any) {
+    async function handleAddCustomer(e: any) {
         e.preventDefault();
         setLoading(true);
         try {
@@ -177,14 +192,14 @@ export default function OperatorDashboard() {
                 notes: form.notes
             });
             
-            const link = res.data.entry?.uniqueLinkId || res.data.patient?.uniqueLinkId || "";
+            const link = res.data.entry?.uniqueLinkId || res.data.customer?.uniqueLinkId || "";
             setLastAddedLink(link);
             
-            showMsg("Client Enrollment Success", "success");
+            showMsg("Customer Enrollment Success", "success");
             setForm({ name: "", email: "", phone: "", notes: "", priority: "NORMAL", agentId: form.agentId });
             loadQueue();
         } catch (err: any) {
-            showMsg(err.response?.data?.message || "Error enrolling client", "error");
+            showMsg(err.response?.data?.message || "Error enrolling customer", "error");
         } finally {
             setLoading(false);
         }
@@ -195,9 +210,9 @@ export default function OperatorDashboard() {
         setLoading(true);
         try {
             await api.post("/appointments/book", {
-                clientName: appointmentForm.name,
-                clientPhone: appointmentForm.phone,
-                clientEmail: appointmentForm.email,
+                customerName: appointmentForm.name,
+                customerPhone: appointmentForm.phone,
+                customerEmail: appointmentForm.email,
                 scheduledAt: appointmentForm.scheduledAt,
                 notes: appointmentForm.notes,
                 agentId: appointmentForm.agentId,
@@ -219,10 +234,10 @@ export default function OperatorDashboard() {
 
             // Instantly transfer to live queue if not already done by backend
             await api.post("/queue/add", {
-                name: appt.clientName || appt.patientName,
+                name: appt.clientName || appt.customerName,
                 number: appt.clientPhone || appt.phone,
                 email: appt.clientEmail || appt.email,
-                agentId: appt.agentId || appt.doctorId,
+                agentId: appt.agentId || appt.agentId,
                 priority: 'NORMAL',
                 notes: `[Appt] ${appt.notes || ''}`
             });
@@ -297,7 +312,7 @@ export default function OperatorDashboard() {
 
     if (!operator) return <Loader />;
 
-    const agents = operator.assignedAgents || operator.assignedDoctors || [];
+    const agents = operator.assignedAgents || operator.assignedAgents || [];
 
     return (
         <div className="w-full min-h-screen bg-neutral-950 text-white font-sans relative overflow-x-hidden selection:bg-brand-500/30">
@@ -319,7 +334,7 @@ export default function OperatorDashboard() {
                         </div>
                         <div>
                             <h1 className="text-xl sm:text-3xl font-black tracking-tight text-white mb-0.5 uppercase italic">Registry Desk</h1>
-                            <p className="text-neutral-500 text-[11px] font-bold uppercase tracking-wider">Client Enrollment Terminal <span className="mx-2 text-white/10">|</span> {organization?.name || "Standard Registry"}</p>
+                            <p className="text-neutral-500 text-[11px] font-bold uppercase tracking-wider">Customer Enrollment Terminal <span className="mx-2 text-white/10">|</span> {organization?.name || "Standard Registry"}</p>
                         </div>
                     </div>
                     
@@ -405,10 +420,10 @@ export default function OperatorDashboard() {
                         {tab === "add" && activeTab === "walkin" && (
                             <div className="max-w-4xl mx-auto animate-fade-down py-10">
                                 <div className="text-center mb-12">
-                                    <h2 className="text-4xl font-black tracking-tight text-white mb-3 uppercase italic">Enroll Client</h2>
+                                    <h2 className="text-4xl font-black tracking-tight text-white mb-3 uppercase italic">Enroll Customer</h2>
                                     <p className="text-neutral-500 text-[12px] font-bold uppercase tracking-wider">Direct Walk-in Registration</p>
                                 </div>
-                                <form onSubmit={handleAddClient} className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <form onSubmit={handleAddCustomer} className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <FormInput label="Legal Name" icon={<UserIcon className="w-3 h-3"/>}>
                                         <input
                                             placeholder="e.g. John Doe"
@@ -430,7 +445,7 @@ export default function OperatorDashboard() {
                                     <FormInput label="Email Sync" icon={<Bell className="w-3 h-3"/>}>
                                         <input
                                             type="email"
-                                            placeholder="sync@client.com"
+                                            placeholder="sync@customer.com"
                                             className="custom-input"
                                             value={form.email}
                                             onChange={(e) => setForm({ ...form, email: e.target.value })}
@@ -444,22 +459,18 @@ export default function OperatorDashboard() {
                                             required
                                         >
                                             <option value="" disabled>Pick available agent...</option>
-                                            {agents.map((a: any) => (
-                                                <option key={a._id} value={a._id} className="bg-neutral-900">{a.name} ({a.serviceCategory || a.specialization})</option>
-                                            ))}
+                                            {agents.map((a: any) => {
+                                                const status = availabilities[a._id]?.availability;
+                                                const isOff = status === "Not Available" || status === "Unavailable";
+                                                return (
+                                                    <option key={a._id} value={a._id} className="bg-neutral-900">
+                                                        {a.name} ({a.serviceCategory || a.role}) {isOff ? " [OFFLINE]" : ""}
+                                                    </option>
+                                                );
+                                            })}
                                         </select>
                                     </FormInput>
-                                    <FormInput label="Priority Hub" icon={<Activity className="w-3 h-3"/>}>
-                                        <select
-                                            className="custom-input cursor-pointer"
-                                            value={form.priority}
-                                            onChange={(e) => setForm({ ...form, priority: e.target.value })}
-                                        >
-                                            <option value="NORMAL" className="bg-neutral-900">Normal Priority</option>
-                                            <option value="HIGH" className="bg-neutral-900">High Priority</option>
-                                            <option value="EMERGENCY" className="bg-neutral-900 text-danger-500">Emergency Protocol</option>
-                                        </select>
-                                    </FormInput>
+
                                     <FormInput label="Brief Notes" icon={<FileText className="w-3 h-3"/>}>
                                         <input
                                             placeholder="Reason for visit..."
@@ -488,7 +499,7 @@ export default function OperatorDashboard() {
                                     <p className="text-neutral-500 text-[11px] font-black uppercase tracking-[0.4em]">Future Schedule Protocol</p>
                                 </div>
                                 <form onSubmit={bookAppointment} className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <FormInput label="Client Name" icon={<UserIcon className="w-3 h-3"/>}>
+                                    <FormInput label="Customer Name" icon={<UserIcon className="w-3 h-3"/>}>
                                         <input
                                             placeholder="Full Name"
                                             className="custom-input"
@@ -589,6 +600,7 @@ export default function OperatorDashboard() {
                                                             onComplete={() => completeVisit(p._id)} 
                                                             onCancel={() => cancelVisit(p._id)}
                                                             onCopyLink={() => copyStatusLink(p.uniqueLinkId)}
+                                                            agentStatus={availabilities[p.agentId?._id || p.agentId]}
                                                             onCopyPhone={() => {
                                                                 navigator.clipboard.writeText(p.phone || p.number);
                                                                 showMsg("Phone Copied", "success");
@@ -622,13 +634,13 @@ export default function OperatorDashboard() {
                                                                     <span className="text-xl font-black text-white leading-none mt-1">{new Date(a.scheduledAt).getDate()}</span>
                                                                 </div>
                                                                 <div className="flex-1 min-w-0">
-                                                                    <p className="text-sm font-black text-white italic uppercase tracking-tight truncate group-hover:text-brand-400 transition-colors">{a.clientName || a.patientName}</p>
+                                                                    <p className="text-sm font-black text-white italic uppercase tracking-tight truncate group-hover:text-brand-400 transition-colors">{a.customerName || a.customerName || a.guestName}</p>
                                                                     <div className="flex items-center gap-4 mt-1.5">
                                                                         <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-neutral-400">
                                                                             <Clock className="w-3 h-3" /> {new Date(a.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                                         </span>
                                                                         <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-brand-500/60">
-                                                                            <UserIcon className="w-3 h-3" /> {a.agentName || a.doctorName || a.agentId?.name || "Agent"}
+                                                                            <UserIcon className="w-3 h-3" /> {a.agentName || a.agentName || a.agentId?.name || "Agent"}
                                                                         </span>
                                                                     </div>
                                                                 </div>
@@ -690,10 +702,10 @@ function FormInput({ label, icon, children, fullWidth = false }: { label: string
     );
 }
 
-function SortableItem({ item, onComplete, onCancel, onCopyLink, onCopyPhone }: { item: any; onComplete: () => void; onCancel: () => void; onCopyLink: () => void; onCopyPhone: () => void }) {
+function SortableItem({ item, onComplete, onCancel, onCopyLink, onCopyPhone, agentStatus }: { item: any; onComplete: () => void; onCancel: () => void; onCopyLink: () => void; onCopyPhone: () => void; agentStatus?: any }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ 
         id: item._id,
-        data: { agentId: item.agentId?._id || item.agentId || item.doctorId?._id || item.doctorId }
+        data: { agentId: item.agentId?._id || item.agentId || item.agentId?._id || item.agentId }
     });
     const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1, zIndex: isDragging ? 100 : 1 };
 
@@ -712,13 +724,16 @@ function SortableItem({ item, onComplete, onCancel, onCopyLink, onCopyPhone }: {
             </div>
 
             <div className="flex-1 min-w-0">
-                <h4 className="text-lg font-black text-white truncate mb-1 group-hover:text-brand-400 transition-colors uppercase tracking-tight italic">{item.clientName || item.name}</h4>
+                <h4 className="text-lg font-black text-white truncate mb-1 group-hover:text-brand-400 transition-colors uppercase tracking-tight italic">{item.customerName || item.name}</h4>
                 <div className="flex items-center gap-5">
                     <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-neutral-400">
                         <Activity className="w-3.5 h-3.5 text-info-400" /> {item.status}
                     </span>
-                    <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-neutral-500 group-hover:text-brand-400 transition-colors italic">
-                        <Briefcase className="w-3.5 h-3.5" /> Assigned to: {item.agentId?.name || item.doctorName || "Standard Agent"}
+                    <span className={`flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider ${agentStatus?.availability === "Not Available" || agentStatus?.availability === "Unavailable" ? 'text-danger-400' : 'text-neutral-500'} group-hover:text-brand-400 transition-colors italic`}>
+                        <Briefcase className="w-3.5 h-3.5" /> Assigned to: {item.agentId?.name || item.agentName || "Standard Agent"}
+                        {(agentStatus?.availability === "Not Available" || agentStatus?.availability === "Unavailable") && (
+                            <span className="ml-2 px-1.5 py-0.5 bg-danger-500/10 border border-danger-500/20 rounded text-[7px] animate-pulse">OFFLINE</span>
+                        )}
                     </span>
                 </div>
             </div>

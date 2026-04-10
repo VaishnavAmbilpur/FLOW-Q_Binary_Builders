@@ -8,16 +8,13 @@ const logger = require('../utils/logger');
 const auditMiddleware = (req, res, next) => {
     // Only care about mutations broadly speaking
     if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
-        // We defer the logging until the response finishes so we can capture status if desired,
-        // or we just fire it off immediately. We'll fire it off to capture the attempt.
-
         res.on('finish', async () => {
             try {
-                // If there's no user, it might be an unauthenticated route, but check anyway
+                // Determine identity from authenticated user context
                 const userId = req.user ? req.user.id : null;
                 const role = req.user ? req.user.role : 'anonymous';
-                const hospitalId = req.user ? req.user.hospitalId : null;
-                const branchId = req.user ? req.user.branchId : null;
+                const organizationId = req.user ? req.user.organizationId : (req.organizationId || null);
+                const locationId = req.user ? req.user.locationId : (req.locationId || null);
 
                 // Determine action based on Method
                 let action = 'UNKNOWN';
@@ -33,8 +30,8 @@ const auditMiddleware = (req, res, next) => {
                 const resourceId = req.params.id || (req.body ? req.body.id : null) || 'N/A';
 
                 const logEntry = new AuditLog({
-                    organizationId: hospitalId,
-                    locationId: branchId,
+                    organizationId: organizationId,
+                    locationId: locationId,
                     userId: userId,
                     role: role,
                     action: action,
@@ -43,13 +40,11 @@ const auditMiddleware = (req, res, next) => {
                     ipAddress: req.ip || req.connection.remoteAddress,
                     requestMethod: req.method,
                     requestUrl: req.originalUrl,
-                    // careful not to log passwords or highly sensitive PII in req.body
-                    // ideally we'd scrub req.body here
+                    // Note: Sensitive data should be scrubbed before logging req.body
                 });
 
                 await logEntry.save();
             } catch (err) {
-                // Do not crash the app, just log to regular logger
                 logger.error('Failed to write to AuditLog:', err);
             }
         });

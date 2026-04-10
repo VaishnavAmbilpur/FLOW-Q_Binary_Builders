@@ -8,19 +8,22 @@ const logger = require("../utils/logger");
 // Book an appointment
 router.post("/book", auth, async (req, res) => {
     try {
-        const { doctorId, patientName, phone, scheduledAt, notes } = req.body;
-        const hospitalId = req.user.hospitalId;
-        const branchId = req.user.branchId;
+        const { agentId, customerName, phone, customerPhone, scheduledAt, notes } = req.body;
+        const organizationId = req.user.organizationId;
+        const locationId = req.user.locationId;
 
-        const doctor = await User.findOne({ _id: doctorId, hospitalId, branchId, role: "DOCTOR" });
-        if (!doctor) return res.status(404).json({ message: "Doctor not found" });
+        const agentQuery = { _id: agentId, organizationId, role: "AGENT" };
+        if (locationId) agentQuery.locationId = locationId;
+
+        const agent = await User.findOne(agentQuery);
+        if (!agent) return res.status(404).json({ message: "Agent not found" });
 
         const appointment = new Appointment({
-            hospitalId,
-            branchId,
-            doctorId,
-            patientName,
-            phone,
+            organizationId,
+            locationId: locationId || agent.locationId,
+            agentId,
+            customerName,
+            phone: phone || customerPhone,
             scheduledAt,
             notes,
             status: "scheduled"
@@ -34,12 +37,12 @@ router.post("/book", auth, async (req, res) => {
     }
 });
 
-// Get today's appointments for a doctor
-router.get("/doctor/:doctorId/today", auth, async (req, res) => {
+// Get today's appointments for an agent
+router.get("/agent/:agentId/today", auth, async (req, res) => {
     try {
-        const { doctorId } = req.params;
-        const hospitalId = req.user.hospitalId;
-        const branchId = req.user.branchId;
+        const { agentId } = req.params;
+        const organizationId = req.user.organizationId;
+        const locationId = req.user.locationId;
 
         const startOfDay = new Date();
         startOfDay.setHours(0, 0, 0, 0);
@@ -47,13 +50,15 @@ router.get("/doctor/:doctorId/today", auth, async (req, res) => {
         const endOfDay = new Date();
         endOfDay.setHours(23, 59, 59, 999);
 
-        const appointments = await Appointment.find({
-            doctorId,
-            hospitalId,
-            branchId,
+        const apptQuery = {
+            agentId,
+            organizationId,
             scheduledAt: { $gte: startOfDay, $lte: endOfDay },
             status: { $in: ["scheduled", "arrived"] }
-        }).sort({ scheduledAt: 1 });
+        };
+        if (locationId) apptQuery.locationId = locationId;
+
+        const appointments = await Appointment.find(apptQuery).sort({ scheduledAt: 1 });
 
         res.json(appointments);
     } catch (err) {
@@ -62,16 +67,57 @@ router.get("/doctor/:doctorId/today", auth, async (req, res) => {
     }
 });
 
-// Mark appointment as arrived (moves to walk-in queue logic ideally)
+// Get upcoming appointments for an agent (next 7 days)
+router.get("/agent/:agentId/upcoming", auth, async (req, res) => {
+    try {
+        const { agentId } = req.params;
+        const organizationId = req.user.organizationId;
+        const locationId = req.user.locationId;
+
+        const startOfRange = new Date();
+        // startOfRange.setHours(0, 0, 0, 0); // Keep it from now onwards
+
+        const endOfRange = new Date();
+        endOfRange.setDate(endOfRange.getDate() + 7);
+        endOfRange.setHours(23, 59, 59, 999);
+
+        const query = {
+            agentId,
+            organizationId,
+            scheduledAt: { $gte: startOfRange, $lte: endOfRange },
+            status: { $in: ["scheduled", "arrived"] }
+        };
+
+        // If user has a specific locationId, restrict to it. 
+        // ORG_ADMINs usually don't have a locationId and see org-wide.
+        if (locationId) {
+            query.locationId = locationId;
+        }
+
+        const appointments = await Appointment.find(query).sort({ scheduledAt: 1 });
+
+        res.json(appointments);
+    } catch (err) {
+        logger.error("Get Upcoming Appointments Error", { error: err.message });
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
+// Mark appointment as arrived
 router.put("/:id/arrive", auth, async (req, res) => {
     try {
+        const query = { _id: req.params.id, organizationId: req.user.organizationId };
+        if (req.user.locationId) {
+            query.locationId = req.user.locationId;
+        }
+
         const appointment = await Appointment.findOneAndUpdate(
-            { _id: req.params.id, hospitalId: req.user.hospitalId, branchId: req.user.branchId },
+            query,
             { status: "arrived" },
             { new: true }
         );
         if (!appointment) return res.status(404).json({ message: "Appointment not found" });
-        res.json({ message: "Patient arrived", appointment });
+        res.json({ message: "Customer arrived", appointment });
     } catch (err) {
         logger.error("Appointment Arrival Error", { error: err.message });
         res.status(500).json({ message: "Server error" });

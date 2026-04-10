@@ -7,14 +7,14 @@ import { socket } from "@/services/socket";
 import Loader from "@/components/Loader";
 import { CheckCircle, XCircle, Clock, AlertTriangle, Activity, Star } from "lucide-react";
 
-export default function PatientStatusView() {
+export default function CustomerStatusView() {
     const { uniqueLinkId } = useParams();
 
     const [data, setData] = useState<any>(null);
     const [completed, setCompleted] = useState(false);
     const [cancelled, setCancelled] = useState(false);
     const [remainingMinutes, setRemainingMinutes] = useState<number | null>(null);
-    const [doctorStatus, setDoctorStatus] = useState("Available");
+    const [agentStatus, setAgentStatus] = useState("Available");
     const [loading, setLoading] = useState(true);
     const [msg, setMsg] = useState("");
 
@@ -48,8 +48,8 @@ export default function PatientStatusView() {
                 return;
             }
 
-            if (res.data.doctorAvailability) {
-                setDoctorStatus(res.data.doctorAvailability);
+            if (res.data.agentAvailability) {
+                setAgentStatus(res.data.agentAvailability);
             }
 
             setData(res.data);
@@ -97,9 +97,9 @@ export default function PatientStatusView() {
             }
 
             socket.connect();
-            socket.emit("joinDoctorPublicRoom", {
-                hospitalId: res.data.hospitalId,
-                doctorId: res.data.doctorId
+            socket.emit("joinAgentPublicRoom", {
+                organizationId: res.data.organizationId,
+                agentId: res.data.agentId
             });
         } catch (err) {
             console.log(err);
@@ -113,15 +113,15 @@ export default function PatientStatusView() {
         loadStatus();
 
         socket.connect();
-        socket.emit("joinPatientRoom", uniqueLinkId as string);
+        socket.emit("joinCustomerRoom", uniqueLinkId as string);
 
         socket.on("visitCompleted", () => setCompleted(true));
         socket.on("visitCancelled", () => setCancelled(true));
         socket.on("queueUpdated", loadStatus);
 
-        socket.on("doctorAvailabilityChanged", (payload: any) => {
-            if (payload.doctorId === data?.doctorId || payload.doctorId === data?.doctor?._id) {
-                setDoctorStatus(payload.availability);
+        socket.on("agentAvailabilityChanged", (payload: any) => {
+            if (payload.agentId === data?.agentId || payload.agentId === data?.agent?._id) {
+                setAgentStatus(payload.availability);
                 if (payload.availability === "Available") loadStatus();
             }
         });
@@ -130,13 +130,13 @@ export default function PatientStatusView() {
             socket.off("visitCompleted");
             socket.off("visitCancelled");
             socket.off("queueUpdated");
-            socket.off("doctorAvailabilityChanged");
+            socket.off("agentAvailabilityChanged");
         };
     }, [uniqueLinkId]);
 
     useEffect(() => {
         if (remainingMinutes == null) return;
-        if (doctorStatus !== "Available") return;
+        if (agentStatus !== "Available") return;
 
         const interval = setInterval(() => {
             setRemainingMinutes(prev => {
@@ -153,7 +153,7 @@ export default function PatientStatusView() {
         }, 60000);
 
         return () => clearInterval(interval);
-    }, [remainingMinutes, doctorStatus, data?.myPosition, uniqueLinkId]);
+    }, [remainingMinutes, agentStatus, data?.myPosition, uniqueLinkId]);
 
     const submitFeedback = async () => {
         if (rating === 0) return;
@@ -215,7 +215,7 @@ export default function PatientStatusView() {
                         <Activity className="w-8 h-8 text-white" />
                     </div>
                     <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white mb-2">Live Waitlist</h1>
-                    <p className="text-neutral-100 text-[10px] font-black uppercase tracking-[0.3em] mt-4">{data.hospitalName}</p>
+                    <p className="text-neutral-100 text-[10px] font-black uppercase tracking-[0.3em] mt-4">{data.organizationName}</p>
 
                     <button
                         onClick={() => {
@@ -281,25 +281,25 @@ export default function PatientStatusView() {
                         <div className="bg-white/[0.02] border border-white/10 rounded-[2rem] p-5 flex items-center justify-between shadow-inner group hover:bg-white/5 transition-all">
                             <div className="flex items-center gap-4">
                                 <div className="w-12 h-12 bg-neutral-900 rounded-2xl flex items-center justify-center border border-white/10 relative overflow-hidden group-hover:border-brand-500/50 transition-colors">
-                                    <Activity className={`w-6 h-6 z-10 ${doctorStatus === 'Available' ? 'text-brand-400' : 'text-neutral-600'}`} />
-                                    {doctorStatus === 'Available' && (
+                                    <Activity className={`w-6 h-6 z-10 ${agentStatus === 'Available' ? 'text-brand-400' : 'text-neutral-600'}`} />
+                                    {agentStatus === 'Available' && (
                                         <div className="absolute inset-0 bg-brand-500/5 animate-pulse" />
                                     )}
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-bold text-neutral-100 uppercase tracking-wider">DOCTOR STATUS</p>
-                                    <p className={`text-[13px] font-black tracking-wide ${doctorStatus === 'Available' ? 'text-brand-400' : 'text-danger-500 shadow-[0_0_10px_rgba(239, 68, 68, 0.3)]'}`}>
-                                        {doctorStatus === 'Available' ? 'DOCTOR IS ONLINE' : 'DOCTOR IS OFFLINE'}
+                                    <p className="text-[10px] font-bold text-neutral-100 uppercase tracking-wider">AGENT STATUS</p>
+                                    <p className={`text-[13px] font-black tracking-wide ${agentStatus === 'Available' ? 'text-brand-400' : 'text-danger-500 shadow-[0_0_10px_rgba(239, 68, 68, 0.3)]'}`}>
+                                        {agentStatus === 'Available' ? 'AGENT IS ONLINE' : 'AGENT IS OFFLINE'}
                                     </p>
                                 </div>
                             </div>
                             <div className="text-right">
                                 <p className="text-[10px] font-bold text-neutral-100 uppercase tracking-wider">WAIT TIME</p>
-                                <p className="text-xl sm:text-2xl font-black text-white">{doctorStatus === 'Available' ? formatTime(remainingMinutes) : '---'}</p>
+                                <p className="text-xl sm:text-2xl font-black text-white">{agentStatus === 'Available' ? formatTime(remainingMinutes) : '---'}</p>
                             </div>
                         </div>
 
-                        {data.myPosition <= 3 && doctorStatus === 'Available' && (
+                        {data.myPosition <= 3 && agentStatus === 'Available' && (
                             <div className="bg-brand-600 border border-brand-400 p-5 rounded-[2rem] flex items-center gap-4 animate-pulse shadow-xl shadow-brand-600/20">
                                 <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
                                     <AlertTriangle className="w-6 h-6 text-white" />
