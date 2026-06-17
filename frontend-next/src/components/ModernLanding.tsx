@@ -90,16 +90,6 @@ export default function ModernLanding() {
                 {/* Hero Command Section */}
                 <div className="max-w-5xl mx-auto text-center px-8 animate-fade-up opacity-0">
 
-                    {/* Synchronized Status Badge */}
-                    <div className="inline-flex flex-col sm:flex-row items-center gap-4 bg-brand-500/10 border border-brand-500/20 rounded-[1.5rem] sm:rounded-full px-6 py-3 sm:py-2.5 mb-10 backdrop-blur-md">
-                        <div className="flex items-center gap-3">
-                            <div className="w-2 h-2 rounded-full bg-brand-500 animate-ping" />
-                            <span className="text-[9px] font-black tracking-[0.3em] text-brand-400 uppercase">Pro Waiting Software</span>
-                        </div>
-                        <div className="hidden sm:block w-px h-3 bg-brand-500/20 mx-1" />
-                        <span className="text-[9px] font-black text-brand-300 uppercase tracking-widest">Global Waitlist System v2.0</span>
-                    </div>
-
                     <h1 className="text-4xl md:text-7xl font-black tracking-tighter mb-8 text-white leading-[0.9] uppercase italic">
                         The Future of <br />
                         <span className="bg-gradient-to-r from-brand-400 via-brand-600 to-emerald-400 bg-clip-text text-transparent px-2">Waiting.</span>
