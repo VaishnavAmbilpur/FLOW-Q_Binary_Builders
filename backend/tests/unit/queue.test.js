@@ -1,12 +1,20 @@
+jest.mock('bcrypt', () => {
+  return {
+    hash: (val) => Promise.resolve(`$2b$10$mocked_hash_${val}`),
+    compare: (val, hash) => Promise.resolve(hash === `$2b$10$mocked_hash_${val}` || hash === val)
+  };
+});
+
 const request = require('supertest');
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
 const authRoutes = require('../../routes/authRoutes');
 const queueRoutes = require('../../routes/queueRoutes');
-const doctorRoutes = require('../../routes/doctorRoutes');
-const Doctor = require('../../models/Doctor');
-const Patient = require('../../models/Patient');
+const orgRoutes = require('../../routes/orgRoutes');
+const agentRoutes = require('../../routes/agentRoutes');
+const User = require('../../models/User');
+const Customer = require('../../models/Customer');
 
 // Create Express app for testing
 const app = express();
@@ -16,44 +24,87 @@ app.use(cookieParser());
 // Mock socket.io
 global.io = {
   to: jest.fn().mockReturnThis(),
-  emit: jest.fn()
+  emit: jest.fn().mockReturnThis()
 };
 
 app.use('/api/auth', authRoutes);
-app.use('/api/doctors', doctorRoutes);
+app.use('/api/organizations', orgRoutes);
+app.use('/api/agents', agentRoutes);
 app.use('/api/queue', queueRoutes);
 
 describe('Queue Routes', () => {
   let authToken;
+  let adminAuthToken;
   let doctorId;
 
   beforeEach(async () => {
-    // Create and login a doctor before each test
+    console.log("--- BEFORE EACH START ---");
+    global.io = {
+      to: jest.fn().mockReturnThis(),
+      emit: jest.fn().mockReturnThis()
+    };
+    // Clear collections
+    await User.deleteMany({});
+    const Organization = require('../../models/Organization');
+    await Organization.deleteMany({});
+    await Customer.deleteMany({});
+    console.log("Step 1: Collections cleared");
+
+    // 1. Sign up organization admin
     const signupResponse = await request(app)
-      .post('/api/auth/signup')
+      .post('/api/organizations/signup')
+      .send({
+        orgName: 'Queue Test Hospital',
+        industry: 'healthcare',
+        name: 'Admin User',
+        email: 'admin.queue@test.com',
+        password: 'AdminPassword123'
+      });
+    console.log("Step 2: Sign up org admin response:", signupResponse.status, signupResponse.body);
+
+    // 2. Log in as admin to get token
+    const loginResponse = await request(app)
+      .post('/api/organizations/login')
+      .send({
+        email: 'admin.queue@test.com',
+        password: 'AdminPassword123'
+      });
+    console.log("Step 3: Log in admin response:", loginResponse.status, loginResponse.body);
+
+    const adminToken = loginResponse.body.accessToken;
+    adminAuthToken = adminToken;
+
+    // 3. Create AGENT via admin staff provisioning
+    const agentResponse = await request(app)
+      .post('/api/organizations/staff/agent')
+      .set('Authorization', `Bearer ${adminToken}`)
       .send({
         name: 'Dr. Queue Test',
-        specialization: 'General Medicine',
         email: 'queue.test@example.com',
+        serviceCategory: 'General Medicine',
         password: 'QueueTest123'
       });
+    console.log("Step 4: Create agent response:", agentResponse.status, agentResponse.body);
 
-    doctorId = signupResponse.body.doctor.id;
+    doctorId = agentResponse.body.agent.id;
 
-    const loginResponse = await request(app)
+    // 4. Log in as the AGENT to get cookie token
+    const agentLoginResponse = await request(app)
       .post('/api/auth/login')
       .send({
         email: 'queue.test@example.com',
         password: 'QueueTest123'
       });
+    console.log("Step 5: Log in agent response:", agentLoginResponse.status);
 
     // Extract token from cookie
-    const cookieHeader = loginResponse.headers['set-cookie'][0];
+    const cookieHeader = agentLoginResponse.headers['set-cookie'][0];
     authToken = cookieHeader.split('token=')[1].split(';')[0];
+    console.log("Step 6: Setup completed successfully");
   });
 
   describe('POST /api/queue/add', () => {
-    it('should add a patient to queue with valid data', async () => {
+    it('should add a customer to queue with valid data', async () => {
       const patientData = {
         name: 'John Patient',
         description: 'Fever and headache',
@@ -66,16 +117,16 @@ describe('Queue Routes', () => {
         .send(patientData)
         .expect(200);
 
-      expect(response.body).toHaveProperty('message', 'Patient added successfully');
-      expect(response.body.patient).toHaveProperty('name', patientData.name);
-      expect(response.body.patient).toHaveProperty('tokenNumber', 1);
-      expect(response.body.patient).toHaveProperty('uniqueLinkId');
+      expect(response.body).toHaveProperty('message', 'Person Enrolled Successfully');
+      expect(response.body.customer).toHaveProperty('name', patientData.name);
+      expect(response.body.customer).toHaveProperty('tokenNumber', 1);
+      expect(response.body.customer).toHaveProperty('uniqueLinkId');
       expect(response.body).toHaveProperty('statusLink');
 
-      // Verify patient was created in database
-      const patient = await Patient.findOne({ name: patientData.name });
-      expect(patient).toBeTruthy();
-      expect(patient.status).toBe('waiting');
+      // Verify customer was created in database
+      const customer = await Customer.findOne({ uniqueLinkId: response.body.customer.uniqueLinkId });
+      expect(customer).toBeTruthy();
+      expect(customer.status).toBe('waiting');
     });
 
     it('should assign incremental token numbers', async () => {
@@ -101,8 +152,8 @@ describe('Queue Routes', () => {
         .set('Cookie', [`token=${authToken}`])
         .send(patient2);
 
-      expect(response1.body.patient.tokenNumber).toBe(1);
-      expect(response2.body.patient.tokenNumber).toBe(2);
+      expect(response1.body.customer.tokenNumber).toBe(1);
+      expect(response2.body.customer.tokenNumber).toBe(2);
     });
 
     it('should fail without authentication', async () => {
@@ -151,7 +202,7 @@ describe('Queue Routes', () => {
       expect(response.body).toHaveProperty('message', 'Validation failed');
     });
 
-    it('should emit socket event when patient added', async () => {
+    it('should emit socket event when customer added', async () => {
       const patientData = {
         name: 'Socket Test Patient',
         description: 'Testing socket',
@@ -164,7 +215,7 @@ describe('Queue Routes', () => {
         .send(patientData);
 
       expect(global.io.to).toHaveBeenCalledWith(doctorId.toString());
-      expect(global.io.emit).toHaveBeenCalledWith('queueUpdated');
+      expect(global.io.emit).toHaveBeenCalledWith('queueUpdated', undefined);
     });
   });
 
@@ -218,10 +269,10 @@ describe('Queue Routes', () => {
 
       const response = await request(app)
         .get(`/api/queue/${fakeId}`)
-        .set('Cookie', [`token=${authToken}`])
+        .set('Cookie', [`token=${adminAuthToken}`])
         .expect(404);
 
-      expect(response.body).toHaveProperty('message', 'Doctor not found');
+      expect(response.body).toHaveProperty('message', 'Agent not found');
     });
   });
 
@@ -239,7 +290,7 @@ describe('Queue Routes', () => {
           number: '7777777777'
         });
 
-      patient = response.body.patient;
+      patient = response.body.customer;
     });
 
     it('should get patient status by unique link (no auth required)', async () => {
@@ -264,7 +315,7 @@ describe('Queue Routes', () => {
 
     it('should show completed status', async () => {
       // Complete the patient
-      await Patient.findByIdAndUpdate(patient._id, {
+      await Customer.findByIdAndUpdate(patient._id, {
         status: 'completed',
         completedAt: new Date()
       });
@@ -291,7 +342,7 @@ describe('Queue Routes', () => {
           number: '8888888888'
         });
 
-      patient = response.body.patient;
+      patient = response.body.customer;
     });
 
     it('should mark patient as completed', async () => {
@@ -304,7 +355,7 @@ describe('Queue Routes', () => {
       expect(response.body).toHaveProperty('completedAt');
 
       // Verify in database
-      const updatedPatient = await Patient.findById(patient._id);
+      const updatedPatient = await Customer.findById(patient._id);
       expect(updatedPatient.status).toBe('completed');
       expect(updatedPatient.completedAt).toBeTruthy();
     });
@@ -320,7 +371,7 @@ describe('Queue Routes', () => {
 
       expect(global.io.to).toHaveBeenCalledWith(doctorId.toString());
       expect(global.io.to).toHaveBeenCalledWith(patient.uniqueLinkId);
-      expect(global.io.emit).toHaveBeenCalledWith('queueUpdated');
+      expect(global.io.emit).toHaveBeenCalledWith('queueUpdated', undefined);
       expect(global.io.emit).toHaveBeenCalledWith('visitCompleted', expect.any(Object));
     });
 
@@ -338,7 +389,7 @@ describe('Queue Routes', () => {
         .set('Cookie', [`token=${authToken}`])
         .expect(404);
 
-      expect(response.body).toHaveProperty('message', 'Patient not found');
+      expect(response.body).toHaveProperty('message', 'Customer not found');
     });
   });
 
@@ -355,7 +406,7 @@ describe('Queue Routes', () => {
           number: '9999999999'
         });
 
-      patient = response.body.patient;
+      patient = response.body.customer;
     });
 
     it('should mark patient as cancelled', async () => {
@@ -367,7 +418,7 @@ describe('Queue Routes', () => {
       expect(response.body).toHaveProperty('status', 'cancelled');
 
       // Verify in database
-      const updatedPatient = await Patient.findById(patient._id);
+      const updatedPatient = await Customer.findById(patient._id);
       expect(updatedPatient.status).toBe('cancelled');
     });
 
@@ -379,7 +430,7 @@ describe('Queue Routes', () => {
         .put(`/api/queue/cancel/${patient._id}`)
         .set('Cookie', [`token=${authToken}`]);
 
-      expect(global.io.emit).toHaveBeenCalledWith('queueUpdated');
+      expect(global.io.emit).toHaveBeenCalledWith('queueUpdated', undefined);
       expect(global.io.emit).toHaveBeenCalledWith('visitCancelled', expect.any(Object));
     });
 
@@ -403,7 +454,7 @@ describe('Queue Routes', () => {
             number: `${i}${i}${i}${i}${i}${i}${i}${i}${i}${i}`
           });
 
-        await Patient.findByIdAndUpdate(response.body.patient._id, {
+        await Customer.findByIdAndUpdate(response.body.customer._id, {
           status: i % 2 === 0 ? 'completed' : 'cancelled',
           completedAt: new Date()
         });

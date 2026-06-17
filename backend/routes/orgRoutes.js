@@ -147,6 +147,7 @@ router.post("/signup", orgLimiter, async (req, res) => {
         })));
 
         const hashedPassword = await bcrypt.hash(password, 10);
+        console.log("DEBUG SIGNUP:", { password, hashedPassword, type: typeof hashedPassword });
         const admin = await User.create({
             organizationId: org._id,
             locationId:     org.locations[0]._id,
@@ -181,6 +182,7 @@ router.post("/signup", orgLimiter, async (req, res) => {
                 }))
             });
         }
+        console.error("Signup error details:", err);
         logger.error("Org Signup Error", { error: err.message, stack: err.stack });
         res.status(500).json({ message: "Server error" });
     }

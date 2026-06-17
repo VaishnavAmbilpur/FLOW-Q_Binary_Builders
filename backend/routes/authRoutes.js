@@ -15,6 +15,8 @@ const { getCookieOptions } = require("../utils/authUtils");
 const { sendPasswordResetEmail, sendPasswordChangeConfirmation } = require("../utils/emailService");
 const { auth } = require("../middleware/authMiddleware");
 
+const isProduction = process.env.NODE_ENV === "production";
+
 // ─── Google OAuth Strategy ───────────────────────────────────────────────────
 if (process.env.GOOGLE_CLIENT_ID) {
   passport.use(new GoogleStrategy({

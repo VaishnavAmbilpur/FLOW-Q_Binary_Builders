@@ -29,7 +29,6 @@ const apiV2Routes = require('./routes/apiV2Routes');
 const orgRoutes = require('./routes/orgRoutes');
 const kioskRoutes = require('./routes/kioskRoutes');
 const appointmentRoutes = require('./routes/appointmentRoutes');
-const sentry = require('./config/sentry');
 const swaggerSpec = require('./config/swagger');
 
 const { initScheduleCron } = require('./cron/scheduleCron');
@@ -37,7 +36,9 @@ const { initDataRetentionCron } = require('./cron/dataRetentionCron');
 const { initDsrEraserCron } = require('./cron/dsrEraserCron');
 
 
-connectDB();
+if (process.env.NODE_ENV !== 'test') {
+  connectDB();
+}
 
 // Initialize automated scheduled jobs and services
 if (process.env.NODE_ENV !== 'test') {
@@ -49,14 +50,7 @@ if (process.env.NODE_ENV !== 'test') {
 const app = express();
 app.set("trust proxy", 1);
 
-// Initialize Sentry (must be before any other middleware)
-sentry.initSentry(app);
 
-// Sentry request handler (must be first middleware)
-app.use(sentry.requestHandler());
-
-// Sentry tracing handler
-app.use(sentry.tracingHandler());
 
 // CORS Configuration (must come before other middleware)
 const allowedOrigins = [
@@ -81,7 +75,7 @@ app.use(cors({
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   // Explicitly allowing common headers to prevent Axios Network Errors on preflight
-  allowedHeaders: ["Content-Type", "Authorization", "x-api-key", "Idempotency-Key", "Accept", "X-Requested-With", "Cache-Control", "sentry-trace", "baggage", "origin"],
+  allowedHeaders: ["Content-Type", "Authorization", "x-api-key", "Idempotency-Key", "Accept", "X-Requested-With", "Cache-Control", "origin"],
   exposedHeaders: ["Authorization"],
   credentials: true,
   preflightContinue: false,
@@ -166,9 +160,6 @@ app.use('/api/v2', apiV2Routes);
 // Error handling middleware (must be after all routes)
 app.use(notFoundHandler);
 app.use(errorLogger);
-
-// Sentry error handler (must be before other error handlers)
-app.use(sentry.errorHandler());
 
 app.use(errorHandler);
 

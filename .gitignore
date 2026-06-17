@@ -1,0 +1,11 @@
+.agent/
+DOCS/
+node_modules/
+.env
+.env*.local
+.next/
+out/
+build/
+dist/
+coverage/
+*.log

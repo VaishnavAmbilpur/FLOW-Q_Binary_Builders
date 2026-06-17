@@ -1,9 +1,25 @@
+jest.mock('bcrypt', () => {
+  return {
+    hash: (val) => Promise.resolve(`$2b$10$mocked_hash_${val}`),
+    compare: (val, hash) => Promise.resolve(hash === `$2b$10$mocked_hash_${val}` || hash === val)
+  };
+});
+
 const request = require('supertest');
+const express = require('express');
+const cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
-const app = require('../../server');
+const mongoose = require('mongoose');
+const authRoutes = require('../../routes/authRoutes');
 const Doctor = require('../../models/Doctor');
 const { sendPasswordResetEmail, sendPasswordChangeConfirmation } = require('../../utils/emailService');
+
+// Create Express app for testing
+const app = express();
+app.use(express.json());
+app.use(cookieParser());
+app.use('/api/auth', authRoutes);
 
 // Mock the email service
 jest.mock('../../utils/emailService', () => ({
@@ -14,19 +30,22 @@ jest.mock('../../utils/emailService', () => ({
 describe('Password Reset Routes', () => {
   let testDoctor;
   let testEmail;
+  let dummyOrgId;
 
   beforeEach(async () => {
-    // Clear doctors collection
+    // Clear doctors/users collection
     await Doctor.deleteMany({});
 
-    // Create a test doctor
+    // Create a dummy Organization ID and a test doctor
+    dummyOrgId = new mongoose.Types.ObjectId();
     testEmail = `test${Date.now()}@example.com`;
     const hashedPassword = await bcrypt.hash('TestPassword123', 10);
     testDoctor = await Doctor.create({
       name: 'Test Doctor',
-      specialization: 'General',
       email: testEmail,
-      password: hashedPassword
+      password: hashedPassword,
+      role: 'ORG_ADMIN',
+      organizationId: dummyOrgId
     });
 
     // Clear mock calls

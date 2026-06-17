@@ -47,11 +47,12 @@ const { emitSocketEvent } = require("../utils/socketUtils");
  *         description: Server error
  */
 router.post("/add", auth, async (req, res) => {
+  let agentId;
   try {
     const validatedData = addCustomerSchema.parse(req.body);
     const { name, description, number, notes, agentId: bodyAgentId } = validatedData;
 
-    let agentId = req.user?.id;
+    agentId = req.user?.id;
 
     if (req.user?.role === "OPERATOR") {
       agentId = bodyAgentId;
@@ -113,6 +114,11 @@ router.post("/add", auth, async (req, res) => {
       uniqueLinkId: uuidv4()
     });
 
+    if (customer.decryptFieldsSync) {
+      customer.decryptFieldsSync();
+    }
+
+
     emitSocketEvent(agentId.toString(), "queueUpdated", undefined, agent.organizationId.toString());
 
     const trackingUrl = process.env.FRONTEND_URL
@@ -128,6 +134,7 @@ router.post("/add", auth, async (req, res) => {
       statusLink: `/api/queue/status/${customer.uniqueLinkId}`
     });
   } catch (err) {
+    console.error("Add Customer Error Details:", err);
     if (err.name === "ZodError" || err.issues) {
       return res.status(400).json({
         message: "Validation failed",
@@ -201,7 +208,6 @@ router.get("/history/", auth, async (req, res) => {
       status: { $in: ["completed", "cancelled"] }
     };
     if (status) filter.status = status;
-    if (search) filter.name = { $regex: search, $options: "i" };
     if (date && !isNaN(new Date(date))) {
       const start = new Date(date);
       const end = new Date(date);
@@ -211,10 +217,18 @@ router.get("/history/", auth, async (req, res) => {
 
     const history = await Customer.find(filter).sort({ completedAt: -1 }).populate('agentId', 'name serviceCategory');
 
-    const decryptedHistory = history.map(p => {
+    let decryptedHistory = history.map(p => {
       if (p.decryptFieldsSync) p.decryptFieldsSync();
       return p;
     });
+
+    if (search) {
+      const searchLower = search.toLowerCase();
+      decryptedHistory = decryptedHistory.filter(p => 
+        (p.name && p.name.toLowerCase().includes(searchLower)) ||
+        (p.number && p.number.toLowerCase().includes(searchLower))
+      );
+    }
 
     res.json(decryptedHistory);
   } catch (err) {
