@@ -81,7 +81,12 @@ export default function AgentDashboard() {
         const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000", {
             transports: ["websocket"]
         });
-        socket.on("connect", () => { });
+        socket.on("connect", () => {
+            console.log("Connected to agent socket");
+            loadQueue();
+            loadSummary();
+            loadUpcomingAppointments();
+        });
         socket.on("queue.updated", () => { loadQueue(); loadSummary(); });
         socket.on("queueUpdated", () => { loadQueue(); loadSummary(); });
 

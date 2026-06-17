@@ -113,7 +113,11 @@ export default function CustomerStatusView() {
         loadStatus();
 
         socket.connect();
-        socket.emit("joinCustomerRoom", uniqueLinkId as string);
+        socket.on("connect", () => {
+            console.log("Connected to status socket");
+            socket.emit("joinCustomerRoom", uniqueLinkId as string);
+            loadStatus();
+        });
 
         socket.on("visitCompleted", () => setCompleted(true));
         socket.on("visitCancelled", () => setCancelled(true));
@@ -127,6 +131,7 @@ export default function CustomerStatusView() {
         });
 
         return () => {
+            socket.off("connect");
             socket.off("visitCompleted");
             socket.off("visitCancelled");
             socket.off("queueUpdated");

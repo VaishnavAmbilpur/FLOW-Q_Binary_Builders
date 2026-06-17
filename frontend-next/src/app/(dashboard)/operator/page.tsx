@@ -116,6 +116,12 @@ export default function OperatorDashboard() {
             transports: ["websocket"]
         });
 
+        socket.on("connect", () => {
+            console.log("Connected to operator socket");
+            loadQueue();
+            if (appointmentsEnabled) loadAppointments();
+        });
+
         socket.on("queue.updated", loadQueue);
         socket.on("queueUpdated", loadQueue);
         
@@ -127,7 +133,7 @@ export default function OperatorDashboard() {
         });
 
         return () => { socket.disconnect(); };
-    }, [operator]);
+    }, [operator, appointmentsEnabled]);
 
     useEffect(() => {
         if (operator) {

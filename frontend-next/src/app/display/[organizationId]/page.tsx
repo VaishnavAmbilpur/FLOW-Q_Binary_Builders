@@ -38,6 +38,7 @@ export default function DisplayBoard() {
         socket.on('connect', () => {
             console.log("Connected to display socket");
             socket.emit('joinOrganizationPublicRoom', organizationId);
+            loadDisplayData();
         });
 
         socket.on('queueUpdated', () => {

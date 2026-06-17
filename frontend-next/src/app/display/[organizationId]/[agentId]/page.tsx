@@ -54,6 +54,7 @@ export default function AgentDisplayBoard() {
         socket.on('connect', () => {
             console.log("Connected to agent display socket");
             socket.emit('joinOrganizationPublicRoom', organizationId);
+            loadDisplayData();
         });
 
         socket.on('queueUpdated', () => {
