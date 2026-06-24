@@ -8,8 +8,6 @@ Flow-Q is a multi-tenant, real-time platform designed to digitize and optimize c
 
 * Nadam Eshwanth Raj
 * Vaishnav Ambilpur
-* Vangala Varshith Reddy
-* Balaka Laluth Vardhan
 
 ---
 
