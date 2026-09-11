@@ -11,6 +11,7 @@
     "test:watch": "jest --watch",
     "test:unit": "jest --testPathPattern=tests/unit",
     "test:integration": "jest --testPathPattern=tests/integration",
+    "dev": "nodemon server.js",
     "start": "nodemon server.js"
   },
   "dependencies": {

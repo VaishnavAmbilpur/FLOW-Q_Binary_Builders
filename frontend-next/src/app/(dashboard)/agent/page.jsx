@@ -21,7 +21,9 @@ import {
   Users,
   X,
   Smartphone,
+  Layers,
 } from "lucide-react";
+import ScrollReveal from "@/components/ScrollReveal";
 
 export default function AgentDashboard() {
   const [agent, setAgent] = useState(null);
@@ -107,7 +109,6 @@ export default function AgentDashboard() {
       },
     );
     socket.on("connect", () => {
-      console.log("Connected to agent socket");
       loadQueue();
       loadSummary();
       loadUpcomingAppointments();
@@ -132,7 +133,7 @@ export default function AgentDashboard() {
         avgSessionTime: Number(avgTime),
       });
       setAgent((prev) => ({ ...prev, avgSessionTime: Number(avgTime) }));
-      showMsg("Average Session Duration Updated!");
+      showMsg("Average session duration updated");
     } catch (err) {
       console.error(err);
     }
@@ -156,7 +157,7 @@ export default function AgentDashboard() {
             : "",
       }));
       if (state === "Available") setStatusMessage("");
-      showMsg(`Availability changed to: ${state}`);
+      showMsg(`Status changed to: ${state}`);
     } catch (err) {
       console.error(err);
     }
@@ -182,7 +183,7 @@ export default function AgentDashboard() {
       setNextSessionDate("");
       loadQueue();
       loadSummary();
-      showMsg("Customer visit completed!");
+      showMsg("Customer visit finalized!");
     } catch (err) {
       console.error(err);
     }
@@ -197,7 +198,7 @@ export default function AgentDashboard() {
       return;
     try {
       await api.put(`/queue/cancel/${customerId}`);
-      showMsg("Customer Visit Cancelled");
+      showMsg("Customer visit cancelled");
       loadQueue();
       loadSummary();
     } catch (err) {
@@ -211,542 +212,448 @@ export default function AgentDashboard() {
     setTimeout(() => setMsg(""), 3000);
   }
 
-  if (!agent) return <Loader />;
+  if (!agent) return <Loader message="Loading Agent Counter..." />;
 
   return (
-    <div className="w-full min-h-screen bg-neutral-950 text-white font-sans relative overflow-hidden transition-colors duration-300 selection:bg-brand-500/30">
-      {/* Ambient Background - Architect Ledger Mesh */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-brand-600/5 blur-[120px] rounded-full animate-pulse" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-info-600/5 blur-[120px] rounded-full animate-pulse delay-1000" />
-        <div className="absolute inset-0 opacity-[0.02] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] brightness-100 contrast-150" />
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-10 py-6 md:py-8 relative z-10">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 animate-fade-down">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 md:w-14 md:h-14 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center shadow-2xl backdrop-blur-xl transform -rotate-3">
-              <User className="w-6 h-6 md:w-8 md:h-8 text-brand-400" />
-            </div>
-            <div>
-              <div className="flex items-center gap-3 mb-1">
-                <h1 className="text-xl sm:text-3xl font-black tracking-tight text-white line-clamp-1 uppercase italic">
-                  Agent Dashboard
-                </h1>
-                <span
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border animate-pulse ${
-                    agent.availability === "Available"
-                      ? "bg-success-500/10 border-success-500/30 text-success-400"
-                      : "bg-danger-500/10 border-danger-500/30 text-danger-400"
-                  }`}
-                >
-                  {agent.availability}
-                </span>
+    <div className="w-full min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-slate-900 selection:text-white py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+        {/* Header Strip */}
+        <ScrollReveal direction="up" delay={50}>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-slate-900 text-white rounded-xl flex items-center justify-center shadow-sm">
+                <User className="w-6 h-6" />
               </div>
-              <p className="text-neutral-500 text-[11px] sm:text-sm font-bold uppercase tracking-wider">
-                {agent.name} <span className="mx-2 text-neutral-800">/</span>{" "}
-                {agent.serviceCategory || agent.serviceCategory}
-              </p>
+              <div>
+                <div className="flex items-center gap-3">
+                  <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                    Agent Counter
+                  </h1>
+                  <span
+                    className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                      agent.availability === "Available"
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                        : "bg-rose-50 text-rose-700 border border-rose-200"
+                    }`}
+                  >
+                    ● {agent.availability}
+                  </span>
+                </div>
+                <p className="text-xs font-semibold text-slate-500">
+                  {agent.name} • {agent.serviceCategory || "General Service Desk"}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={loadQueue}
+                className="btn-secondary-white p-2.5 text-xs"
+                title="Refresh Queue"
+              >
+                <RefreshCw className="w-4 h-4 text-slate-600" />
+              </button>
+              <button
+                onClick={() => router.push("/login")}
+                className="btn-secondary-white text-xs px-4 py-2.5 text-rose-600 border-rose-200 hover:bg-rose-50"
+              >
+                <Power className="w-3.5 h-3.5" /> End Shift
+              </button>
             </div>
           </div>
-
-          <div className="flex items-center gap-3 bg-white/5 p-1.5 rounded-2xl border border-white/10 backdrop-blur-md">
-            <button
-              onClick={loadQueue}
-              className="p-2.5 text-neutral-400 hover:text-white hover:bg-white/5 rounded-xl transition-all"
-            >
-              <RefreshCw className="w-4 h-4" />
-            </button>
-            <div className="h-6 w-px bg-white/10 mx-0.5" />
-            <button
-              onClick={() => router.push("/login")}
-              className="flex items-center gap-2.5 px-4 py-2 bg-danger-500/10 hover:bg-danger-500/20 text-danger-400 border border-danger-500/20 rounded-xl font-bold text-[11px] uppercase tracking-wider transition-all"
-            >
-              <Power className="w-3.5 h-3.5" /> End Shift
-            </button>
-          </div>
-        </div>
+        </ScrollReveal>
 
         {msg && (
-          <div className="mb-8 p-5 rounded-[2rem] bg-brand-500/10 border border-brand-500/30 text-brand-400 font-black uppercase tracking-widest animate-fade-up flex items-center gap-3 text-[10px] shadow-2xl backdrop-blur-xl">
-            <CheckCircle className="w-4 h-4" /> {msg}
+          <div className="mb-6 p-4 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center gap-2.5 shadow-md animate-fade-down">
+            <CheckCircle className="w-4 h-4 text-emerald-400" /> {msg}
           </div>
         )}
 
-        {/* Today's Summary Hub */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10 animate-fade-up delay-100">
-          {[
-            {
-              label: "Total Served",
-              value: summary?.completed ?? "00",
-              icon: <CheckCircle className="w-5 h-5 text-success-400" />,
-              color: "text-success-400 border-success-500/20 bg-success-500/5",
-            },
-            {
-              label: "In Queue",
-              value: (summary?.waiting ?? 0).toString().padStart(2, "0"),
-              icon: <Users className="w-5 h-5 text-brand-400" />,
-              color: "text-brand-400 border-brand-500/20 bg-brand-500/5",
-            },
-            {
-              label: "Avg Session",
-              value: summary?.avgConsultTime
-                ? `${summary.avgConsultTime.toString().padStart(2, "0")}m`
-                : "--",
-              icon: <Clock className="w-5 h-5 text-info-400" />,
-              color: "text-info-400 border-info-500/20 bg-info-500/5",
-            },
-            {
-              label: "Busiest Hr",
-              value: summary?.busiestHour ?? "--",
-              icon: <TrendingUp className="w-5 h-5 text-warning-400" />,
-              color: "text-warning-400 border-warning-500/20 bg-warning-500/5",
-            },
-          ].map(({ label, value, icon, color }) => (
-            <div
-              key={label}
-              className={`group relative bg-white/[0.03] border rounded-xl sm:rounded-2xl p-4 sm:p-6 transition-all hover:bg-white/[0.05] flex flex-col items-center text-center backdrop-blur-xl ${color}`}
-            >
-              <div className="absolute top-3 right-3 sm:top-5 sm:right-5 opacity-40 group-hover:opacity-100 transition-opacity">
-                {icon}
-              </div>
-              <span className="text-2xl sm:text-4xl font-black tracking-tighter mb-1 font-mono">
-                {value}
-              </span>
-              <p className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider text-neutral-400">
-                {label}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        <div className="grid lg:grid-cols-12 gap-10">
-          {/* Operational Settings */}
-          <div className="lg:col-span-4 space-y-8 animate-fade-up delay-200">
-            {/* Availability Command Center */}
-            <div className="bg-white/5 border border-white/10 rounded-[3rem] p-8 backdrop-blur-3xl shadow-2xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/5 blur-[60px] rounded-full pointer-events-none" />
-
-              <div className="flex items-center gap-3 mb-8">
-                <Activity className="w-5 h-5 text-brand-400" />
-                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-neutral-400">
-                  Queue Command
-                </h3>
-              </div>
-
-              <div className="space-y-4">
-                <button
-                  onClick={() => changeAvailability("Available")}
-                  className={`w-full py-5 rounded-2xl font-black text-xs uppercase tracking-widest border transition-all flex items-center justify-center gap-3 ${
-                    agent.availability === "Available"
-                      ? "border-success-500/50 bg-success-500/10 text-success-400 shadow-[0_0_30px_rgba(34,197,94,0.1)]"
-                      : "border-white/5 bg-white/5 text-neutral-600 hover:border-white/20"
-                  }`}
+        {/* Today's Summary Metrics */}
+        <ScrollReveal direction="up" delay={100}>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            {[
+              {
+                label: "Served Today",
+                value: summary?.completed ?? "0",
+                icon: CheckCircle,
+                textColor: "text-emerald-700",
+                bg: "bg-emerald-50/50 border-emerald-100",
+              },
+              {
+                label: "Currently Waiting",
+                value: queue.length,
+                icon: Users,
+                textColor: "text-slate-900",
+                bg: "bg-white border-slate-200",
+              },
+              {
+                label: "Avg Session",
+                value: summary?.avgConsultTime ? `${summary.avgConsultTime}m` : `${agent.avgSessionTime || 5}m`,
+                icon: Clock,
+                textColor: "text-slate-900",
+                bg: "bg-white border-slate-200",
+              },
+              {
+                label: "Busiest Window",
+                value: summary?.busiestHour ?? "11:00 AM",
+                icon: TrendingUp,
+                textColor: "text-slate-900",
+                bg: "bg-white border-slate-200",
+              },
+            ].map((stat, i) => {
+              const Icon = stat.icon;
+              return (
+                <div
+                  key={i}
+                  className={`p-5 rounded-2xl border shadow-sm flex flex-col justify-between ${stat.bg}`}
                 >
-                  <Activity className="w-4 h-4" /> Resumed
-                </button>
-                <button
-                  onClick={() => changeAvailability("Unavailable")}
-                  className={`w-full py-5 rounded-2xl font-black text-xs uppercase tracking-widest border transition-all flex items-center justify-center gap-3 ${
-                    agent.availability === "Unavailable" ||
-                    agent.availability === "Not Available"
-                      ? "border-danger-500/50 bg-danger-500/10 text-danger-400 shadow-[0_0_30px_rgba(239,68,68,0.1)]"
-                      : "border-white/5 bg-white/5 text-neutral-600 hover:border-white/20"
-                  }`}
-                >
-                  <Power className="w-4 h-4" /> Paused
-                </button>
-              </div>
-
-              {(agent.availability === "Unavailable" ||
-                agent.availability === "Not Available") && (
-                <div className="mt-8 pt-8 border-t border-white/5 animate-fade-down">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-neutral-600 mb-4 block ml-1">
-                    PA Announcement
-                  </label>
-                  <div className="flex flex-col gap-3">
-                    <input
-                      value={statusMessage}
-                      onChange={(e) => setStatusMessage(e.target.value)}
-                      placeholder="Estimated return time..."
-                      className="w-full px-5 py-4 rounded-xl bg-white/5 border border-white/5 text-white placeholder-neutral-700 focus:border-brand-500/50 outline-none transition-all text-sm font-bold"
-                    />
-
-                    <button
-                      onClick={() => changeAvailability("Unavailable")}
-                      className="w-full py-3.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-black text-[10px] uppercase tracking-widest transition-all active:scale-95"
-                    >
-                      Broadcast
-                    </button>
+                  <div className="flex items-center justify-between text-slate-400 mb-2">
+                    <span className="text-xs font-bold uppercase tracking-wider">
+                      {stat.label}
+                    </span>
+                    <Icon className="w-4 h-4 text-slate-500" />
+                  </div>
+                  <div className={`text-3xl font-black font-mono ${stat.textColor}`}>
+                    {stat.value}
                   </div>
                 </div>
-              )}
-            </div>
+              );
+            })}
+          </div>
+        </ScrollReveal>
 
-            {/* Flow Cadence */}
-            <div className="bg-white/5 border border-white/10 rounded-[3rem] p-8 backdrop-blur-3xl shadow-2xl relative overflow-hidden">
-              <div className="flex items-center gap-3 mb-8">
-                <Clock className="w-5 h-5 text-info-400" />
-                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-neutral-400">
-                  Session Timing
+        <div className="grid lg:grid-cols-12 gap-8">
+          {/* Controls & Configuration */}
+          <div className="lg:col-span-4 space-y-6">
+            <ScrollReveal direction="up" delay={150}>
+              {/* Availability Mode */}
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                <span className="eyebrow-tag mb-3">
+                  ← DESK AVAILABILITY
+                </span>
+                <h3 className="text-sm font-bold text-slate-900 mb-4">
+                  Counter Status
                 </h3>
-              </div>
-              <div className="bg-black/20 rounded-3xl p-6 border border-white/5 flex flex-col items-center text-center">
-                <div className="flex items-baseline gap-2 mb-6">
-                  <span className="text-5xl font-black font-mono text-brand-400">
-                    {agent.avgSessionTime || agent.avgSessionDuration || "05"}
-                  </span>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-neutral-600">
-                    min avg
-                  </span>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => changeAvailability("Available")}
+                    className={`py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 border transition-all ${
+                      agent.availability === "Available"
+                        ? "bg-slate-900 text-white border-slate-900 shadow-sm"
+                        : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                    }`}
+                  >
+                    <Activity className="w-4 h-4" /> Available
+                  </button>
+                  <button
+                    onClick={() => changeAvailability("Unavailable")}
+                    className={`py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 border transition-all ${
+                      agent.availability === "Unavailable" || agent.availability === "Not Available"
+                        ? "bg-rose-600 text-white border-rose-600 shadow-sm"
+                        : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                    }`}
+                  >
+                    <Power className="w-4 h-4" /> Paused
+                  </button>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-3 w-full">
+
+                {(agent.availability === "Unavailable" || agent.availability === "Not Available") && (
+                  <div className="mt-4 pt-4 border-t border-slate-100 space-y-2">
+                    <label className="text-xs font-bold text-slate-600">
+                      Pause Notice Message
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        value={statusMessage}
+                        onChange={(e) => setStatusMessage(e.target.value)}
+                        placeholder="Back in 10 minutes..."
+                        className="flex-1 bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl text-xs outline-none focus:border-slate-900"
+                      />
+                      <button
+                        onClick={() => changeAvailability("Unavailable")}
+                        className="btn-primary-obsidian text-xs px-3 py-2"
+                      >
+                        Update
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Timing Speed Setting */}
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm mt-6">
+                <span className="eyebrow-tag mb-3">
+                  ← SESSION CADENCE
+                </span>
+                <h3 className="text-sm font-bold text-slate-900 mb-4">
+                  Average Service Duration
+                </h3>
+
+                <div className="flex items-center gap-3">
                   <input
                     type="number"
                     min="1"
                     value={avgTime}
                     onChange={(e) => setAvgTime(e.target.value)}
-                    className="flex-1 px-4 py-3 rounded-xl text-center font-black text-white bg-white/5 border border-white/5 focus:border-brand-500/50 outline-none text-sm"
-                    placeholder="Min"
+                    className="w-24 bg-slate-50 border border-slate-200 px-3 py-2.5 rounded-xl text-center font-bold text-sm text-slate-900 outline-none focus:border-slate-900"
                   />
-
+                  <span className="text-xs text-slate-500 font-medium">Minutes</span>
                   <button
                     onClick={updateAvgTime}
-                    className="flex-[2] py-3 rounded-xl font-bold bg-white/10 hover:bg-white/20 text-white border border-white/10 transition-all text-[11px] uppercase tracking-wider active:scale-95"
+                    className="btn-primary-obsidian text-xs px-4 py-2.5 ml-auto"
                   >
-                    Save Timing
+                    Save
                   </button>
                 </div>
               </div>
-            </div>
-
-            {/* Profile Hub */}
-            <div className="bg-white/5 border border-white/10 rounded-[3.5rem] p-8 backdrop-blur-3xl">
-              <div className="space-y-4">
-                <div className="p-4 bg-white/5 border border-white/5 rounded-[2rem] flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-2xl bg-brand-500/10 flex items-center justify-center border border-brand-500/20">
-                    <Mail className="w-4 h-4 text-brand-400" />
-                  </div>
-                  <div className="flex-1 truncate">
-                    <p className="text-[9px] font-black uppercase tracking-widest text-neutral-500 mb-0.5 italic">
-                      Admin Email
-                    </p>
-                    <p className="text-xs font-bold text-neutral-300 truncate">
-                      {agent.email}
-                    </p>
-                  </div>
-                </div>
-                <div className="p-4 bg-white/5 border border-white/5 rounded-[2rem] flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-2xl bg-info-500/10 flex items-center justify-center border border-info-500/20">
-                    <Shield className="w-4 h-4 text-info-400" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-0.5 italic">
-                      Permissions
-                    </p>
-                    <p className="text-xs font-bold text-neutral-300">
-                      Advanced Agent
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            </ScrollReveal>
           </div>
 
-          {/* Live Stream Queue */}
-          <div className="lg:col-span-8 animate-fade-up delay-300">
-            <div className="bg-white/5 border border-white/10 rounded-[3.5rem] p-8 shadow-2xl backdrop-blur-3xl min-h-[600px] flex flex-col">
-              <div className="flex items-center justify-between mb-10 pb-6 border-b border-white/5">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-brand-500/10 border border-brand-500/30 rounded-2xl flex items-center justify-center text-brand-400">
-                    <Users className="w-6 h-6 animate-pulse" />
-                  </div>
+          {/* Live Stream Queue List */}
+          <div className="lg:col-span-8">
+            <ScrollReveal direction="up" delay={200}>
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm">
+                <div className="flex items-center justify-between pb-5 border-b border-slate-100 mb-6">
                   <div>
-                    <h3 className="text-xl font-black tracking-tight text-white uppercase italic">
-                      Live Customer Queue
+                    <span className="eyebrow-tag mb-1">
+                      ← LIVE QUEUE FEED
+                    </span>
+                    <h2 className="text-xl font-black text-slate-900 tracking-tight">
+                      Waiting Room Lineup
+                    </h2>
+                  </div>
+                  <span className="px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-xs font-bold">
+                    {queue.length} in line
+                  </span>
+                </div>
+
+                {queue.length === 0 ? (
+                  <div className="py-20 flex flex-col items-center justify-center text-center">
+                    <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-400 mb-4">
+                      <Users className="w-8 h-8" />
+                    </div>
+                    <h3 className="text-base font-bold text-slate-800">
+                      No visitors currently waiting
                     </h3>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-500">
-                      {queue.length} Waiting
+                    <p className="text-xs text-slate-500 mt-1">
+                      New check-ins will appear here automatically in real time.
                     </p>
                   </div>
-                </div>
-              </div>
-
-              {queue.length === 0 ? (
-                <div className="flex-1 flex flex-col items-center justify-center text-center">
-                  <div className="w-32 h-32 bg-white/5 rounded-[3rem] border border-white/5 flex items-center justify-center mb-6 animate-pulse">
-                    <Calendar className="w-12 h-12 text-neutral-800" />
-                  </div>
-                  <h4 className="text-xl font-black text-neutral-600">
-                    Pipeline Clear
-                  </h4>
-                  <p className="text-neutral-500 text-sm mt-1 max-w-[240px] font-medium">
-                    Ready for new arrivals.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-4 h-[600px] overflow-y-auto pr-2 custom-scrollbar">
-                  {queue.map((p, idx) => (
-                    <div
-                      key={p._id}
-                      className={`group relative flex items-center gap-3 sm:gap-6 p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2.5rem] border transition-all duration-500 ${
-                        idx === 0
-                          ? "bg-brand-600/10 border-brand-500/50 shadow-[0_0_50px_rgba(99,102,241,0.1)] translate-x-1 sm:translate-x-2"
-                          : "bg-white/[0.02] border-white/5 hover:bg-white/[0.05] hover:border-white/10 hover:translate-x-1"
-                      }`}
-                    >
-                      {/* Order Number */}
+                ) : (
+                  <div className="space-y-3">
+                    {queue.map((p, idx) => (
                       <div
-                        className={`w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-[1.5rem] flex items-center justify-center font-mono font-black text-xl md:text-2xl flex-shrink-0 relative overflow-hidden transition-transform duration-500 group-hover:scale-105 ${
+                        key={p._id}
+                        className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
                           idx === 0
-                            ? "bg-brand-600 text-white shadow-2xl shadow-brand-600/40"
-                            : "bg-white/5 text-neutral-400 border border-white/5"
+                            ? "bg-slate-900 text-white border-slate-900 shadow-md"
+                            : "bg-slate-50/70 border-slate-200 hover:border-slate-300 text-slate-900"
                         }`}
                       >
-                        {p.tokenNumber}
-                      </div>
-
-                      {/* Detailed Client Card */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex flex-col mb-1">
-                          <p className="text-base sm:text-lg font-black text-white truncate group-hover:text-brand-400 transition-colors uppercase tracking-tight">
-                            {p.clientName || p.name}
-                          </p>
-                          <p className="text-[7px] font-black uppercase tracking-[0.2em] text-neutral-500 italic">
-                            Assigned to: {agent.name}
-                          </p>
-                          {idx === 0 && (
-                            <span className="w-fit mt-1 px-1.5 py-0.5 bg-brand-500 text-white text-[7px] font-black uppercase tracking-[0.2em] rounded-md animate-bounce">
-                              Active
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2 sm:gap-4">
-                          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-neutral-400 bg-black/20 px-3 py-1 rounded-full outline outline-1 outline-white/5">
-                            <Clock className="w-3 h-3" />~
-                            {p.estimatedWait ??
-                              idx *
-                                (agent.avgSessionTime ||
-                                  agent.avgSessionDuration ||
-                                  5)}
-                            m Wait
-                          </div>
-                          {p.notes && (
-                            <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-info-400 bg-info-500/10 px-3 py-1 rounded-full outline outline-1 outline-info-500/20 max-w-[200px] truncate">
-                              <FileText className="w-3 h-3" />
-                              {p.notes}
+                        {/* Token & Visitor info */}
+                        <div className="flex items-center gap-4">
+                          <span
+                            className={`w-12 h-12 rounded-xl flex items-center justify-center font-mono font-black text-base ${
+                              idx === 0
+                                ? "bg-white text-slate-900 shadow-sm"
+                                : "bg-white border border-slate-200 text-slate-900"
+                            }`}
+                          >
+                            {p.tokenNumber}
+                          </span>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h4
+                                className={`text-sm font-bold ${
+                                  idx === 0 ? "text-white" : "text-slate-900"
+                                }`}
+                              >
+                                {p.clientName || p.name}
+                              </h4>
+                              {idx === 0 && (
+                                <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-black uppercase rounded-full">
+                                  Now Serving
+                                </span>
+                              )}
                             </div>
+                            <p
+                              className={`text-xs ${
+                                idx === 0 ? "text-slate-300" : "text-slate-500"
+                              }`}
+                            >
+                              Wait: ~
+                              {p.estimatedWait ??
+                                idx *
+                                  (agent.avgSessionTime ||
+                                    agent.avgSessionDuration ||
+                                    5)}{" "}
+                              mins {p.notes ? `• ${p.notes}` : ""}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-2">
+                          {idx > 0 && idx < 3 && (
+                            <button
+                              onClick={() => prioritiseCustomer(p._id)}
+                              className="p-2.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 transition-colors"
+                              title="Prioritize to Next"
+                            >
+                              <ArrowUp className="w-4 h-4" />
+                            </button>
                           )}
+                          {idx === 0 && (
+                            <button
+                              onClick={() => {
+                                setCompletingCustomer(p);
+                                setNextSessionDate("");
+                              }}
+                              className="px-4 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all"
+                            >
+                              <CheckCircle className="w-4 h-4" /> Complete Visit
+                            </button>
+                          )}
+                          <button
+                            onClick={() => cancelCustomer(p._id)}
+                            className={`p-2.5 rounded-lg border transition-colors ${
+                              idx === 0
+                                ? "border-slate-700 bg-slate-800 text-slate-300 hover:bg-rose-900 hover:text-white"
+                                : "border-slate-200 bg-white hover:bg-rose-50 text-slate-600 hover:text-rose-600"
+                            }`}
+                            title="Cancel"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
                         </div>
                       </div>
-
-                      {/* Precision Actions */}
-                      <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-                        {idx > 0 && idx < 3 && (
-                          <button
-                            onClick={() => prioritiseCustomer(p._id)}
-                            className="p-3.5 rounded-2xl border border-warning-500/30 bg-warning-500/10 text-warning-400 hover:bg-warning-500/20 transition-all active:scale-90"
-                            title="Prioritise Customer"
-                          >
-                            <ArrowUp className="w-5 h-5" />
-                          </button>
-                        )}
-                        {idx === 0 && (
-                          <button
-                            onClick={() => {
-                              setCompletingCustomer(p);
-                              setNextSessionDate("");
-                            }}
-                            className="flex items-center gap-2.5 px-3.5 sm:px-6 py-2.5 sm:py-3.5 rounded-xl sm:rounded-[1.5rem] bg-success-600 hover:bg-success-500 text-white font-black text-[10px] sm:text-xs uppercase tracking-widest shadow-2xl shadow-success-600/30 transition-all active:scale-95 group/btn"
-                          >
-                            <CheckCircle className="w-3.5 h-3.5 md:w-4 md:h-4 group-hover/btn:scale-110 transition-transform" />
-                            <span className="hidden sm:inline">Finalize</span>
-                            <span className="sm:hidden">Finalize</span>
-                          </button>
-                        )}
-                        <button
-                          onClick={() => cancelCustomer(p._id)}
-                          className="p-3.5 rounded-2xl border border-danger-500/30 bg-danger-500/10 text-danger-400 hover:bg-danger-500/20 transition-all active:scale-90"
-                          title="Cancel Visit"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </ScrollReveal>
           </div>
         </div>
 
-        {/* Upcoming Appointments — 7 Days */}
-        <div className="mt-12 bg-white/5 border border-white/10 rounded-[3.5rem] p-8 shadow-2xl backdrop-blur-3xl">
-          <div className="flex items-center justify-between mb-8 pb-6 border-b border-white/5">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-brand-500/10 border border-brand-500/30 rounded-2xl flex items-center justify-center text-brand-400">
-                <Calendar className="w-6 h-6" />
-              </div>
+        {/* Upcoming Appointments */}
+        <ScrollReveal direction="up" delay={250}>
+          <div className="mt-8 bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
               <div>
-                <h3 className="text-xl font-black tracking-tight text-white uppercase italic">
-                  Upcoming Appointments
+                <span className="eyebrow-tag mb-1">
+                  ← SCHEDULED SESSIONS
+                </span>
+                <h3 className="text-lg font-black text-slate-900">
+                  Upcoming Appointments (Next 7 Days)
                 </h3>
-                <p className="text-[11px] font-bold uppercase tracking-wider text-neutral-500">
-                  {appointments.length} in next 7 days
-                </p>
               </div>
+              <button
+                onClick={loadUpcomingAppointments}
+                className="btn-secondary-white p-2 text-xs"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+              </button>
             </div>
-            <button
-              onClick={loadUpcomingAppointments}
-              className="p-3 bg-white/5 border border-white/10 rounded-xl text-neutral-400 hover:text-white transition-all shadow-sm"
-            >
-              <RefreshCw className="w-4 h-4" />
-            </button>
-          </div>
 
-          {appointments.length === 0 ? (
-            <div className="py-20 flex flex-col items-center justify-center text-center opacity-40">
-              <Calendar className="w-12 h-12 text-neutral-500 mb-4" />
-              <p className="text-xs font-black uppercase tracking-widest">
-                No scheduled data for this cycle
+            {appointments.length === 0 ? (
+              <p className="text-center py-8 text-xs text-slate-500 font-medium">
+                No upcoming appointments scheduled.
               </p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto custom-scrollbar">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-white/5 text-neutral-500 text-[10px] uppercase font-black tracking-[0.4em]">
-                    <th className="p-4 rounded-tl-2xl">Date Cycle</th>
-                    <th className="p-4">Time Code</th>
-                    <th className="p-4">Client Label</th>
-                    <th className="p-4 hidden sm:table-cell">Contact</th>
-                    <th className="p-4 hidden md:table-cell">Protocol Notes</th>
-                    <th className="p-4 rounded-tr-2xl">State</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {appointments.map((appt) => {
-                    const dt = new Date(appt.scheduledAt);
-                    return (
-                      <tr
-                        key={appt._id}
-                        className="hover:bg-white/[0.03] transition-colors group"
-                      >
-                        <td className="p-4">
-                          <span className="font-black text-neutral-300 text-xs tracking-tight">
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                      <th className="pb-3">Date</th>
+                      <th className="pb-3">Time</th>
+                      <th className="pb-3">Client Name</th>
+                      <th className="pb-3">Contact</th>
+                      <th className="pb-3">Notes</th>
+                      <th className="pb-3">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {appointments.map((appt) => {
+                      const dt = new Date(appt.scheduledAt);
+                      return (
+                        <tr key={appt._id} className="hover:bg-slate-50/60">
+                          <td className="py-3 font-semibold text-slate-900">
                             {dt.toLocaleDateString([], {
                               weekday: "short",
                               month: "short",
                               day: "numeric",
                             })}
-                          </span>
-                        </td>
-                        <td className="p-4">
-                          <span className="font-mono font-black text-brand-400 bg-brand-500/10 px-3 py-1.5 rounded-lg border border-brand-500/20 text-xs">
+                          </td>
+                          <td className="py-3 font-mono text-slate-600">
                             {dt.toLocaleTimeString([], {
                               hour: "2-digit",
                               minute: "2-digit",
                             })}
-                          </span>
-                        </td>
-                        <td className="p-4">
-                          <p className="font-black text-white text-sm tracking-tight uppercase group-hover:text-brand-400 transition-colors italic">
+                          </td>
+                          <td className="py-3 font-bold text-slate-900">
                             {appt.clientName || appt.customerName}
-                          </p>
-                        </td>
-                        <td className="p-4 hidden sm:table-cell">
-                          <div className="flex items-center gap-2 text-neutral-500 text-[10px] font-black uppercase tracking-widest">
-                            <Smartphone className="w-3.5 h-3.5" />
+                          </td>
+                          <td className="py-3 text-slate-600 font-mono">
                             {appt.clientPhone || appt.phone || "—"}
-                          </div>
-                        </td>
-                        <td className="p-4 hidden md:table-cell">
-                          {appt.notes ? (
-                            <span className="px-3 py-1 bg-info-500/10 border border-info-500/20 text-info-400 rounded-full text-[10px] font-black uppercase tracking-widest">
-                              {appt.notes}
+                          </td>
+                          <td className="py-3 text-slate-500 max-w-xs truncate">
+                            {appt.notes || "—"}
+                          </td>
+                          <td className="py-3">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
+                              {appt.status}
                             </span>
-                          ) : (
-                            <span className="text-neutral-700 text-xs">
-                              N/A
-                            </span>
-                          )}
-                        </td>
-                        <td className="p-4">
-                          <span
-                            className={`px-2.5 py-1 text-[9px] uppercase tracking-[0.2em] font-black rounded-md border ${
-                              appt.status === "arrived"
-                                ? "bg-success-500/10 border-success-500/20 text-success-400"
-                                : "bg-indigo-500/10 border-indigo-200/20 text-indigo-400"
-                            }`}
-                          >
-                            {appt.status}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </ScrollReveal>
       </div>
 
-      {/* Commit Visit Overlay */}
+      {/* Complete Visit Modal */}
       {completingCustomer && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-neutral-950/80 backdrop-blur-3xl animate-fadeIn">
-          <div className="bg-neutral-900 w-full max-w-lg rounded-[4rem] shadow-[0_0_100px_rgba(0,0,0,0.5)] border border-white/10 overflow-hidden relative">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-brand-500 to-transparent" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-xl border border-slate-200 p-6 sm:p-8 animate-scale-in">
+            <h3 className="text-xl font-black text-slate-900 mb-1">
+              Finalize Visit
+            </h3>
+            <p className="text-xs text-slate-500 mb-6">
+              Completing service for: <span className="font-bold text-slate-900">{completingCustomer.clientName || completingCustomer.name}</span>
+            </p>
 
-            <div className="px-10 py-10 flex flex-col items-center text-center">
-              <div className="w-24 h-24 bg-brand-500/10 rounded-[2.5rem] border border-brand-500/20 flex items-center justify-center mb-8">
-                <Activity className="w-10 h-10 text-brand-400" />
-              </div>
+            <div className="space-y-4 mb-6">
+              <label className="text-xs font-bold text-slate-700 block">
+                Schedule Follow-up Return Date (Optional)
+              </label>
+              <input
+                type="date"
+                min={new Date().toISOString().split("T")[0]}
+                value={nextSessionDate}
+                onChange={(e) => setNextSessionDate(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm outline-none focus:border-slate-900"
+              />
+            </div>
 
-              <h2 className="text-3xl font-black text-white mb-2 tracking-tight uppercase italic">
+            <div className="flex gap-3">
+              <button
+                onClick={() => setCompletingCustomer(null)}
+                className="btn-secondary-white flex-1 py-3 text-xs font-bold"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCompleteCustomer}
+                className="btn-primary-obsidian flex-1 py-3 text-xs font-bold"
+              >
                 Complete Visit
-              </h2>
-              <p className="text-neutral-400 font-black uppercase tracking-widest text-[10px] mb-10">
-                Customer:{" "}
-                <span className="text-brand-400 italic">
-                  {completingCustomer.clientName || completingCustomer.name}
-                </span>
-              </p>
-
-              <div className="w-full space-y-6 text-left">
-                <div className="space-y-3">
-                  <label className="text-[10px] font-black uppercase tracking-[0.3em] text-neutral-500 ml-5 block italic">
-                    Scheduled Return
-                  </label>
-                  <input
-                    type="date"
-                    min={new Date().toISOString().split("T")[0]}
-                    value={nextSessionDate}
-                    onChange={(e) => setNextSessionDate(e.target.value)}
-                    className="w-full px-6 py-4 rounded-[1.5rem] bg-white/5 border border-white/10 text-white font-bold focus:border-brand-500/50 outline-none transition-all"
-                  />
-
-                  <p className="text-[10px] font-black italic text-neutral-500 px-5 text-center">
-                    System will auto-dispatch alerts 24h prior.
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 w-full mt-12">
-                <button
-                  onClick={() => setCompletingCustomer(null)}
-                  className="px-8 py-4 rounded-2xl bg-white/5 border border-white/5 text-neutral-500 font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all font-mono"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleCompleteCustomer}
-                  className="px-8 py-4 rounded-2xl bg-success-600 hover:bg-success-500 text-white font-black text-[10px] uppercase tracking-widest shadow-2xl shadow-success-600/20 transition-all flex items-center justify-center gap-3"
-                >
-                  <CheckCircle className="w-4 h-4" /> Finalize
-                </button>
-              </div>
+              </button>
             </div>
           </div>
         </div>
