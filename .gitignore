@@ -2,10 +2,12 @@
 DOCS/
 node_modules/
 .env
-.env*.local
+.env*
+.env.local
+.env.*.local
+*.log
 .next/
 out/
 build/
 dist/
 coverage/
-*.log

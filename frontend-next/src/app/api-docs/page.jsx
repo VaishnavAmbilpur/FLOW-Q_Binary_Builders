@@ -39,7 +39,8 @@ export default function ApiDocsPage() {
     setIsProvisioning(true);
     setProvisionError(null);
     try {
-      const res = await fetch("http://localhost:5000/api/v2/demo/provision", {
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
+      const res = await fetch(`${baseUrl}/v2/demo/provision`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });

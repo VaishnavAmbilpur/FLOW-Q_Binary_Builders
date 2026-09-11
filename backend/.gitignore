@@ -1,3 +1,6 @@
+.env*
 .env
 /node_modules
-/coverage
+/coverage
+*.log
+
