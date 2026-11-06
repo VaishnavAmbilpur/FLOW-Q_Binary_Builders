@@ -122,7 +122,27 @@ flowchart TD
 
 ---
 
-## 5. Developer Quick Start
+## 5. Key Engineering Decisions (Resume Deep Dive)
+
+* **Multi-Tenant QaaS Platform with Zero-Install QR Check-ins & Live Position Tracking:**
+  * *What:* A customer scans a QR code. The QR code opens a web page in the customer's mobile browser. The customer does not install an app. The system adds the customer to the queue. The system gives the customer a unique link (`/status/[uuid]`). That link shows the customer's live position number. It also shows the estimated wait time. The system updates both values in real time using WebSockets.
+  * *Why:* An app install stops many customers from joining. A web-only flow removes that barrier. Live position data lets customers wait away from the physical location. This reduces crowding at the venue.
+
+* **Secure B2B REST API (JWT Auth, Idempotency Checks, Zod Validation, HMAC-SHA256 Webhooks):**
+  * *What:* An external merchant sends requests to a versioned REST API (`/v2/`). The system checks a JWT access token or a bcrypt-hashed API key on each request. Each write request must include an `Idempotency-Key` header. The system checks that key against MongoDB. If the key already exists, the system does not create a duplicate entry. The system also checks each request body against a Zod schema. When the queue state changes, the system builds a payload. The system signs the payload with HMAC-SHA256. The system then sends that payload to the merchant's webhook URL.
+  * *Why:* JWT removes the need for a database read on every request. The idempotency check stops duplicate entries caused by network retries. Zod rejects bad data before it reaches the database. The HMAC signature lets the merchant verify that the event came from Flow-Q and was not changed in transit.
+
+* **Persistent WebSockets for Sub-100ms UI Updates & In-Memory PII Decryption Before Public Display Masking:**
+  * *What:* Socket.io keeps a persistent TCP connection open for each client. The system groups clients by `organizationId` into named rooms. When a queue entry changes state (join, call, serve, or cancel), the system emits an event to that room. All connected dashboards and status pages update immediately. The system stores customer PII (name, phone number) as AES-encrypted data in MongoDB. When the system serves the public kiosk display, it decrypts the records in memory. It then runs the data through a `piiFilter`. The filter masks the output (for example, `J*** D**`) before the system sends it to the client.
+  * *Why:* Persistent sockets remove the need for HTTP polling. This keeps state updates under 100ms. In-memory decryption means plain-text PII is never stored or sent to the public display. Customer data stays protected while the kiosk still shows a usable queue view.
+
+* **Staff Admin Console with Zustand State Management & Nested MongoDB Document Schemas:**
+  * *What:* The staff dashboard runs in Next.js. It uses Zustand as the client-side state store. When a Socket.io event arrives, it updates the Zustand store directly. React re-renders the affected components. No prop drilling is needed. No extra API calls are made. On the database side, the system stores location details and service settings as nested subdocuments inside the parent `Organization` document. The system does not store them in separate collections.
+  * *Why:* Zustand connects to socket event handlers with minimal code. It keeps the UI reactive without the setup cost of Redux. Nested subdocuments remove the need for `$lookup` joins on every read. This lowers query time on the high-traffic check-in and dashboard routes.
+
+---
+
+## 6. Developer Quick Start
 
 * **Prerequisites:** Node.js (v18+), MongoDB.
 
